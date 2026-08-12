@@ -58,12 +58,22 @@ import com.foobnix.pdf.search.view.ProgressTask;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.adapter.EntryAdapter;
+import com.foobnix.ui2.adapter.NetworkRootAdapter;
 import com.foobnix.ui2.fast.FastScrollRecyclerView;
+import com.foobnix.webdav.AddWebDavDialog;
+import com.foobnix.webdav.WebDavAdapter;
+import com.foobnix.webdav.WebDavClient;
+import com.foobnix.webdav.WebDavCredentials;
+import com.foobnix.webdav.WebDavItem;
+import com.foobnix.webdav.WebDavServer;
+import com.foobnix.webdav.WebDavStore;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,12 +94,20 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     String urlRoot = "";
     String title;
     Stack<String> stack = new Stack<String>();
-    ImageView onPlus, onProxy;
-    View pathContainer, view1, view2;
+    View pathContainer;
     long enqueue;
-    TextView defaults, faq;
     ImageView starIcon;
     boolean isNeedLoginPassword = false;
+
+    // WebDAV browse mode, folded into this Network page (own storage,
+    // credentials and client from the com.foobnix.webdav package).
+    boolean webDavMode = false;
+    boolean authFailed = false;
+    String currentServerUrl = "";
+    List<WebDavItem> webDavItems = new ArrayList<WebDavItem>();
+    List<WebDavItem> rootWebDavItems = new ArrayList<WebDavItem>();
+    WebDavAdapter webDavAdapter;
+    NetworkRootAdapter networkRootAdapter;
 
     public OpdsFragment2() {
         super();
@@ -156,20 +174,20 @@ public class OpdsFragment2 extends UIFragment<Entry> {
         recyclerView = (FastScrollRecyclerView) view.findViewById(R.id.recyclerView);
 
         titleView = (TextView) view.findViewById(R.id.titleView);
-        onPlus = (ImageView) view.findViewById(R.id.onPlus);
-        onProxy = (ImageView) view.findViewById(R.id.onProxy);
         starIcon = (ImageView) view.findViewById(R.id.starIcon);
         pathContainer = view.findViewById(R.id.pathContainer);
-        view1 = view.findViewById(R.id.view1);
-        view2 = view.findViewById(R.id.view2);
         MyProgressBar = (MyProgressBar) view.findViewById(R.id.MyProgressBarOPDS);
         MyProgressBar.setVisibility(View.GONE);
         TintUtil.setDrawableTint(MyProgressBar.getIndeterminateDrawable().getCurrent(), Color.WHITE);
 
-        onPlus.setOnClickListener(new OnClickListener() {
+        searchAdapter = new EntryAdapter();
+        webDavAdapter = new WebDavAdapter();
+
+        networkRootAdapter = new NetworkRootAdapter(searchAdapter, webDavAdapter);
+        networkRootAdapter.setOnAddOpds(new Runnable() {
 
             @Override
-            public void onClick(View v) {
+            public void run() {
                 AddCatalogDialog.showDialog(getActivity(), new Runnable() {
 
                     @Override
@@ -179,15 +197,30 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                 }, null, true);
             }
         });
-
-        searchAdapter = new EntryAdapter();
-
-        defaults = (TextView) view.findViewById(R.id.defaults);
-        faq = (TextView) view.findViewById(R.id.faq);
-        defaults.setOnClickListener(new OnClickListener() {
+        networkRootAdapter.setOnAddWebDav(new Runnable() {
 
             @Override
-            public void onClick(View v) {
+            public void run() {
+                AddWebDavDialog.showDialog(getActivity(), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        populate();
+                    }
+                }, null);
+            }
+        });
+        networkRootAdapter.setOnOpdsSettings(new Runnable() {
+
+            @Override
+            public void run() {
+                showProxySettings();
+            }
+        });
+        networkRootAdapter.setOnRestoreDefaults(new Runnable() {
+
+            @Override
+            public void run() {
                 AlertDialogs.showOkDialog(getActivity(), getActivity().getString(R.string.restore_defaults_full), new Runnable() {
 
                     @Override
@@ -200,12 +233,60 @@ public class OpdsFragment2 extends UIFragment<Entry> {
 
             }
         });
-        faq.setOnClickListener(new OnClickListener() {
+        networkRootAdapter.setOnOpenFaq(new Runnable() {
 
             @Override
-            public void onClick(View v) {
+            public void run() {
                 Urls.open(getActivity(), "https://wiki.mobileread.com/wiki/OPDS");
 
+            }
+        });
+
+        webDavAdapter.setOnClick(new ResultResponse<WebDavItem>() {
+
+            @Override
+            public boolean onResultRecive(WebDavItem item) {
+                onClickWebDav(item);
+                return false;
+            }
+        });
+        webDavAdapter.setOnLongClick(new ResultResponse<WebDavItem>() {
+
+            @Override
+            public boolean onResultRecive(WebDavItem item) {
+                if (isRoot() && item.isServer) {
+                    WebDavServer srv = new WebDavServer(item.href, item.name);
+                    srv.appState = item.appState;
+                    AddWebDavDialog.showDialog(getActivity(), new Runnable() {
+
+                        @Override
+                        public void run() {
+                            populate();
+                        }
+                    }, srv);
+                }
+                return true;
+            }
+        });
+        webDavAdapter.setOnRemove(new ResultResponse<WebDavItem>() {
+
+            @Override
+            public boolean onResultRecive(final WebDavItem item) {
+                if (!isRoot() || !item.isServer) {
+                    return false;
+                }
+                AlertDialogs.showDialog(getActivity(), getActivity().getString(R.string.do_you_want_to_delete_) + " " + item.name, getString(R.string.delete), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        WebDavServer srv = new WebDavServer(item.href, item.name);
+                        srv.appState = item.appState;
+                        WebDavStore.remove(srv);
+                        WebDavCredentials.clear(getContext(), item.href);
+                        populate();
+                    }
+                });
+                return false;
             }
         });
 
@@ -321,6 +402,9 @@ public class OpdsFragment2 extends UIFragment<Entry> {
             @Override
             public void onClick(View v) {
                 stack.clear();
+                webDavMode = false;
+                authFailed = false;
+                currentServerUrl = "";
                 url = getHome();
                 LOG.d("URLAction", "ADD", url);
                 urlRoot = "";
@@ -344,164 +428,164 @@ public class OpdsFragment2 extends UIFragment<Entry> {
             }
         });
 
-        onProxy.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                ADS.hideAdsTemp(getActivity());
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                View view = LayoutInflater.from(v.getContext()).inflate(R.layout.dialog_proxy_server, null, false);
-
-                final CheckBox proxyEnable = (CheckBox) view.findViewById(R.id.proxyEnable);
-                final CheckBox opdsLargeCovers = (CheckBox) view.findViewById(R.id.opdsLargeCovers);
-                final CheckBox createBookNameFolder = (CheckBox) view.findViewById(R.id.createBookNameFolder);
-                final EditText proxyServer = (EditText) view.findViewById(R.id.proxyServer);
-                final EditText proxyPort = (EditText) view.findViewById(R.id.proxyPort);
-                final EditText proxyUser = (EditText) view.findViewById(R.id.proxyUser);
-                final EditText proxyPassword = (EditText) view.findViewById(R.id.proxyPassword);
-
-                final TextView proxyType = (TextView) view.findViewById(R.id.proxyType);
-
-                TintUtil.setBackgroundFillColor(view.findViewById(R.id.section1), TintUtil.color);
-                TintUtil.setBackgroundFillColor(view.findViewById(R.id.section2), TintUtil.color);
-
-                proxyEnable.setChecked(AppState.get().proxyEnable);
-                proxyServer.setText(AppState.get().proxyServer);
-                proxyPort.setText(AppState.get().proxyPort == 0 ? "" : "" + AppState.get().proxyPort);
-                proxyUser.setText(AppState.get().proxyUser);
-                proxyPassword.setText(AppState.get().proxyPassword);
-
-                proxyEnable.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) {
-                            if (TxtUtils.isEmpty(proxyServer.getText().toString())) {
-                                proxyServer.requestFocus();
-                                proxyEnable.setChecked(false);
-                                Toast.makeText(getContext(), R.string.incorrect_value, Toast.LENGTH_SHORT).show();
-                            } else if ("0".equals(proxyPort.getText().toString()) || TxtUtils.isEmpty(proxyPort.getText().toString())) {
-                                proxyPort.requestFocus();
-                                proxyEnable.setChecked(false);
-                                Toast.makeText(getContext(), R.string.incorrect_value, Toast.LENGTH_SHORT).show();
-                            }
-                        }
-
-                    }
-                });
-
-                TxtUtils.underline(proxyType, AppState.get().proxyType);
-
-                proxyType.setOnClickListener(new OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        PopupMenu menu = new PopupMenu(v.getContext(), v);
-                        menu.getMenu().add(AppState.PROXY_HTTP).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                AppState.get().proxyType = AppState.PROXY_HTTP;
-                                TxtUtils.underline(proxyType, AppState.get().proxyType);
-                                return false;
-                            }
-                        });
-                        menu.getMenu().add(AppState.PROXY_SOCKS).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                AppState.get().proxyType = AppState.PROXY_SOCKS;
-                                TxtUtils.underline(proxyType, AppState.get().proxyType);
-                                return false;
-                            }
-                        });
-                        menu.show();
-                    }
-                });
-
-                builder.setPositiveButton(R.string.apply, new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        AppState.get().proxyEnable = proxyEnable.isChecked();
-                        AppState.get().proxyServer = proxyServer.getText().toString();
-
-                        try {
-                            AppState.get().proxyPort = Integer.parseInt(proxyPort.getText().toString());
-                            if (AppState.get().proxyPort >= 65535) {
-                                AppState.get().proxyPort = 0;
-                                proxyUser.setText("0");
-                            }
-                        } catch (Exception e) {
-                            AppState.get().proxyPort = 0;
-                        }
-
-                        AppState.get().proxyUser = proxyUser.getText().toString().trim();
-                        AppState.get().proxyPassword = proxyPassword.getText().toString().trim();
-
-                        OPDS.buildProxy();
-
-                        AppProfile.save(getActivity());
-                        Keyboards.close(proxyServer);
-
-                    }
-                });
-
-                builder.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-
-                opdsLargeCovers.setChecked(AppState.get().opdsLargeCovers);
-                opdsLargeCovers.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        AppState.get().opdsLargeCovers = isChecked;
-                    }
-                });
-
-                createBookNameFolder.setChecked(AppState.get().createBookNameFolder);
-                createBookNameFolder.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        AppState.get().createBookNameFolder = isChecked;
-                    }
-                });
-
-                final TextView downlodsPath = (TextView) view.findViewById(R.id.downlodsPath);
-                TxtUtils.underline(downlodsPath, TxtUtils.lastTwoPath(BookCSS.get().downlodsPath));
-                downlodsPath.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View v) {
-                        ChooserDialogFragment.chooseFolder(getActivity(), BookCSS.get().downlodsPath).setOnSelectListener(new ResultResponse2<String, Dialog>() {
-                            @Override
-                            public boolean onResultRecive(String nPath, Dialog dialog) {
-                                BookCSS.get().downlodsPath = nPath;
-                                TxtUtils.underline(downlodsPath, TxtUtils.lastTwoPath(BookCSS.get().downlodsPath));
-                                dialog.dismiss();
-                                return false;
-                            }
-                        });
-                    }
-                });
-
-                builder.setView(view);
-                builder.show();
-
-            }
-        });
         OPDS.buildProxy();
 
         populate();
         onTintChanged();
 
         return view;
+    }
+
+    /**
+     * OPDS / proxy settings dialog. Lives in the OPDS sub-item of the Network
+     * root view (was the gear button in the old top bar).
+     */
+    private void showProxySettings() {
+        ADS.hideAdsTemp(getActivity());
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_proxy_server, null, false);
+
+        final CheckBox proxyEnable = (CheckBox) view.findViewById(R.id.proxyEnable);
+        final CheckBox opdsLargeCovers = (CheckBox) view.findViewById(R.id.opdsLargeCovers);
+        final CheckBox createBookNameFolder = (CheckBox) view.findViewById(R.id.createBookNameFolder);
+        final EditText proxyServer = (EditText) view.findViewById(R.id.proxyServer);
+        final EditText proxyPort = (EditText) view.findViewById(R.id.proxyPort);
+        final EditText proxyUser = (EditText) view.findViewById(R.id.proxyUser);
+        final EditText proxyPassword = (EditText) view.findViewById(R.id.proxyPassword);
+
+        final TextView proxyType = (TextView) view.findViewById(R.id.proxyType);
+
+        TintUtil.setBackgroundFillColor(view.findViewById(R.id.section1), TintUtil.color);
+        TintUtil.setBackgroundFillColor(view.findViewById(R.id.section2), TintUtil.color);
+
+        proxyEnable.setChecked(AppState.get().proxyEnable);
+        proxyServer.setText(AppState.get().proxyServer);
+        proxyPort.setText(AppState.get().proxyPort == 0 ? "" : "" + AppState.get().proxyPort);
+        proxyUser.setText(AppState.get().proxyUser);
+        proxyPassword.setText(AppState.get().proxyPassword);
+
+        proxyEnable.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if (TxtUtils.isEmpty(proxyServer.getText().toString())) {
+                        proxyServer.requestFocus();
+                        proxyEnable.setChecked(false);
+                        Toast.makeText(getContext(), R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                    } else if ("0".equals(proxyPort.getText().toString()) || TxtUtils.isEmpty(proxyPort.getText().toString())) {
+                        proxyPort.requestFocus();
+                        proxyEnable.setChecked(false);
+                        Toast.makeText(getContext(), R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+            }
+        });
+
+        TxtUtils.underline(proxyType, AppState.get().proxyType);
+
+        proxyType.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                PopupMenu menu = new PopupMenu(v.getContext(), v);
+                menu.getMenu().add(AppState.PROXY_HTTP).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        AppState.get().proxyType = AppState.PROXY_HTTP;
+                        TxtUtils.underline(proxyType, AppState.get().proxyType);
+                        return false;
+                    }
+                });
+                menu.getMenu().add(AppState.PROXY_SOCKS).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        AppState.get().proxyType = AppState.PROXY_SOCKS;
+                        TxtUtils.underline(proxyType, AppState.get().proxyType);
+                        return false;
+                    }
+                });
+                menu.show();
+            }
+        });
+
+        builder.setPositiveButton(R.string.apply, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AppState.get().proxyEnable = proxyEnable.isChecked();
+                AppState.get().proxyServer = proxyServer.getText().toString();
+
+                try {
+                    AppState.get().proxyPort = Integer.parseInt(proxyPort.getText().toString());
+                    if (AppState.get().proxyPort >= 65535) {
+                        AppState.get().proxyPort = 0;
+                        proxyUser.setText("0");
+                    }
+                } catch (Exception e) {
+                    AppState.get().proxyPort = 0;
+                }
+
+                AppState.get().proxyUser = proxyUser.getText().toString().trim();
+                AppState.get().proxyPassword = proxyPassword.getText().toString().trim();
+
+                OPDS.buildProxy();
+
+                AppProfile.save(getActivity());
+                Keyboards.close(proxyServer);
+
+            }
+        });
+
+        builder.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        opdsLargeCovers.setChecked(AppState.get().opdsLargeCovers);
+        opdsLargeCovers.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                AppState.get().opdsLargeCovers = isChecked;
+            }
+        });
+
+        createBookNameFolder.setChecked(AppState.get().createBookNameFolder);
+        createBookNameFolder.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                AppState.get().createBookNameFolder = isChecked;
+            }
+        });
+
+        final TextView downlodsPath = (TextView) view.findViewById(R.id.downlodsPath);
+        TxtUtils.underline(downlodsPath, TxtUtils.lastTwoPath(BookCSS.get().downlodsPath));
+        downlodsPath.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(final View v) {
+                ChooserDialogFragment.chooseFolder(getActivity(), BookCSS.get().downlodsPath).setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                    @Override
+                    public boolean onResultRecive(String nPath, Dialog dialog) {
+                        BookCSS.get().downlodsPath = nPath;
+                        TxtUtils.underline(downlodsPath, TxtUtils.lastTwoPath(BookCSS.get().downlodsPath));
+                        dialog.dismiss();
+                        return false;
+                    }
+                });
+            }
+        });
+
+        builder.setView(view);
+        builder.show();
     }
 
     public boolean onBackAction() {
@@ -513,6 +597,14 @@ public class OpdsFragment2 extends UIFragment<Entry> {
 
         if (last.equals(url)) {
             last = popStack();// two times
+        }
+        if (webDavMode && getHome().equals(last)) {
+            // back to the combined root view of the Network page
+            webDavMode = false;
+            url = last;
+            stack.push(url);
+            populate();
+            return res;
         }
         url = last;
         stack.push(url);
@@ -693,6 +785,112 @@ public class OpdsFragment2 extends UIFragment<Entry> {
         }
     }
 
+    public boolean isRoot() {
+        return "/".equals(url) && !webDavMode;
+    }
+
+    public void onClickWebDav(WebDavItem item) {
+        if (isRoot()) {
+            currentServerUrl = item.href;
+            webDavMode = true;
+            url = item.href;
+            stack.push(url);
+            populate();
+        } else if (item.isDir) {
+            url = item.href;
+            stack.push(url);
+            populate();
+        } else {
+            downloadWebDav(item);
+        }
+    }
+
+    public void downloadWebDav(final WebDavItem item) {
+        if (isInProgress()) {
+            Toast.makeText(getContext(), R.string.please_wait, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        AlertDialogs.showDialog(getActivity(), item.name, getActivity().getString(R.string.download), new Runnable() {
+            String bookPath;
+
+            @Override
+            public void run() {
+                MyProgressBar.setVisibility(View.VISIBLE);
+                new ProgressTask<>() {
+                    @Override
+                    public Context getContext() {
+                        return OpdsFragment2.this.getContext();
+                    }
+
+                    @Override
+                    protected Object doInBackground(Object... params) {
+                        try {
+                            WebDavServer srv = WebDavStore.findForUrl(currentServerUrl);
+                            String login = "", password = "";
+                            if (srv != null) {
+                                String[] creds = WebDavCredentials.load(getContext(), srv.url);
+                                if (creds != null) {
+                                    login = creds[0];
+                                    password = creds[1];
+                                }
+                            }
+
+                            InputStream in = WebDavClient.openStream(item.href, login, password);
+                            File dir = new File(BookCSS.get().downlodsPath);
+                            if (!dir.exists()) {
+                                dir.mkdirs();
+                            }
+                            String fileName = TxtUtils.fixFileName(item.name);
+                            if (TxtUtils.isEmpty(fileName)) {
+                                String ext = ExtUtils.getFileExtension(item.href).replace(".", "");
+                                fileName = item.href.hashCode() + (TxtUtils.isEmpty(ext) ? "" : "." + ext);
+                            }
+                            File file = new File(dir, fileName);
+                            file.delete();
+
+                            OutputStream out = new FileOutputStream(file);
+                            byte[] buf = new byte[16 * 1024];
+                            int n;
+                            while ((n = in.read(buf)) != -1) {
+                                out.write(buf, 0, n);
+                            }
+                            out.close();
+                            in.close();
+                            bookPath = file.getPath();
+                        } catch (Exception e) {
+                            LOG.e(e);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Object result) {
+                        MyProgressBar.setVisibility(View.GONE);
+                        if ((Boolean) result == false) {
+                            Toast.makeText(getContext(), R.string.loading_error, Toast.LENGTH_LONG).show();
+                        } else {
+                            FileMeta meta = AppDB.get().getOrCreate(bookPath);
+                            meta.setIsSearchBook(true);
+                            AppDB.get().save(meta);
+                            TempHolder.listHash++;
+                            ExtUtils.openFile(getActivity(), meta);
+                        }
+                    }
+                }.execute();
+            }
+        });
+    }
+
+    private static String decodeName(String href) {
+        String last = WebDavClient.lastName(href);
+        try {
+            return URLDecoder.decode(last, "UTF-8");
+        } catch (Exception e) {
+            return last;
+        }
+    }
+
     public void clearEmpty() {
         if (ExtUtils.isExteralSD(BookCSS.get().downlodsPath)) {
             searchAdapter.notifyDataSetChanged();
@@ -723,9 +921,36 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     @Override
     public List<Entry> prepareDataInBackground() {
         try {
-            LOG.d("OPDS URL", url);
+            LOG.d("OPDS URL", url, "webDavMode", webDavMode);
+            if (webDavMode) {
+                WebDavServer srv = WebDavStore.findForUrl(url);
+                String login = "", password = "";
+                if (srv != null) {
+                    currentServerUrl = srv.url;
+                    String[] creds = WebDavCredentials.load(getContext(), srv.url);
+                    if (creds != null) {
+                        login = creds[0];
+                        password = creds[1];
+                    }
+                }
+                List<WebDavItem> items = WebDavClient.list(url, login, password);
+                if (items == null) {
+                    authFailed = true;
+                    webDavItems = new ArrayList<WebDavItem>();
+                    return Collections.emptyList();
+                }
+                webDavItems = items;
+                title = srv != null ? srv.title : decodeName(url);
+                return Collections.emptyList();
+            }
             if ("/".equals(url)) {
-                title = getString(R.string.catalogs);
+                title = getString(R.string.network);
+                rootWebDavItems = new ArrayList<WebDavItem>();
+                for (WebDavServer s : WebDavStore.load()) {
+                    WebDavItem item = new WebDavItem(s.url, s.title, true);
+                    item.appState = s.appState;
+                    rootWebDavItems.add(item);
+                }
                 return allCatalogs = getAllCatalogs();
             }
 
@@ -812,15 +1037,34 @@ public class OpdsFragment2 extends UIFragment<Entry> {
 
     @Override
     public void populateDataInUI(List<Entry> entries) {
+        if (webDavMode) {
+            if (authFailed) {
+                authFailed = false;
+                Toast.makeText(getContext(), R.string.webdav_auth_failed, Toast.LENGTH_LONG).show();
+            }
+            webDavAdapter.setItems(webDavItems);
+            recyclerView.setAdapter(webDavAdapter);
+            if (title != null) {
+                titleView.setText("" + title.replaceAll("[\n\r\t ]+", " ").trim());
+            }
+            starIcon.setVisibility(View.GONE);
+            return;
+        }
+        if ("/".equals(url)) {
+            // combined root view: OPDS + WebDAV sub-items
+            networkRootAdapter.setOpdsEntries(entries);
+            networkRootAdapter.setWebDavServers(rootWebDavItems);
+            recyclerView.setAdapter(networkRootAdapter);
+            titleView.setText(getString(R.string.network));
+            starIcon.setVisibility(View.GONE);
+            return;
+        }
         if (isNeedLoginPassword) {
             AddCatalogDialog.showDialogLogin(getActivity(), url, () -> populate());
             return;
         }
 
         if (entries == null || entries.isEmpty()) {
-            if ("/".equals(url)) {
-                return;
-            }
             Urls.openWevView(getActivity(), url, new Runnable() {
 
                 @Override
@@ -839,14 +1083,8 @@ public class OpdsFragment2 extends UIFragment<Entry> {
         if (title != null) {
             titleView.setText("" + title.replaceAll("[\n\r\t ]+", " ").trim());
         }
-        int isHomeVisible = url == "/" ? View.VISIBLE : View.GONE;
-        onPlus.setVisibility(isHomeVisible);
-        defaults.setVisibility(isHomeVisible);
-        faq.setVisibility(isHomeVisible);
-        onProxy.setVisibility(isHomeVisible);
-        view1.setVisibility(isHomeVisible);
 
-        starIcon.setVisibility(url == "/" ? View.GONE : View.VISIBLE);
+        starIcon.setVisibility(View.VISIBLE);
         for (Entry cat : allCatalogs) {
             if (url.equals(cat.homeUrl)) {
                 starIcon.setVisibility(View.GONE);
@@ -863,13 +1101,19 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     }
 
     public void onGridList() {
-        if (searchAdapter == null) {
+        if (searchAdapter == null || webDavAdapter == null || networkRootAdapter == null) {
             return;
         }
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setAdapter(searchAdapter);
+        if (webDavMode) {
+            recyclerView.setAdapter(webDavAdapter);
+        } else if (isRoot()) {
+            recyclerView.setAdapter(networkRootAdapter);
+        } else {
+            recyclerView.setAdapter(searchAdapter);
+        }
 
     }
 
@@ -886,7 +1130,12 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     public void notifyFragment() {
         if (searchAdapter != null) {
             searchAdapter.notifyDataSetChanged();
-            // populate();
+        }
+        if (webDavAdapter != null) {
+            webDavAdapter.notifyDataSetChanged();
+        }
+        if (networkRootAdapter != null) {
+            networkRootAdapter.notifyDataSetChanged();
         }
     }
 

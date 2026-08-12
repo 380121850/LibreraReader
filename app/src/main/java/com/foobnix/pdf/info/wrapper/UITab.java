@@ -76,8 +76,28 @@ public enum UITab {
                 int id = Integer.valueOf(tab[0]);
                 boolean isVisible = tab[1].equals("1");
                 UITab byIndex = getByIndex(id);
+                if (byIndex.index != id) {
+                    // Tab removed from the app (e.g. WebDAV was folded into the
+                    // Network page); skip stale entries left in saved orders.
+                    continue;
+                }
                 byIndex.setVisible(isVisible);
                 list.add(byIndex);
+            }
+            // Tabs added in newer app versions are missing from the saved
+            // order; append them so new tabs (e.g. WebDAV) appear even on
+            // existing installs. Their constructor default decides visibility.
+            for (UITab tab : values()) {
+                boolean exists = false;
+                for (UITab t : list) {
+                    if (t.index == tab.index) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    list.add(tab);
+                }
             }
             return list;
         }

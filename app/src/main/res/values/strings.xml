@@ -689,4 +689,11 @@
    <string name="scan_for_new_books_at_launch">Scan for new books at launch</string>
    <string name="show_contrast_and_brightness_button">Show Contrast and Brightness button</string>
    <string name="text_and_background_color">Text and Background Color</string>
+   <string name="webdav">WebDAV</string>
+   <string name="opds">OPDS</string>
+   <string name="add_webdav_server">Add WebDAV server</string>
+   <string name="add_anyway">Add anyway</string>
+   <string name="webdav_auth_failed">Authentication failed. Check the server address, login and password</string>
+   <string name="webdav_login">Login</string>
+   <string name="webdav_url">WebDAV URL</string>
 </resources>

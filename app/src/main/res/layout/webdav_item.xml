@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="4dip">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="@dimen/wh_button"
+        android:layout_height="@dimen/wh_button"
+        android:contentDescription="@string/webdav"
+        android:padding="6dip"
+        android:src="@drawable/glyphicons_145_folder_open"
+        android:tint="@color/tint_gray" />
+
+    <LinearLayout
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/panel_padding"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/lt_grey_dima"
+            android:textSize="@dimen/text_subtitle" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/remove"
+        android:layout_width="@dimen/wh_button"
+        android:layout_height="@dimen/wh_button"
+        android:contentDescription="@string/delete"
+        android:padding="8dip"
+        android:src="@drawable/glyphicons_599_menu_close"
+        android:tint="@color/tint_gray" />
+
+</LinearLayout>

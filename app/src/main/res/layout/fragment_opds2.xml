@@ -61,22 +61,6 @@
             android:layout_weight="0" />
 
         <View
-            android:id="@+id/view1"
-            android:layout_width="1dip"
-            android:layout_height="match_parent"
-            android:background="@color/tint_divider" />
-
-        <ImageView
-            android:id="@+id/onProxy"
-            style="@style/buttonWhite"
-            android:layout_width="@dimen/wh_button"
-            android:layout_height="@dimen/wh_button"
-            android:layout_weight="0"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/glyphicons_137_cogwheel" />
-
-        <View
-            android:id="@+id/view2"
             android:layout_width="1dip"
             android:layout_height="match_parent"
             android:background="@color/tint_divider" />
@@ -89,21 +73,6 @@
             android:layout_weight="0"
             android:contentDescription="@string/cd_back_to_all_catalogs"
             android:src="@drawable/glyphicons_21_home" />
-
-        <View
-            android:layout_width="1dip"
-            android:layout_height="match_parent"
-            android:background="@color/tint_divider" />
-
-        <ImageView
-            android:id="@+id/onPlus"
-            style="@style/buttonWhite"
-            android:layout_width="@dimen/wh_button"
-            android:layout_height="@dimen/wh_button"
-            android:layout_weight="0"
-            android:padding="6dip"
-            android:contentDescription="@string/cd_add_new_opds_catalog"
-            android:src="@drawable/glyphicons_371_plus" />
     </LinearLayout>
 
     <FrameLayout
@@ -118,23 +87,5 @@
             android:padding="4dip" >
         </com.foobnix.ui2.fast.FastScrollRecyclerView>
     </FrameLayout>
-
-    <TextView
-        android:id="@+id/defaults"
-        style="@style/textLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="2dip"
-        android:text="@string/restore_defaults_short"
-        android:textSize="12sp" />
-
-    <TextView
-        android:id="@+id/faq"
-        style="@style/textLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="2dip"
-        android:text="@string/what_is_the_opds_online_catalog_"
-        android:textSize="12sp" />
 
 </LinearLayout>

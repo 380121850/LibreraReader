@@ -289,6 +289,16 @@ android {
     }
 }
 
+// sardine-android brings okhttp 4.x transitively; this app pins okhttp 3.12.6
+// ("app not compatible with new versions"). Sardine only uses the stable public
+// okhttp API (Response/Request/OkHttpClient/Interceptor/Authenticator), so force
+// the app-wide okhttp version back to 3.12.6.
+configurations.configureEach {
+    resolutionStrategy {
+        force 'com.squareup.okhttp3:okhttp:3.12.6'
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     proImplementation project(':libPro')
@@ -321,6 +331,11 @@ dependencies {
     implementation(libs.okhttp3)
     implementation(libs.okhttp.digest)
     implementation(libs.okio.parent)
+    implementation(libs.sardine.android) {
+        exclude(module: 'xpp3')
+        exclude(group: 'stax', module: 'stax-api')
+        exclude(group: 'stax', module: 'stax')
+    }
 
 
 

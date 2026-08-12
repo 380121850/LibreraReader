@@ -689,4 +689,11 @@
    <string name="scan_for_new_books_at_launch">發表會上掃描即可查看新書。</string>
    <string name="show_contrast_and_brightness_button">顯示對比度和亮度按鈕</string>
    <string name="text_and_background_color">文字和背景顏色</string>
+   <string name="webdav">WebDAV</string>
+   <string name="opds">OPDS</string>
+   <string name="add_webdav_server">新增 WebDAV 伺服器</string>
+   <string name="add_anyway">仍要新增</string>
+   <string name="webdav_auth_failed">認證失敗,請檢查伺服器位址和帳號密碼</string>
+   <string name="webdav_login">帳號</string>
+   <string name="webdav_url">WebDAV 位址</string>
 </resources>
