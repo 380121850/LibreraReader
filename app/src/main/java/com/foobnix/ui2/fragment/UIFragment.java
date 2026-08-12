@@ -137,6 +137,15 @@ public abstract class UIFragment<T> extends Fragment {
 
     }
 
+    /**
+     * Fired when the user taps the tab icon of the currently-active page
+     * (a single-tap reselect). Default does nothing; pages that want a
+     * "tap active tab to go home" behaviour override this.
+     */
+    public void onTabReselect() {
+
+    }
+
     public final void onSelectFragment() {
         if (getActivity() == null) {
             return;

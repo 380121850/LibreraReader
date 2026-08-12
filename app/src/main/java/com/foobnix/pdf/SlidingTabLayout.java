@@ -62,6 +62,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     private final SlidingTabStrip mTabStrip;
     SwipeRefreshLayout swipeRefreshLayout;
     IntegerResponse onDoubleClickAction;
+    IntegerResponse onTabReselect;
     private int mTitleOffset;
 
     private int mTabViewLayoutId;
@@ -99,6 +100,10 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
     public void setOnDoubleClickAction(IntegerResponse onDoubleClickAction) {
         this.onDoubleClickAction = onDoubleClickAction;
+    }
+
+    public void setOnTabReselect(IntegerResponse onTabReselect) {
+        this.onTabReselect = onTabReselect;
     }
 
     public void init() {
@@ -463,7 +468,14 @@ public class SlidingTabLayout extends HorizontalScrollView {
         public void onClick(View v) {
             for (int i = 0; i < getmTabStrip().getChildCount(); i++) {
                 if (v == getmTabStrip().getChildAt(i)) {
-                    mViewPager.setCurrentItem(i, AppState.get().appTheme != AppState.THEME_INK);
+                    if (i == mViewPager.getCurrentItem() && onTabReselect != null) {
+                        // Tapping the already-active tab is a no-op for the
+                        // ViewPager, so route it to a reselect hook that lets
+                        // the page reset to its home (e.g. Network -> root).
+                        onTabReselect.onResultRecive(i);
+                    } else {
+                        mViewPager.setCurrentItem(i, AppState.get().appTheme != AppState.THEME_INK);
+                    }
                     return;
                 }
             }

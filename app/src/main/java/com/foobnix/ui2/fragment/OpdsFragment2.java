@@ -1174,6 +1174,26 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     }
 
     @Override
+    public void onTabReselect() {
+        // Single-tap of the already-active Network tab while deep inside an
+        // OPDS feed or a WebDAV folder jumps back to the Network root,
+        // mirroring the onHome button. The ViewPager makes a tap on the
+        // already-active tab a no-op, so SlidingTabLayout routes such a tap
+        // to this reselect hook instead.
+        if (isInProgress()) {
+            return;
+        }
+        stack.clear();
+        webDavMode = false;
+        authFailed = false;
+        webDavLoadFailed = false;
+        currentServerUrl = "";
+        url = getHome();
+        urlRoot = "";
+        populate();
+    }
+
+    @Override
     public void notifyFragment() {
         if (searchAdapter != null) {
             searchAdapter.notifyDataSetChanged();

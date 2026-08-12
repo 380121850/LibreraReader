@@ -543,6 +543,16 @@ public class MainTabs2 extends AdsFragmentActivity {
             return false;
         });
 
+        indicator.setOnTabReselect(index -> {
+            try {
+                tabFragments.get(index).onTabReselect();
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+
+            return false;
+        });
+
         if (AppState.get().appTheme == AppState.THEME_INK) {
             TintUtil.setTintImageNoAlpha(imageMenu, TintUtil.color);
             indicator.setSelectedIndicatorColors(TintUtil.color);
