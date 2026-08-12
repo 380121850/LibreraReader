@@ -727,6 +727,35 @@ public class AppState {
                 LOG.e(e);
             }
 
+            // WebDAV tab was folded into the Network page (OpdsFragment2). On
+            // upgrades from builds that still had the standalone WebDAV tab
+            // (index 8), strip the stale "8#x" entry and make the Network page
+            // (index 5) visible so WebDAV stays reachable. Idempotent: once
+            // "8#" is gone this never fires again, so a user who later hides
+            // the Network page is respected.
+            try {
+                String order = AppState.get().tabsOrder9;
+                if (TxtUtils.isNotEmpty(order) && order.contains("8#")) {
+                    StringBuilder rebuilt = new StringBuilder();
+                    for (String pair : order.split(",")) {
+                        if (pair.startsWith("8#")) {
+                            continue;
+                        }
+                        if ("5#0".equals(pair)) {
+                            pair = "5#1";
+                        }
+                        if (rebuilt.length() > 0) {
+                            rebuilt.append(",");
+                        }
+                        rebuilt.append(pair);
+                    }
+                    AppState.get().tabsOrder9 = rebuilt.toString();
+                    LOG.d("migration", "webdav-merge tabsOrder9:", AppState.get().tabsOrder9);
+                }
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+
             isLoaded = true;
         }
 

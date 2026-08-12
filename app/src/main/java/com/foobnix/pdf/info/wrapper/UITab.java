@@ -72,17 +72,26 @@ public enum UITab {
             LOG.d("getOrdered", input);
             List<UITab> list = new ArrayList<UITab>();
             for (String pair : input.split(",")) {
-                String[] tab = pair.split("#");
-                int id = Integer.valueOf(tab[0]);
-                boolean isVisible = tab[1].equals("1");
-                UITab byIndex = getByIndex(id);
-                if (byIndex.index != id) {
-                    // Tab removed from the app (e.g. WebDAV was folded into the
-                    // Network page); skip stale entries left in saved orders.
-                    continue;
+                try {
+                    String[] tab = pair.split("#");
+                    if (tab.length < 2) {
+                        continue;
+                    }
+                    int id = Integer.valueOf(tab[0]);
+                    boolean isVisible = tab[1].equals("1");
+                    UITab byIndex = getByIndex(id);
+                    if (byIndex.index != id) {
+                        // Tab removed from the app (e.g. WebDAV was folded into the
+                        // Network page); skip stale entries left in saved orders.
+                        continue;
+                    }
+                    byIndex.setVisible(isVisible);
+                    list.add(byIndex);
+                } catch (Exception e) {
+                    // Skip a malformed pair (bad id, missing '#', ...) instead
+                    // of letting the whole tab order fail.
+                    LOG.d("UITab", "skip malformed tab pair:", pair);
                 }
-                byIndex.setVisible(isVisible);
-                list.add(byIndex);
             }
             // Tabs added in newer app versions are missing from the saved
             // order; append them so new tabs (e.g. WebDAV) appear even on

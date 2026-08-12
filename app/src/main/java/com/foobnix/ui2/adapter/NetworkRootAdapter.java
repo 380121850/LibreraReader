@@ -45,6 +45,19 @@ public class NetworkRootAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public NetworkRootAdapter(EntryAdapter entryAdapter, WebDavAdapter webDavAdapter) {
         this.entryAdapter = entryAdapter;
         this.webDavAdapter = webDavAdapter;
+        // Forward data changes from the delegated child adapters (including
+        // future notifyItemRemoved/Changed calls) to this root adapter so the
+        // combined list stays consistent. We use a full notifyDataSetChanged
+        // because section offsets shift as the entry/server counts change.
+        RecyclerView.AdapterDataObserver forwarder = new RecyclerView.AdapterDataObserver() {
+            @Override public void onChanged() { notifyDataSetChanged(); }
+            @Override public void onItemRangeChanged(int positionStart, int itemCount) { notifyDataSetChanged(); }
+            @Override public void onItemRangeInserted(int positionStart, int itemCount) { notifyDataSetChanged(); }
+            @Override public void onItemRangeRemoved(int positionStart, int itemCount) { notifyDataSetChanged(); }
+            @Override public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) { notifyDataSetChanged(); }
+        };
+        entryAdapter.registerAdapterDataObserver(forwarder);
+        webDavAdapter.registerAdapterDataObserver(forwarder);
     }
 
     public void setOnAddOpds(Runnable onAddOpds) {
@@ -68,14 +81,20 @@ public class NetworkRootAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public void setOpdsEntries(List<Entry> entries) {
-        entryAdapter.clearItems();
-        entryAdapter.getItemsList().addAll(entries);
+        // Replace in place instead of EntryAdapter.clearItems(): clearItems()
+        // fires the child's own notifyDataSetChanged, which the forwarding
+        // observer registered in the constructor would turn into a second
+        // root refresh. Mutating the backing list directly avoids that.
+        List<Entry> list = entryAdapter.getItemsList();
+        list.clear();
+        list.addAll(entries);
         notifyDataSetChanged();
     }
 
     public void setWebDavServers(List<WebDavItem> servers) {
+        // setItems() fires the child's notifyDataSetChanged, which the
+        // forwarding observer turns into a root refresh - no extra notify here.
         webDavAdapter.setItems(servers);
-        notifyDataSetChanged();
     }
 
     @Override

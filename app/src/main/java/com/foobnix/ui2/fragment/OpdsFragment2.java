@@ -103,6 +103,7 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     // credentials and client from the com.foobnix.webdav package).
     boolean webDavMode = false;
     boolean authFailed = false;
+    boolean webDavLoadFailed = false;
     String currentServerUrl = "";
     List<WebDavItem> webDavItems = new ArrayList<WebDavItem>();
     List<WebDavItem> rootWebDavItems = new ArrayList<WebDavItem>();
@@ -601,6 +602,9 @@ public class OpdsFragment2 extends UIFragment<Entry> {
         if (webDavMode && getHome().equals(last)) {
             // back to the combined root view of the Network page
             webDavMode = false;
+            authFailed = false;
+            webDavLoadFailed = false;
+            currentServerUrl = "";
             url = last;
             stack.push(url);
             populate();
@@ -822,8 +826,12 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                         return OpdsFragment2.this.getContext();
                     }
 
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                     @Override
                     protected Object doInBackground(Object... params) {
+                        InputStream in = null;
+                        OutputStream out = null;
+                        File file = null;
                         try {
                             WebDavServer srv = WebDavStore.findForUrl(currentServerUrl);
                             String login = "", password = "";
@@ -835,38 +843,71 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                                 }
                             }
 
-                            InputStream in = WebDavClient.openStream(item.href, login, password);
-                            File dir = new File(BookCSS.get().downlodsPath);
-                            if (!dir.exists()) {
-                                dir.mkdirs();
-                            }
+                            in = WebDavClient.openStream(item.href, login, password);
+
                             String fileName = TxtUtils.fixFileName(item.name);
                             if (TxtUtils.isEmpty(fileName)) {
                                 String ext = ExtUtils.getFileExtension(item.href).replace(".", "");
                                 fileName = item.href.hashCode() + (TxtUtils.isEmpty(ext) ? "" : "." + ext);
                             }
-                            File file = new File(dir, fileName);
-                            file.delete();
 
-                            OutputStream out = new FileOutputStream(file);
+                            if (ExtUtils.isExteralSD(BookCSS.get().downlodsPath)) {
+                                // External/removable SD card: write through SAF
+                                // (same path as OPDS downloads in onClickLink).
+                                String mimeType = ExtUtils.getMimeType(fileName);
+                                Uri baseUri = Uri.parse(BookCSS.get().downlodsPath);
+                                Uri childrenUri = ExtUtils.getChildUri(getContext(), baseUri);
+                                Uri docUri = DocumentsContract.createDocument(
+                                        getActivity().getContentResolver(), childrenUri, mimeType, fileName);
+                                out = getActivity().getContentResolver().openOutputStream(docUri);
+                                bookPath = docUri.toString();
+                            } else {
+                                File dir = new File(BookCSS.get().downlodsPath);
+                                if (!dir.exists()) {
+                                    dir.mkdirs();
+                                }
+                                file = new File(dir, fileName);
+                                file.delete();
+                                out = new FileOutputStream(file);
+                                bookPath = file.getPath();
+                            }
+
                             byte[] buf = new byte[16 * 1024];
                             int n;
                             while ((n = in.read(buf)) != -1) {
                                 out.write(buf, 0, n);
                             }
-                            out.close();
-                            in.close();
-                            bookPath = file.getPath();
+                            return true;
                         } catch (Exception e) {
                             LOG.e(e);
+                            // Remove a partial file so failed retries don't
+                            // accumulate bad data on disk.
+                            if (file != null) {
+                                file.delete();
+                            }
                             return false;
+                        } finally {
+                            try {
+                                if (in != null) {
+                                    in.close();
+                                }
+                            } catch (Exception ignored) {
+                            }
+                            try {
+                                if (out != null) {
+                                    out.close();
+                                }
+                            } catch (Exception ignored) {
+                            }
                         }
-                        return true;
                     }
 
                     @Override
                     protected void onPostExecute(Object result) {
                         MyProgressBar.setVisibility(View.GONE);
+                        if (!isAdded()) {
+                            return;
+                        }
                         if ((Boolean) result == false) {
                             Toast.makeText(getContext(), R.string.loading_error, Toast.LENGTH_LONG).show();
                         } else {
@@ -935,10 +976,13 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                 }
                 List<WebDavItem> items = WebDavClient.list(url, login, password);
                 if (items == null) {
-                    authFailed = true;
+                    authFailed = WebDavClient.lastErrorWasAuth;
+                    webDavLoadFailed = true;
                     webDavItems = new ArrayList<WebDavItem>();
                     return Collections.emptyList();
                 }
+                authFailed = false;
+                webDavLoadFailed = false;
                 webDavItems = items;
                 title = srv != null ? srv.title : decodeName(url);
                 return Collections.emptyList();
@@ -1041,6 +1085,9 @@ public class OpdsFragment2 extends UIFragment<Entry> {
             if (authFailed) {
                 authFailed = false;
                 Toast.makeText(getContext(), R.string.webdav_auth_failed, Toast.LENGTH_LONG).show();
+            } else if (webDavLoadFailed) {
+                webDavLoadFailed = false;
+                Toast.makeText(getContext(), R.string.loading_error, Toast.LENGTH_LONG).show();
             }
             webDavAdapter.setItems(webDavItems);
             recyclerView.setAdapter(webDavAdapter);

@@ -91,4 +91,60 @@
 - Ubuntu 远程构建:fdroid Debug + librera Debug BUILD OK(各 5 个 APK)
 - grep 验证:webdav 包无 opds import;`WebDavFragment2`/`fragment_webdav`/`onProxy`/`onPlus` 无残留引用
 
+## [2026-08-12] WebDAV 并入「网络」页 — 代码检视修复 11 项
+
+对 WebDAV 并入网络页改动做代码检视后发现并修复 11 处问题(高 3 / 中 2 / 低 6),全部通过 fdroid + librera Debug 构建验证。
+
+### 一、高优先级
+
+| BUG | 文件 | 修复 |
+| --- | --- | --- |
+| 老用户升级后网络页隐藏、WebDAV 无入口 | `AppState.java` | `loadInit()` 加幂等迁移:`tabsOrder9` 含 `8#`(旧 WebDAV 标签残留)时剥离,并把 `5#0`→`5#1`(网络页可见);无 `8#` 后不再触发,尊重用户后续手动隐藏 |
+| downloadWebDav 流泄漏 | `OpdsFragment2.java` | `doInBackground` 改 `finally` 关闭 InputStream/OutputStream |
+| downloadWebDav 失败时部分文件残留 | `OpdsFragment2.java` | catch 块加 `file.delete()` |
+
+### 二、中优先级
+
+| BUG | 文件 | 修复 |
+| --- | --- | --- |
+| WebDAV 错误提示误导(认证/网络混淆) | `WebDavClient.java` / `OpdsFragment2.java` | `list()` 失败时用 `lastErrorWasAuth` 区分 401/403 与其它;`OpdsFragment2` 加 `webDavLoadFailed` 字段,分别提示「认证失败」/「网络错误」 |
+| downloadWebDav 不支持外置 SD 卡 | `OpdsFragment2.java` | 加 `isExteralSD` 分支,走 `DocumentsContract`/SAF(与 OPDS 的 `onClickLink` 一致) |
+
+### 三、低优先级
+
+| BUG | 文件 | 修复 |
+| --- | --- | --- |
+| WebDavStore 并发数据竞争 | `WebDavStore.java` | `load/findForUrl/add/remove` 统一 `synchronized(LOCK)` |
+| URI.resolve 对「相对 href + 无尾斜杠 base」丢路径段 | `WebDavClient.java` | `resolve()` 给 base 补尾斜杠 |
+| NetworkRootAdapter 子 adapter notify 不同步 | `NetworkRootAdapter.java` | 构造时注册子 adapter 的 `AdapterDataObserver` 转发到 root;`setOpdsEntries` 改为直接操作 list 避免双 notify |
+| onBackAction WebDAV→根分支状态未重置 | `OpdsFragment2.java` | 补 `authFailed`/`webDavLoadFailed`/`currentServerUrl` 重置(与 `onHome` 一致) |
+| UITab.getOrdered 对脏数据无防御 | `UITab.java` | 循环体加 try/catch + `tab.length` 检查跳过坏 pair |
+| downloadWebDav onPostExecute 无 isAdded 防护 | `OpdsFragment2.java` | 加 `if (!isAdded()) return;`(在关进度条之后) |
+
+### 四、验证
+
+- Ubuntu 远程构建:fdroid Debug + librera Debug BUILD OK(各 5 个 APK,2026-08-12 22:11/22:13)
+- 改动文件纯 LF 行尾;webdav 包零 opds import(隔离性不变)
+
+## [2026-08-12] 修复 librera 等含广告 flavor 启动即崩(AdMob App ID 为空)
+
+### 根因
+
+含广告的 flavor(librera/pdf_v2/ebooka/tts_reader/pdf_classic/epub_reader)依赖 `libDepFree` → `play-services-ads 25.4.0`,其 `MobileAdsInitProvider`(ContentProvider,在 `Application.onCreate()` **之前**启动)校验 manifest 的 `com.google.android.gms.ads.APPLICATION_ID`。该值来自 `admobAppId` 占位符,而 `gradle.properties` 未配 `*_admobAppId`,默认空字符串 → SDK 抛 fatal `IllegalStateException` → 应用启动即崩。
+
+fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无 `MobileAdsInitProvider`);pro 只依赖 `libDepPro`(不含 ads)。
+
+### 修复
+
+`app/build.gradle`:新增 4 个 Google 官方公开测试 AdMob ID 常量([测试广告文档](https://developers.google.com/admob/android/test-ads)),作为 6 个含广告 flavor 的 `admobAppId`/`admobBannerId`/`admobFullId`/`admobRewardId` 默认值(原 `?: ''` → `?: sampleAdmobXxx`)。
+
+- 开发时(未配 gradle.properties):用测试 ID,应用正常启动,AdMob 初始化显示测试广告
+- 上线时:在 `~/.gradle/gradle.properties` 配 `librera_admobAppId=真实ID` 等即自动覆盖
+- 测试 App ID `ca-app-pub-3940256099942544~3347511713` 是 Google 官方公开值,不会产生真实广告收入
+
+### 验证
+
+- librera Debug BUILD OK(5 APK,2026-08-12 22:29)
+- merged manifest 确认 `APPLICATION_ID="ca-app-pub-3940256099942544~3347511713"`(不再是空)
+
 

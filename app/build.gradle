@@ -106,6 +106,18 @@ android {
         }
     }
 
+    // Google's official sample AdMob IDs
+    // (https://developers.google.com/admob/android/test-ads). Used as defaults
+    // so ad-enabled flavors can launch without a real AdMob account; override
+    // with real IDs via ~/.gradle/gradle.properties (e.g. librera_admobAppId=...).
+    // Without a valid APPLICATION_ID the AdMob MobileAdsInitProvider (a
+    // ContentProvider that runs before Application.onCreate) throws a fatal
+    // IllegalStateException and the app cannot start.
+    def sampleAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
+    def sampleAdmobBanner = 'ca-app-pub-3940256099942544/6300978111'
+    def sampleAdmobFull = 'ca-app-pub-3940256099942544/1033173712'
+    def sampleAdmobReward = 'ca-app-pub-3940256099942544/5224354917'
+
     flavorDimensions.add("version")
     productFlavors {
         fdroid {
@@ -133,10 +145,10 @@ android {
                     appIcon      : "@mipmap/icon_pdf_reader",
                     appRoundIcon : "@mipmap/icon_pdf_reader",
                     appGdriveKey : project.findProperty('librera_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('librera_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('librera_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('librera_admobFullId') ?: '',
-                    admobRewardId  : project.findProperty('librera_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('librera_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('librera_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('librera_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId  : project.findProperty('librera_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "false"
             ]
         }
@@ -164,10 +176,10 @@ android {
                     appIcon      : "@mipmap/icon_pdf_classic",
                     appRoundIcon : "@mipmap/launcher_classic",
                     appGdriveKey : project.findProperty('pdf_classic_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('pdf_classic_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('pdf_classic_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('pdf_classic_admobFullId') ?: '',
-                    admobRewardId: project.findProperty('pdf_classic_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('pdf_classic_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('pdf_classic_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('pdf_classic_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId: project.findProperty('pdf_classic_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "true"
             ]
         }
@@ -179,10 +191,10 @@ android {
                     appIcon      : "@mipmap/icon_pdf_droid",
                     appRoundIcon : "@mipmap/launcher_droid",
                     appGdriveKey : project.findProperty('ebooka_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('ebooka_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('ebooka_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('ebooka_admobFullId') ?: '',
-                    admobRewardId: project.findProperty('ebooka_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('ebooka_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('ebooka_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('ebooka_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId: project.findProperty('ebooka_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "false"
             ]
         }
@@ -194,10 +206,10 @@ android {
                     appIcon      : "@mipmap/icon_pdf_2",
                     appRoundIcon : "@mipmap/launcher_pdf_v2",
                     appGdriveKey : project.findProperty('pdf_v2_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('pdf_v2_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('pdf_v2_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('pdf_v2_admobFullId') ?: '',
-                    admobRewardId: project.findProperty('pdf_v2_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('pdf_v2_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('pdf_v2_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('pdf_v2_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId: project.findProperty('pdf_v2_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "false"
             ]
         }
@@ -209,10 +221,10 @@ android {
                     appIcon      : "@mipmap/icon_tts_reader_app",
                     appRoundIcon : "@mipmap/launcher_tts_reader_app",
                     appGdriveKey : project.findProperty('tts_reader_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('tts_reader_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('tts_reader_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('tts_reader_admobFullId') ?: '',
-                    admobRewardId: project.findProperty('tts_reader_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('tts_reader_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('tts_reader_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('tts_reader_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId: project.findProperty('tts_reader_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "false"
             ]
         }
@@ -224,10 +236,10 @@ android {
                     appIcon      : "@mipmap/icon_epub_reader",
                     appRoundIcon : "@mipmap/launcher_epub_reader",
                     appGdriveKey : project.findProperty('epub_reader_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('epub_reader_admobAppId') ?: '',
-                    admobBannerId: project.findProperty('epub_reader_admobBannerId') ?: '',
-                    admobFullId  : project.findProperty('epub_reader_admobFullId') ?: '',
-                    admobRewardId: project.findProperty('epub_reader_admobRewardId') ?: '',
+                    admobAppId   : project.findProperty('epub_reader_admobAppId') ?: sampleAdmobAppId,
+                    admobBannerId: project.findProperty('epub_reader_admobBannerId') ?: sampleAdmobBanner,
+                    admobFullId  : project.findProperty('epub_reader_admobFullId') ?: sampleAdmobFull,
+                    admobRewardId: project.findProperty('epub_reader_admobRewardId') ?: sampleAdmobReward,
                     appSafeMode  : "false"
             ]
         }

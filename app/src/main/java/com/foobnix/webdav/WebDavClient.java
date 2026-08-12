@@ -21,6 +21,15 @@ import java.util.List;
  */
 public class WebDavClient {
 
+    /**
+     * Hint set by {@link #list} when the most recent failure looked like an
+     * authentication rejection (HTTP 401/403). Callers read it right after a
+     * {@code null} return to choose between "auth failed" and generic
+     * "network error" messaging. Safe because WebDAV requests are serialized
+     * by the fragment's in-progress guard.
+     */
+    public static volatile boolean lastErrorWasAuth = false;
+
     public static Sardine sardine(String login, String password) {
         OkHttpSardine s = new OkHttpSardine();
         if (TxtUtils.isNotEmpty(login)) {
@@ -60,11 +69,32 @@ public class WebDavClient {
                 items.add(item);
             }
             sort(items);
+            lastErrorWasAuth = false;
             return items;
         } catch (Exception e) {
             LOG.e(e);
+            lastErrorWasAuth = isAuthError(e);
             return null;
         }
+    }
+
+    /**
+     * Heuristic: does this failure look like an HTTP 401/403 auth rejection?
+     * Sardine wraps non-2xx responses in an IOException whose message carries
+     * the status code, so we walk the cause chain looking for it.
+     */
+    private static boolean isAuthError(Throwable e) {
+        for (Throwable c = e; c != null; c = c.getCause()) {
+            String msg = c.getMessage();
+            if (msg != null && (msg.contains("401") || msg.contains("403"))) {
+                return true;
+            }
+            String simple = c.getClass().getSimpleName();
+            if (simple.contains("Unauthorized") || simple.contains("Forbidden")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static InputStream openStream(String url, String login, String password) throws IOException {
@@ -79,7 +109,11 @@ public class WebDavClient {
             return href;
         }
         try {
-            return URI.create(base).resolve(href).toString();
+            // Ensure the base path ends with '/' so URI.resolve treats the last
+            // segment as a directory (RFC 3986 §5.3): without it,
+            // "http://h/dav".resolve("sub/") wrongly drops "dav".
+            String b = base.endsWith("/") ? base : base + "/";
+            return URI.create(b).resolve(href).toString();
         } catch (Exception e) {
             return base;
         }

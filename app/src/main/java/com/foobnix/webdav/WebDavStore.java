@@ -12,37 +12,44 @@ import java.util.List;
  */
 public class WebDavStore {
 
+    /** Guards all read/modify/write of {@code AppState.allWebDavLinks}. */
+    private static final Object LOCK = new Object();
+
     public static List<WebDavServer> load() {
-        List<WebDavServer> res = new ArrayList<WebDavServer>();
-        String[] list = AppState.get().allWebDavLinks.split(";");
-        for (String line : list) {
-            if (TxtUtils.isEmpty(line)) {
-                continue;
+        synchronized (LOCK) {
+            List<WebDavServer> res = new ArrayList<WebDavServer>();
+            String[] list = AppState.get().allWebDavLinks.split(";");
+            for (String line : list) {
+                if (TxtUtils.isEmpty(line)) {
+                    continue;
+                }
+                String[] it = line.split(",");
+                if (it.length == 0 || TxtUtils.isEmpty(it[0])) {
+                    continue;
+                }
+                String url = it[0].trim();
+                String title = it.length > 1 ? it[1] : url;
+                if (TxtUtils.isEmpty(title)) {
+                    title = url;
+                }
+                WebDavServer s = new WebDavServer(url, title);
+                s.appState = line + ";";
+                res.add(s);
             }
-            String[] it = line.split(",");
-            if (it.length == 0 || TxtUtils.isEmpty(it[0])) {
-                continue;
-            }
-            String url = it[0].trim();
-            String title = it.length > 1 ? it[1] : url;
-            if (TxtUtils.isEmpty(title)) {
-                title = url;
-            }
-            WebDavServer s = new WebDavServer(url, title);
-            s.appState = line + ";";
-            res.add(s);
+            return res;
         }
-        return res;
     }
 
     /** Find the server whose root URL is a prefix of the given (browsed) URL. */
     public static WebDavServer findForUrl(String url) {
-        for (WebDavServer s : load()) {
-            if (isSameServer(s.url, url)) {
-                return s;
+        synchronized (LOCK) {
+            for (WebDavServer s : load()) {
+                if (isSameServer(s.url, url)) {
+                    return s;
+                }
             }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -66,10 +73,14 @@ public class WebDavStore {
     }
 
     public static void add(WebDavServer s) {
-        AppState.get().allWebDavLinks = s.appState + AppState.get().allWebDavLinks;
+        synchronized (LOCK) {
+            AppState.get().allWebDavLinks = s.appState + AppState.get().allWebDavLinks;
+        }
     }
 
     public static void remove(WebDavServer s) {
-        AppState.get().allWebDavLinks = AppState.get().allWebDavLinks.replace(s.appState, "");
+        synchronized (LOCK) {
+            AppState.get().allWebDavLinks = AppState.get().allWebDavLinks.replace(s.appState, "");
+        }
     }
 }
