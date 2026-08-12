@@ -33,9 +33,11 @@ import org.greenrobot.greendao.query.QueryBuilder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class AppDB {
 
@@ -269,6 +271,65 @@ public class AppDB {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    /**
+     * Count of library files per extension (lowercase, without dot), e.g. used
+     * by the "Formats" settings dialog to show how many files each format has.
+     */
+    public Map<String, Long> getExtCounts() {
+        Map<String, Long> result = new HashMap<String, Long>();
+        try {
+            String sql = "SELECT " + FileMetaDao.Properties.Ext.columnName + ", COUNT(*) FROM " + FileMetaDao.TABLENAME
+                    + " WHERE " + FileMetaDao.Properties.IsSearchBook.columnName + " == 1 GROUP BY "
+                    + FileMetaDao.Properties.Ext.columnName;
+            Cursor c = daoSession.getDatabase().rawQuery(sql, null);
+            try {
+                if (c.moveToFirst()) {
+                    do {
+                        String ext = c.getString(0);
+                        if (TxtUtils.isEmpty(ext)) {
+                            continue;
+                        }
+                        result.put(ext.toLowerCase(Locale.US), c.getLong(1));
+                    } while (c.moveToNext());
+                }
+            } finally {
+                c.close();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        return result;
+    }
+
+    /**
+     * All library (IsSearchBook == 1) file paths, used e.g. by the "Library
+     * Folders" settings dialog to count how many supported files each
+     * configured folder/file has.
+     */
+    public List<String> getSearchBookPaths() {
+        List<String> result = new ArrayList<String>();
+        try {
+            String sql = "SELECT " + FileMetaDao.Properties.Path.columnName + " FROM " + FileMetaDao.TABLENAME
+                    + " WHERE " + FileMetaDao.Properties.IsSearchBook.columnName + " == 1";
+            Cursor c = daoSession.getDatabase().rawQuery(sql, null);
+            try {
+                if (c.moveToFirst()) {
+                    do {
+                        String path = c.getString(0);
+                        if (!TxtUtils.isEmpty(path)) {
+                            result.add(path);
+                        }
+                    } while (c.moveToNext());
+                }
+            } finally {
+                c.close();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        return result;
     }
 
     public List<FileMeta> getAll() {

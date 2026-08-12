@@ -77,7 +77,7 @@ public class CheckDeletedBooksWorker extends MessageWorker {
             if (path != null && path.trim()
                                     .length() > 0) {
                 final File root = new File(path);
-                if (root.isDirectory()) {
+                if (root.exists()) {
                     LOG.d("Worker", "Search in " + root.getPath());
                     SearchCore.search(localMeta, root, ExtUtils.seachExts);
                 }

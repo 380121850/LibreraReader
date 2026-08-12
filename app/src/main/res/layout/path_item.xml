@@ -17,6 +17,17 @@
         android:text="/asdf/asdf/asdf/asdf/asdf/"
         android:textSize="@dimen/text_subtitle" />
 
+    <TextView
+        android:id="@+id/pathCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dip"
+        android:layout_weight="0"
+        android:gravity="center_vertical"
+        android:textColor="@color/lt_grey_dima"
+        android:textSize="@dimen/text_title"
+        android:visibility="gone" />
+
     <ImageView
         android:id="@+id/delete"
         android:contentDescription="@string/remove"

@@ -1,8 +1,11 @@
 <resources>
    <string name="___LIBRARY___SETTINGS___SECTION___">書架設置</string>
    <string name="library_settings">書架設置</string>
+   <string name="formats_settings">格式設置</string>
+   <string name="library_folders_settings">書庫文件夾配置</string>
    <string name="scan_device_for_new_books">導入書籍</string>
    <string name="add_folder">添加目錄</string>
+   <string name="add_file">新增檔案</string>
    <string name="archives">檔案</string>
    <string name="other">其他</string>
    <string name="you_need_to_update_the_library">更新書架？</string>

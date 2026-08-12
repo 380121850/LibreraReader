@@ -42,6 +42,7 @@ import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
 import com.foobnix.model.MyPath;
 import com.foobnix.model.SimpleMeta;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExportConverter;
 import com.foobnix.pdf.info.ExportSettingsManager;
 import com.foobnix.pdf.info.ExtFilter;
@@ -56,6 +57,7 @@ import com.foobnix.pdf.search.activity.msg.UpdateAllFragments;
 import com.foobnix.pdf.search.view.AsyncProgressResultToastTask;
 import com.foobnix.pdf.search.view.AsyncProgressTask;
 import com.foobnix.sys.TempHolder;
+import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.BooksService;
 import com.foobnix.ui2.MainTabs2;
 
@@ -67,9 +69,11 @@ import org.librera.LinkedJSONObject;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class PrefDialogs {
@@ -91,56 +95,40 @@ public class PrefDialogs {
         recentAdapter.setPaths(JsonDB.get(BookCSS.get().searchPathsJson));
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(a);
-        builder.setTitle(R.string.scan_device_for_new_books);
+        builder.setTitle(R.string.library_folders_settings);
+
+        final LinearLayout root = new LinearLayout(a);
+        root.setOrientation(LinearLayout.VERTICAL);
 
         final ListView list = new ListView(a);
 
         list.setAdapter(recentAdapter);
+        root.addView(list, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        builder.setView(list);
+        final LinearLayout addRow = new LinearLayout(a);
+        addRow.setOrientation(LinearLayout.HORIZONTAL);
+        addRow.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
+
+        final TextView addFolder = new TextView(a);
+        addFolder.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_folder)));
+
+        final TextView addFile = new TextView(a);
+        addFile.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_file)));
+        addFile.setPadding(Dips.dpToPx(10), 0, 0, 0);
+
+        addRow.addView(addFolder, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        addRow.addView(addFile, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        root.addView(addRow, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        builder.setView(root);
 
         builder.setPositiveButton(R.string.search, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 onScan.run();
-            }
-        });
-
-        builder.setNeutralButton(R.string.add, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                ChooserDialogFragment.chooseFolder(a, BookCSS.get().dirLastPath).setOnSelectListener(new ResultResponse2<String, Dialog>() {
-                    @Override
-                    public boolean onResultRecive(String nPath, Dialog dialog) {
-
-                        if (nPath.equals("/")) {
-                            Toast.makeText(a, String.format("[ / ] %s", a.getString(R.string.incorrect_value)), Toast.LENGTH_LONG).show();
-                            return false;
-                        }
-                        boolean isExists = false;
-                        String existPath = "";
-                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
-                            if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
-                                isExists = true;
-                                existPath = str;
-                                break;
-                            }
-                        }
-                        if (ExtUtils.isExteralSD(nPath)) {
-                            Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
-                        } else if (isExists) {
-                            Toast.makeText(a, String.format("[ %s == %s ] %s", nPath, existPath, a.getString(R.string.this_directory_is_already_in_the_list)), Toast.LENGTH_LONG).show();
-                        } else {
-                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
-                        }
-                        dialog.dismiss();
-                        onChanges.run();
-                        chooseFolderDialog(a, onChanges, onScan);
-                        return false;
-                    }
-
-                });
-
             }
         });
 
@@ -172,7 +160,100 @@ public class PrefDialogs {
                 Keyboards.hideNavigation(a);
             }
         });
+
+        addFolder.setOnClickListener(v -> {
+            create.dismiss();
+            ChooserDialogFragment.chooseFolder(a, BookCSS.get().dirLastPath).setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                @Override
+                public boolean onResultRecive(String nPath, Dialog dialog) {
+
+                    if (nPath.equals("/")) {
+                        Toast.makeText(a, String.format("[ / ] %s", a.getString(R.string.incorrect_value)), Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                    boolean isExists = false;
+                    String existPath = "";
+                    for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                        if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
+                            isExists = true;
+                            existPath = str;
+                            break;
+                        }
+                    }
+                    if (ExtUtils.isExteralSD(nPath)) {
+                        Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                    } else if (isExists) {
+                        Toast.makeText(a, String.format("[ %s == %s ] %s", nPath, existPath, a.getString(R.string.this_directory_is_already_in_the_list)), Toast.LENGTH_LONG).show();
+                    } else {
+                        BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                    }
+                    dialog.dismiss();
+                    onChanges.run();
+                    chooseFolderDialog(a, onChanges, onScan);
+                    return false;
+                }
+
+            });
+        });
+
+        addFile.setOnClickListener(v -> {
+            create.dismiss();
+            ChooserDialogFragment.chooseFile(a, "").setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                @Override
+                public boolean onResultRecive(String nPath, Dialog dialog) {
+
+                    if (!new File(nPath).isFile()) {
+                        Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    boolean isExists = false;
+                    String existPath = "";
+                    for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                        if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
+                            isExists = true;
+                            existPath = str;
+                            break;
+                        }
+                    }
+                    if (isExists) {
+                        Toast.makeText(a, String.format("[ %s == %s ] %s", nPath, existPath, a.getString(R.string.this_directory_is_already_in_the_list)), Toast.LENGTH_LONG).show();
+                    } else {
+                        BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                    }
+                    dialog.dismiss();
+                    onChanges.run();
+                    chooseFolderDialog(a, onChanges, onScan);
+                    return false;
+                }
+
+            });
+        });
+
         create.show();
+
+        AppsConfig.executorService.execute(() -> {
+            final List<String> allPaths = AppDB.get().getSearchBookPaths();
+            final Map<String, Long> counts = new HashMap<String, Long>();
+            for (String path : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                if (path == null || path.trim().length() == 0) {
+                    continue;
+                }
+                final File file = new File(path);
+                long count = 0;
+                if (file.isFile()) {
+                    count = allPaths.contains(path) ? 1 : 0;
+                } else {
+                    String prefix = path.endsWith("/") ? path : path + "/";
+                    for (String dbPath : allPaths) {
+                        if (dbPath.startsWith(prefix)) {
+                            count++;
+                        }
+                    }
+                }
+                counts.put(path, count);
+            }
+            a.runOnUiThread(() -> recentAdapter.setCounts(counts));
+        });
     }
 
     public static void importDialog(final FragmentActivity activity) {

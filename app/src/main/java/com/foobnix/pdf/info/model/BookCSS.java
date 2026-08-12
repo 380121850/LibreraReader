@@ -249,7 +249,8 @@ public class BookCSS {
 
         List<String> res = new ArrayList<>();
         for (String item : objects) {
-            if (TxtUtils.isNotEmpty(item) && new File(item).isDirectory()) {
+            // keep existing folders and single files (searchPathsJson may contain files)
+            if (TxtUtils.isNotEmpty(item) && new File(item).exists()) {
                 res.add(item);
             }
         }

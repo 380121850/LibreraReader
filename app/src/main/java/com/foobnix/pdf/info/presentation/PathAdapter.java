@@ -16,11 +16,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class PathAdapter extends BaseAdapter {
 
     private List<Uri> uris = Collections.emptyList();
     private ResultResponse<Uri> onDeleClick;
+    private Map<String, Long> counts;
 
     @Override
     public int getCount() {
@@ -35,6 +37,15 @@ public class PathAdapter extends BaseAdapter {
     @Override
     public long getItemId(int position) {
         return 0;
+    }
+
+    /**
+     * Optional per-path file counts shown at the right of each row (the count
+     * TextView is hidden when no counts are set).
+     */
+    public void setCounts(Map<String, Long> counts) {
+        this.counts = counts;
+        notifyDataSetChanged();
     }
 
     public void setPaths(List<String> paths) {
@@ -62,6 +73,17 @@ public class PathAdapter extends BaseAdapter {
         final Uri uri = uris.get(position);
 
         textPath.setText(uri.getPath());
+
+        final TextView pathCount = (TextView) browserItem.findViewById(R.id.pathCount);
+        if (pathCount != null) {
+            if (counts != null) {
+                Long count = counts.get(uri.getPath());
+                pathCount.setText(count == null ? "" : "" + count);
+                pathCount.setVisibility(View.VISIBLE);
+            } else {
+                pathCount.setVisibility(View.GONE);
+            }
+        }
 
         final View deleteView = browserItem.findViewById(R.id.delete);
         if (deleteView != null) {

@@ -43,6 +43,7 @@ import com.cloudrail.si.types.CloudMetaData;
 import com.foobnix.StringResponse;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
+import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
 import com.foobnix.android.utils.StringDB;
@@ -847,6 +848,14 @@ import java.util.Map;
             }
         } catch (Exception e) {
             LOG.e(e);
+        }
+        // The Folder tab (no explicit init path) opens at the first configured
+        // library folder, so it reflects the folders added in "Library Folders"
+        // settings instead of the last browsed directory.
+        for (String scanPath : JsonDB.get(BookCSS.get().searchPathsJson)) {
+            if (TxtUtils.isNotEmpty(scanPath) && new File(scanPath).isDirectory()) {
+                return scanPath;
+            }
         }
         String path =
                 BookCSS.get().dirLastPath == null ? AppProfile.DOWNLOADS_DIR.getPath() : BookCSS.get().dirLastPath;

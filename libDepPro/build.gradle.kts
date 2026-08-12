@@ -23,10 +23,5 @@ android {
 
 dependencies {
     api(libs.junrar)
-    api(libs.play.services.auth)
-    api(libs.google.api.services.drive)
-    api(libs.google.api.client.android)
-    api(libs.google.oauth.client.jetty)
-    api(libs.google.http.client.gson)
     implementation(libs.review)
 }

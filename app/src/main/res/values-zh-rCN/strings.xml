@@ -1,8 +1,11 @@
 <resources>
    <string name="___LIBRARY___SETTINGS___SECTION___"></string>
    <string name="library_settings">书库设置</string>
+   <string name="formats_settings">格式配置</string>
+   <string name="library_folders_settings">书库文件夹配置</string>
    <string name="scan_device_for_new_books">包含的文件夹</string>
    <string name="add_folder">添加文件夹</string>
+   <string name="add_file">添加文件</string>
    <string name="archives">压缩包</string>
    <string name="other">其它</string>
    <string name="you_need_to_update_the_library">更新书库以应用更改</string>

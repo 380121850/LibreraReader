@@ -3,8 +3,10 @@ package com.foobnix.ui2.fragment;
 import static com.foobnix.pdf.info.view.confline.ConfAction.of;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
@@ -17,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Html;
 import android.text.format.DateUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -52,7 +55,6 @@ import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.IO;
 import com.foobnix.android.utils.IntegerResponse;
-import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse2;
@@ -98,6 +100,7 @@ import com.foobnix.pdf.search.activity.msg.GDriveSycnEvent;
 import com.foobnix.pdf.search.activity.msg.MessageSync;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.ui2.AdsFragmentActivity;
+import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.BooksService;
 import com.foobnix.ui2.MainTabs2;
 import com.foobnix.ui2.MyContextWrapper;
@@ -115,9 +118,13 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class PrefFragment2 extends UIFragment {
     public static final Pair<Integer, Integer> PAIR =
@@ -151,7 +158,6 @@ public class PrefFragment2 extends UIFragment {
     };
     private SeekBar bar;
     private CheckBox autoSettings;
-    private TextView searchPaths;
     private CheckBox ch;
     private TextView selectedOpenMode;
     private TextView textNigthColor;
@@ -283,6 +289,13 @@ public class PrefFragment2 extends UIFragment {
         syncHeader.setOnClickListener((in) -> Dialogs.showSyncLOGDialog(getActivity()));
 
         isEnableSync = inflate.findViewById(R.id.isEnableSync);
+        // Google Drive sync is removed from all builds (Drive SDK stripped);
+        // hide the sync section so no entry point reaches the inert stubs.
+        singIn.setVisibility(View.GONE);
+        syncInfo.setVisibility(View.GONE);
+        syncInfo2.setVisibility(View.GONE);
+        syncHeader.setVisibility(View.GONE);
+        isEnableSync.setVisibility(View.GONE);
         isEnableSync.setChecked(AppSP.get().isEnableSync);
         isEnableSync.setOnCheckedChangeListener((buttonView, isChecked) -> {
             AppSP.get().isEnableSync = isChecked;
@@ -295,8 +308,9 @@ public class PrefFragment2 extends UIFragment {
             }
         });
 
-        inflate.findViewById(R.id.isEnableSyncSettings)
-               .setOnClickListener(v -> {
+        View syncSettings = inflate.findViewById(R.id.isEnableSyncSettings);
+        syncSettings.setVisibility(View.GONE);
+        syncSettings.setOnClickListener(v -> {
                    final CheckBox isSyncPullToRefresh = new CheckBox(getActivity());
                    isSyncPullToRefresh.setText(R.string.pull_to_start_sync);
                    isSyncPullToRefresh.setChecked(BookCSS.get().isSyncPullToRefresh);
@@ -1421,230 +1435,9 @@ public class PrefFragment2 extends UIFragment {
                 });
 
         ////
-        ((CheckBox) inflate.findViewById(R.id.supportPDF)).
-
-                                                                  setChecked(AppState.get().supportPDF);
-        ((CheckBox) inflate.findViewById(R.id.supportPDF)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportPDF = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportXPS)).
-
-                                                                  setChecked(AppState.get().supportXPS);
-        ((CheckBox) inflate.findViewById(R.id.supportXPS)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportXPS = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportDJVU)).
-
-                                                                   setChecked(AppState.get().supportDJVU);
-        ((CheckBox) inflate.findViewById(R.id.supportDJVU)).
-
-                                                                   setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportDJVU = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-        ((CheckBox) inflate.findViewById(R.id.supportEPUB)).
-
-                                                                   setChecked(AppState.get().supportEPUB);
-        ((CheckBox) inflate.findViewById(R.id.supportEPUB)).
-
-                                                                   setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportEPUB = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-        ((CheckBox) inflate.findViewById(R.id.supportFB2)).
-
-                                                                  setChecked(AppState.get().supportFB2);
-        ((CheckBox) inflate.findViewById(R.id.supportFB2)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportFB2 = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportTXT)).
-
-                                                                  setChecked(AppState.get().supportTXT);
-        ((CheckBox) inflate.findViewById(R.id.supportTXT)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportTXT = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportMOBI)).
-
-                                                                   setChecked(AppState.get().supportMOBI);
-        ((CheckBox) inflate.findViewById(R.id.supportMOBI)).
-
-                                                                   setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportMOBI = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportRTF)).
-
-                                                                  setChecked(AppState.get().supportRTF);
-        ((CheckBox) inflate.findViewById(R.id.supportRTF)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportRTF = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportDOCX)).
-
-                                                                   setChecked(AppState.get().supportDOCX);
-        ((CheckBox) inflate.findViewById(R.id.supportDOCX)).
-
-                                                                   setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportDOCX = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportODT)).
-
-                                                                  setChecked(AppState.get().supportODT);
-        ((CheckBox) inflate.findViewById(R.id.supportDOCX)).
-
-                                                                   setText(
-                AppsConfig.isDOCXSupported ? "DOC/DOCX" : "DOC");
-        ((CheckBox) inflate.findViewById(R.id.supportODT)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportODT = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        ((CheckBox) inflate.findViewById(R.id.supportCBZ)).
-
-                                                                  setChecked(AppState.get().supportCBZ);
-        ((CheckBox) inflate.findViewById(R.id.supportCBZ)).
-
-                                                                  setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
-                    @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                        AppState.get().supportCBZ = isChecked;
-                        ExtUtils.updateSearchExts();
-                        handler.removeCallbacks(ask);
-                        handler.postDelayed(ask, timeout);
-                    }
-                });
-
-        CheckBox supportZIP = inflate.findViewById(R.id.supportZIP);
-        supportZIP.setChecked(AppState.get().supportZIP);
-        supportZIP.setOnCheckedChangeListener(new
-
-                                                      OnCheckedChangeListener() {
-
-                                                          @Override
-                                                          public void onCheckedChanged(final CompoundButton buttonView,
-                                                                                       final boolean isChecked) {
-                                                              AppState.get().supportZIP = isChecked;
-                                                              ExtUtils.updateSearchExts();
-                                                              handler.removeCallbacks(ask);
-                                                              handler.postDelayed(ask, timeout);
-                                                          }
-                                                      });
-
-        CheckBox supportArch = inflate.findViewById(R.id.supportArch);
-        supportArch.setChecked(AppState.get().supportArch);
-        supportArch.setText(
-
-                getString(R.string.archives) + " (RAR/7z/...)");
-        supportArch.setOnCheckedChangeListener(new
-
-                                                       OnCheckedChangeListener() {
-
-                                                           @Override
-                                                           public void onCheckedChanged(final CompoundButton buttonView,
-                                                                                        final boolean isChecked) {
-                                                               AppState.get().supportArch = isChecked;
-                                                               ExtUtils.updateSearchExts();
-                                                               handler.removeCallbacks(ask);
-                                                               handler.postDelayed(ask, timeout);
-                                                           }
-                                                       });
-
-        CheckBox supportOther = inflate.findViewById(R.id.supportOther);
-        supportOther.setChecked(AppState.get().supportOther);
-        supportOther.setText(
-
-                getString(R.string.other) + " (CHM/...)");
-        supportOther.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            AppState.get().supportOther = isChecked;
-            ExtUtils.updateSearchExts();
-            handler.removeCallbacks(ask);
-            handler.postDelayed(ask, timeout);
-        });
+        View formatsSettings = inflate.findViewById(R.id.formatsSettings);
+        TxtUtils.underlineTextView(formatsSettings)
+                .setOnClickListener(v -> showFormatsDialog(handler, ask, timeout));
 
         CheckBox isDisplayAllFilesInFolder = inflate.findViewById(R.id.isDisplayAllFilesInFolder);
         isDisplayAllFilesInFolder.setChecked(AppState.get().isDisplayAllFilesInFolder);
@@ -1749,13 +1542,8 @@ public class PrefFragment2 extends UIFragment {
 
         initKeys();
 
-        searchPaths = inflate.findViewById(R.id.searchPaths);
-        searchPaths.setText(JsonDB.fromHtml(BookCSS.get().searchPathsJson));
-        searchPaths.setOnClickListener(v -> onFolderConfigDialog());
-
-        TextView addFolder = inflate.findViewById(R.id.onConfigPath);
-        addFolder.setText(TxtUtils.notAndUnderline("+ ", getString(R.string.add_folder)));
-        addFolder.setOnClickListener(v -> onFolderConfigDialog());
+        TxtUtils.underlineTextView(inflate.findViewById(R.id.libraryFoldersSettings))
+                .setOnClickListener(v -> onFolderConfigDialog());
 
         TxtUtils.underlineTextView(inflate.findViewById(R.id.importButton))
                 .setOnClickListener(v -> PrefDialogs.importDialog(getActivity()));
@@ -2761,6 +2549,122 @@ public class PrefFragment2 extends UIFragment {
 
     }
 
+    private void showFormatsDialog(final Handler handler, final Runnable ask, final int timeout) {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        final List<FormatEntry> entries = formatEntries(activity);
+        final List<View> rows = new ArrayList<View>();
+        final List<TextView> countViews = new ArrayList<TextView>();
+
+        for (final FormatEntry entry : entries) {
+            final LinearLayout row = new LinearLayout(activity);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(Dips.dpToPx(5), Dips.dpToPx(2), Dips.dpToPx(5), Dips.dpToPx(2));
+
+            final CheckBox check = new CheckBox(activity);
+            check.setText(entry.label);
+            check.setChecked(entry.getter.get());
+            check.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                entry.setter.accept(isChecked);
+                ExtUtils.updateSearchExts();
+                handler.removeCallbacks(ask);
+                handler.postDelayed(ask, timeout);
+            });
+
+            final TextView count = new TextView(activity);
+            count.setGravity(Gravity.RIGHT);
+            count.setTextColor(Color.GRAY);
+            count.setPadding(Dips.dpToPx(5), 0, Dips.dpToPx(5), 0);
+
+            row.addView(check, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            row.addView(count, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            rows.add(row);
+            countViews.add(count);
+        }
+
+        AlertDialogs.showViewDialog(activity, null, rows.toArray(new View[rows.size()]));
+
+        AppsConfig.executorService.execute(() -> {
+            final Map<String, Long> extCounts = AppDB.get().getExtCounts();
+            activity.runOnUiThread(() -> {
+                for (int i = 0; i < entries.size(); i++) {
+                    long sum = 0;
+                    for (String ext : entries.get(i).exts) {
+                        Long c = extCounts.get(ext);
+                        if (c != null) {
+                            sum += c;
+                        }
+                    }
+                    countViews.get(i).setText("" + sum);
+                }
+            });
+        });
+    }
+
+    private static List<FormatEntry> formatEntries(final Context context) {
+        List<FormatEntry> entries = new ArrayList<FormatEntry>();
+        entries.add(new FormatEntry("PDF", Arrays.asList("pdf"),
+                () -> AppState.get().supportPDF, v -> AppState.get().supportPDF = v));
+        entries.add(new FormatEntry("DJVU", Arrays.asList("djvu"),
+                () -> AppState.get().supportDJVU, v -> AppState.get().supportDJVU = v));
+        entries.add(new FormatEntry("FB2", Arrays.asList("fb2"),
+                () -> AppState.get().supportFB2, v -> AppState.get().supportFB2 = v));
+        entries.add(new FormatEntry("MOBI/AZW", Arrays.asList("mobi", "azw", "azw3"),
+                () -> AppState.get().supportMOBI, v -> AppState.get().supportMOBI = v));
+        entries.add(new FormatEntry("EPUB", Arrays.asList("epub"),
+                () -> AppState.get().supportEPUB, v -> AppState.get().supportEPUB = v));
+        entries.add(new FormatEntry("XPS", Arrays.asList("xps"),
+                () -> AppState.get().supportXPS, v -> AppState.get().supportXPS = v));
+        entries.add(new FormatEntry("DOC/DOCX", Arrays.asList("doc", "docx"),
+                () -> AppState.get().supportDOCX, v -> AppState.get().supportDOCX = v));
+        entries.add(new FormatEntry("RTF", Arrays.asList("rtf"),
+                () -> AppState.get().supportRTF, v -> AppState.get().supportRTF = v));
+        entries.add(new FormatEntry("ODT", Arrays.asList("odt"),
+                () -> AppState.get().supportODT, v -> AppState.get().supportODT = v));
+        entries.add(new FormatEntry("CBZ/CBR", Arrays.asList("cbz", "cbr"),
+                () -> AppState.get().supportCBZ, v -> AppState.get().supportCBZ = v));
+        entries.add(new FormatEntry("ZIP", Arrays.asList("zip", "okular"),
+                () -> AppState.get().supportZIP, v -> AppState.get().supportZIP = v));
+        entries.add(new FormatEntry("HTML/TXT", Arrays.asList("txt", "html", "xhtml", "mhtml", "shtml", "md"),
+                () -> AppState.get().supportTXT, v -> AppState.get().supportTXT = v));
+        entries.add(new FormatEntry(context.getString(R.string.archives), stripDots(ExtUtils.archiveExts),
+                () -> AppState.get().supportArch, v -> AppState.get().supportArch = v));
+
+        List<String> otherExts = new ArrayList<String>(stripDots(ExtUtils.otherExts));
+        otherExts.addAll(stripDots(ExtUtils.lirbeExt));
+        otherExts.add("prc");
+        otherExts.add("pdb");
+        entries.add(new FormatEntry(context.getString(R.string.other), otherExts,
+                () -> AppState.get().supportOther, v -> AppState.get().supportOther = v));
+        return entries;
+    }
+
+    private static List<String> stripDots(List<String> exts) {
+        List<String> result = new ArrayList<String>();
+        for (String ext : exts) {
+            result.add(ext.startsWith(".") ? ext.substring(1) : ext);
+        }
+        return result;
+    }
+
+    private static class FormatEntry {
+        final String label;
+        final List<String> exts;
+        final Supplier<Boolean> getter;
+        final Consumer<Boolean> setter;
+
+        FormatEntry(String label, List<String> exts, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+            this.label = label;
+            this.exts = exts;
+            this.getter = getter;
+            this.setter = setter;
+        }
+    }
+
     private void onEink() {
         AppState.get().appTheme = AppState.THEME_INK;
         AppState.get().blueLightAlpha = 0;
@@ -2790,7 +2694,6 @@ public class PrefFragment2 extends UIFragment {
         PrefDialogs.chooseFolderDialog(getActivity(), new Runnable() {
 
             @Override public void run() {
-                searchPaths.setText(JsonDB.fromHtml(BookCSS.get().searchPathsJson));
                 saveChanges();
                 LOG.d("Save Changes", 2);
             }

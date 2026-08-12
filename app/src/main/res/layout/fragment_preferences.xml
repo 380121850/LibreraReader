@@ -194,33 +194,28 @@
 
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:singleLine="true"
-                android:text="@string/scan_device_for_new_books"
-                android:textStyle="bold" />
+                android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/searchPaths"
-                style="@style/textLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:padding="0dip"
-                android:singleLine="false"
-                android:text="/mnt/sdcard \r\n /emmc /n /sdcard1" />
+                <ImageView
+                    android:layout_width="@dimen/wh_button"
+                    android:layout_height="@dimen/wh_button"
+                    android:layout_weight="0"
+                    android:padding="4dip"
+                    android:src="@drawable/glyphicons_140_adjust"
+                    android:visibility="visible"
+                    app:tint="@color/tint_gray" />
 
-            <TextView
-                android:id="@+id/onConfigPath"
-                style="@style/textLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:padding="4dip"
-                android:text="@string/add_folder"
-                android:textAllCaps="true" />
+                <TextView
+                    android:id="@+id/libraryFoldersSettings"
+                    style="@style/textLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/library_folders_settings" />
+
+            </LinearLayout>
 
             <View
                 android:tag="with_tint1"
@@ -232,190 +227,49 @@
 
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/supportPDF"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="0dip"
-                    android:minWidth="110dp"
-                    android:padding="-5dip"
-                    android:text="PDF"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportDJVU"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="90dp"
-                    android:text="DJVU"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportFB2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="FB2"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/supportMOBI"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="MOBI/AZW"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportEPUB"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="90dp"
-                    android:text="EPUB"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportXPS"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="XPS"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/supportDOCX"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="DOC/DOCX"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportRTF"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="90dp"
-                    android:text="RTF"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportODT"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="ODT"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <CheckBox
-                    android:id="@+id/supportCBZ"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="CBZ/CBR"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportZIP"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="90dip"
-                    android:text="ZIP"
-                    android:textSize="11sp" />
-
-                <CheckBox
-                    android:id="@+id/supportTXT"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="110dp"
-                    android:text="HTML/TXT"
-                    android:textSize="11sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/wh_button"
+                    android:layout_height="@dimen/wh_button"
+                    android:layout_weight="0"
+                    android:padding="4dip"
+                    android:src="@drawable/glyphicons_140_adjust"
+                    android:visibility="visible"
+                    app:tint="@color/tint_gray" />
 
                 <TextView
+                    android:id="@+id/formatsSettings"
+                    style="@style/textLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dip"
-                    android:text="@string/search_not_supported_formats"
-                    android:visibility="gone" />
+                    android:text="@string/formats_settings" />
 
-                <LinearLayout
+            </LinearLayout>
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/wh_button"
+                    android:layout_height="@dimen/wh_button"
+                    android:layout_weight="0"
+                    android:padding="4dip"
+                    android:src="@drawable/glyphicons_140_adjust"
+                    android:visibility="visible"
+                    app:tint="@color/tint_gray" />
+
+                <TextView
+                    android:id="@+id/moreLybraryettings"
+                    style="@style/textLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-
-                    <CheckBox
-                        android:id="@+id/supportArch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="110dp"
-                        android:text="@string/archives"
-                        android:textSize="11sp" />
-
-                    <CheckBox
-                        android:id="@+id/supportOther"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="110dp"
-                        android:text="@string/other"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <LinearLayout
-
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="@dimen/wh_button"
-                        android:layout_height="@dimen/wh_button"
-                        android:layout_weight="0"
-                        android:padding="4dip"
-                        android:src="@drawable/glyphicons_140_adjust"
-                        android:visibility="visible"
-                        app:tint="@color/tint_gray" />
-
-                    <TextView
-                        android:id="@+id/moreLybraryettings"
-                        style="@style/textLink"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/library_settings" />
-
-
-                </LinearLayout>
-
+                    android:text="@string/library_settings" />
 
             </LinearLayout>
 

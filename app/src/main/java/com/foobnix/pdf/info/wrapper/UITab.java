@@ -2,7 +2,6 @@ package com.foobnix.pdf.info.wrapper;
 
 import com.foobnix.android.utils.LOG;
 import com.foobnix.model.AppState;
-import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.ui2.fragment.BookmarksFragment2;
 import com.foobnix.ui2.fragment.BrowseFragment2;
 import com.foobnix.ui2.fragment.FavoritesFragment2;
@@ -124,13 +123,9 @@ public enum UITab {
     }
 
     public boolean isVisible() {
-//        if (this == UITab.GoogleDrive2Fragment) {
-//            return false;
-//        }
-//        if (AppsConfig.IS_FDROID && (this == UITab.OpdsFragment)) {
-//            return false;
-//        }
-        if (AppsConfig.IS_FDROID && (this == UITab.GoogleDrive2Fragment)) {
+        // Google Drive sync is removed from all builds (Drive SDK stripped from
+        // libDepPro; the stub classes are inert, so the entry point is hidden)
+        if (this == UITab.GoogleDrive2Fragment) {
             return false;
         }
         return isVisible;

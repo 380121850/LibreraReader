@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.googleServices)
 }
 
 def taskName = getGradle().getStartParameter().getTaskRequests().toString()
@@ -67,10 +66,12 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(RELEASE_STORE_FILE)
-            storePassword RELEASE_STORE_PASSWORD
-            keyAlias RELEASE_KEY_ALIAS
-            keyPassword RELEASE_KEY_PASSWORD
+            // signing props are optional now: Debug builds never use this config,
+            // and real values (if configured via -P or gradle.properties) still win
+            storeFile file(project.findProperty('RELEASE_STORE_FILE') ?: 'placeholder-release.keystore')
+            storePassword project.findProperty('RELEASE_STORE_PASSWORD') ?: 'placeholder'
+            keyAlias project.findProperty('RELEASE_KEY_ALIAS') ?: 'placeholder'
+            keyPassword project.findProperty('RELEASE_KEY_PASSWORD') ?: 'placeholder'
         }
     }
 
@@ -131,11 +132,11 @@ android {
                     appName      : "Librera",
                     appIcon      : "@mipmap/icon_pdf_reader",
                     appRoundIcon : "@mipmap/icon_pdf_reader",
-                    appGdriveKey : librera_appGdriveKey,
-                    admobAppId   : librera_admobAppId,
-                    admobBannerId: librera_admobBannerId,
-                    admobFullId  : librera_admobFullId,
-                    admobRewardId  : librera_admobRewardId,
+                    appGdriveKey : project.findProperty('librera_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('librera_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('librera_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('librera_admobFullId') ?: '',
+                    admobRewardId  : project.findProperty('librera_admobRewardId') ?: '',
                     appSafeMode  : "false"
             ]
         }
@@ -147,7 +148,7 @@ android {
                     appName      : "Librera",
                     appIcon      : "@mipmap/icon_pdf_pro",
                     appRoundIcon : "@mipmap/icon_pdf_pro",
-                    appGdriveKey : pro_appGdriveKey,
+                    appGdriveKey : project.findProperty('pro_appGdriveKey') ?: '',
                     admobAppId   : "",
                     admobBannerId: "",
                     admobFullId  : "",
@@ -162,11 +163,11 @@ android {
                     appName      : "PDF Reader",
                     appIcon      : "@mipmap/icon_pdf_classic",
                     appRoundIcon : "@mipmap/launcher_classic",
-                    appGdriveKey : pdf_classic_appGdriveKey,
-                    admobAppId   : pdf_classic_admobAppId,
-                    admobBannerId: pdf_classic_admobBannerId,
-                    admobFullId  : pdf_classic_admobFullId,
-                    admobRewardId: pdf_classic_admobRewardId,
+                    appGdriveKey : project.findProperty('pdf_classic_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('pdf_classic_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('pdf_classic_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('pdf_classic_admobFullId') ?: '',
+                    admobRewardId: project.findProperty('pdf_classic_admobRewardId') ?: '',
                     appSafeMode  : "true"
             ]
         }
@@ -177,11 +178,11 @@ android {
                     appName      : "Book Reader",
                     appIcon      : "@mipmap/icon_pdf_droid",
                     appRoundIcon : "@mipmap/launcher_droid",
-                    appGdriveKey : ebooka_appGdriveKey,
-                    admobAppId   : ebooka_admobAppId,
-                    admobBannerId: ebooka_admobBannerId,
-                    admobFullId  : ebooka_admobFullId,
-                    admobRewardId: ebooka_admobRewardId,
+                    appGdriveKey : project.findProperty('ebooka_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('ebooka_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('ebooka_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('ebooka_admobFullId') ?: '',
+                    admobRewardId: project.findProperty('ebooka_admobRewardId') ?: '',
                     appSafeMode  : "false"
             ]
         }
@@ -192,11 +193,11 @@ android {
                     appName      : "PDF Reader",
                     appIcon      : "@mipmap/icon_pdf_2",
                     appRoundIcon : "@mipmap/launcher_pdf_v2",
-                    appGdriveKey : pdf_v2_appGdriveKey,
-                    admobAppId   : pdf_v2_admobAppId,
-                    admobBannerId: pdf_v2_admobBannerId,
-                    admobFullId  : pdf_v2_admobFullId,
-                    admobRewardId: pdf_v2_admobRewardId,
+                    appGdriveKey : project.findProperty('pdf_v2_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('pdf_v2_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('pdf_v2_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('pdf_v2_admobFullId') ?: '',
+                    admobRewardId: project.findProperty('pdf_v2_admobRewardId') ?: '',
                     appSafeMode  : "false"
             ]
         }
@@ -207,11 +208,11 @@ android {
                     appName      : "TTS Reader",
                     appIcon      : "@mipmap/icon_tts_reader_app",
                     appRoundIcon : "@mipmap/launcher_tts_reader_app",
-                    appGdriveKey : tts_reader_appGdriveKey,
-                    admobAppId   : tts_reader_admobAppId,
-                    admobBannerId: tts_reader_admobBannerId,
-                    admobFullId  : tts_reader_admobFullId,
-                    admobRewardId: tts_reader_admobRewardId,
+                    appGdriveKey : project.findProperty('tts_reader_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('tts_reader_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('tts_reader_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('tts_reader_admobFullId') ?: '',
+                    admobRewardId: project.findProperty('tts_reader_admobRewardId') ?: '',
                     appSafeMode  : "false"
             ]
         }
@@ -222,11 +223,11 @@ android {
                     appName      : "Epub Reader",
                     appIcon      : "@mipmap/icon_epub_reader",
                     appRoundIcon : "@mipmap/launcher_epub_reader",
-                    appGdriveKey : epub_reader_appGdriveKey,
-                    admobAppId   : epub_reader_admobAppId,
-                    admobBannerId: epub_reader_admobBannerId,
-                    admobFullId  : epub_reader_admobFullId,
-                    admobRewardId: epub_reader_admobRewardId,
+                    appGdriveKey : project.findProperty('epub_reader_appGdriveKey') ?: '',
+                    admobAppId   : project.findProperty('epub_reader_admobAppId') ?: '',
+                    admobBannerId: project.findProperty('epub_reader_admobBannerId') ?: '',
+                    admobFullId  : project.findProperty('epub_reader_admobFullId') ?: '',
+                    admobRewardId: project.findProperty('epub_reader_admobRewardId') ?: '',
                     appSafeMode  : "false"
             ]
         }

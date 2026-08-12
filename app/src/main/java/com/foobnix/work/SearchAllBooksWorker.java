@@ -96,7 +96,7 @@ public class SearchAllBooksWorker extends MessageWorker {
             for (final String path : JsonDB.get(BookCSS.get().searchPathsJson)) {
                 if (path != null) {
                     final File root = new File(path);
-                    if (root.isDirectory()) {
+                    if (root.exists()) {
                         LOG.d("Search in: " + root.getPath());
                         SearchCore.search(itemsMeta, root, ExtUtils.seachExts);
                         if (isStopped()) {
