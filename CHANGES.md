@@ -147,4 +147,44 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 - librera Debug BUILD OK(5 APK,2026-08-12 22:29)
 - merged manifest 确认 `APPLICATION_ID="ca-app-pub-3940256099942544~3347511713"`(不再是空)
 
+---
 
+## [2026-08-13] 冷启动首帧优化(Phase 1 + Phase 2)
+
+**目标**:缩短「点图标 → 首帧绘制」的等待。真机为 MIUI Android 14(serial `48fee174`)。
+
+### 一、Phase 1 — 首帧基础优化
+
+| 改动 | 文件 | 说明 |
+| --- | --- | --- |
+| 移除 androidx Startup 初始器 | `AndroidManifest.xml` | `InitializationProvider` 用 `tools:node="remove"` 移除 3 个在 `Application.onCreate` **之前**于主线程运行的初始器:`EmojiCompatInitializer`、`ProcessLifecycleInitializer`、`ProfileInstallerInitializer` |
+| 启动画面(消除冷启动白屏) | `res/values/styles.xml`(+`values-v21`)、`AndroidManifest.xml` | 新增 `StyledIndicatorsBlack.Launch` 主题:`windowDisablePreview=false` + `windowBackground=@drawable/splash`,并套到启动 Activity `MainTabs2`。原基础主题 `windowDisablePreview=true`(冷启动全白屏);现系统立即用 splash drawable 作 starting window,用户即时看到画面 |
+| MuPDF 懒加载/后台预加载 | `AppsConfig.java`、`LibreraApp.java` | `ensureMuPdfLoaded()` 改 `synchronized` + `volatile mupdfLoaded` 守卫(首次调用才 `loadLibrary`,不再 init 阶段同步加载 21MB);`LibreraApp` 把预加载提交到 `executorService`(后台线程) |
+| offscreenPageLimit 10→1 | `MainTabs2.java` | ViewPager 首帧只创建「当前 + 相邻」标签页 Fragment(原为 10,首帧会实例化全部标签) |
+| 新增独立单线程执行器 | `AppsConfig.java` | `executorServiceSingle = newSingleThreadExecutor()`,供 Phase 2 的 getCount 使用,避免与 `executorService` 上的 MuPDF 预加载互相阻塞 |
+
+### 二、Phase 2 — 延迟加载(不阻塞首帧)
+
+| 改动 | 文件 | 说明 |
+| --- | --- | --- |
+| getCount 异步 + 安全等待 | `AppProfile.java`、`SearchFragment2.java` | `AppDB.open()` **保持同步**(保证 DB 全程可读);仅 `getCount()` 提交到 `executorServiceSingle` 异步执行。`bookCount` 改 `volatile`;新增 `CountDownLatch DB_READY` + `awaitDBReady(timeoutMs)`。`SearchFragment2.onCreateView` 读 `bookCount` 前先 `awaitDBReady(2000)`,避免「书库尚未计数完」被误判为「空书库」而触发 `seachAll()`→`deleteAllData()` **误删真实书库**的破坏性竞态 |
+| UMP 同意/广告延迟到首帧后 | `MainTabs2.java` | UMP consent/ads 块用 `handler.post(() -> {...})` 包裹,推迟到首帧绘制后执行(密码门禁 / `EXTRA_EXIT` 早退语义不变) |
+| 主线程杂活后台化 | `LibreraApp.java` | `MobileAds.initialize`(官方允许任意线程)、`WorkManager.pruneWork/cancelAllWork`、`TTSNotification.initChannels` 全部提交到 `executorService` 后台线程 |
+
+### 三、安全设计说明(关键)
+
+**AppDB.open 保持同步**是相对原「open + getCount 全异步」设计的关键修正。全异步会让 worker / widget 在 DB 未 open 时读到空/陈旧数据,并使 `SearchFragment2` 的 `bookCount==0` 判断误触发破坏性重扫。**open 同步 + 仅 getCount 异步**从根源消除全部竞态,worker / widget 一行不用改。
+
+### 四、验证
+
+- 真机冷启动(force-stop → 清 logcat → 启动 → 读首帧):
+  - fdroid:首帧 ~1295–1311ms;librera:~1327–1331ms(均稳定,相对 Phase 1 的 ~1.35s 无回归)
+  - 书库列表正确(items=3,无误删);tab 切换无异常;无崩溃
+  - getCount、WorkManager 确认在后台线程;无 GMS 设备 MobileAds/UMP 不执行(`isShowAdsInApp` 返回 false)
+- Ubuntu 远程构建:fdroid Debug + librera Debug BUILD OK(先 `gradlew --stop` 规避 Samba `compileTransaction` 锁)
+- 本轮全部 STARTUP 埋点已清理(6 文件):`LibreraApp` / `AppsConfig` / `AppProfile` / `MyContextWrapper` / `MainTabs2` / `SearchFragment2`;改动文件均纯 LF 行尾
+
+### 五、说明
+
+- 剩余 ~350–540ms 为 ART 类加载(process→onCreate),属 **Baseline Profile** 范畴(需另加 macrobenchmark 模块),本次未涉及;如需再压可单独规划
+- 测试设备无 Google Play Services,故广告 flavor 的 MobileAds/UMP 实际未执行(代码正确,会在有 GMS 的设备上运行)
