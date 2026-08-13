@@ -73,10 +73,28 @@ public class AppsConfig {
 
 
 
-    static {
+    private static volatile boolean mupdfLoaded = false;
+
+    /**
+     * Loads the native MuPDF library (libMuPDF.so) and reads its version.
+     * <p>
+     * Moved out of a class static initializer so cold start no longer blocks
+     * the main thread on this load. It is preloaded on a background thread
+     * from {@code LibreraApp.onCreate} and re-checked synchronously at the
+     * start of each reader Activity so a book is never opened before the
+     * library is ready. {@code MUPDF_FZ_VERSION} stays {@code ""} until the
+     * load completes, which is safe: the only init-time reader
+     * (BookCSS.userStyleCss) compares it against {@link #MUPDF_1_11} ("1.11"),
+     * and the bundled MuPDF is 1.23.x, so the check is always false anyway.
+     */
+    public static synchronized void ensureMuPdfLoaded() {
+        if (mupdfLoaded) {
+            return;
+        }
         System.loadLibrary("MuPDF");
         AppsConfig.MUPDF_FZ_VERSION = MuPdfDocument.getFzVersion();
         Log.d("Librera", "MUPDF_VERSION " + MUPDF_FZ_VERSION);
+        mupdfLoaded = true;
     }
 
     public static boolean isPDF_DRAW_ENABLE() {

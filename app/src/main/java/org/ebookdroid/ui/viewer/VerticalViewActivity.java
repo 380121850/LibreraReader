@@ -24,6 +24,7 @@ import com.foobnix.android.utils.Intents;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.drive.GFile;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
@@ -99,6 +100,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
+        AppsConfig.ensureMuPdfLoaded();
         finishOtherViewer(this, HorizontalViewActivity.class);
         DocumentController.doRotation(this);
         DocumentController.doContextMenu(this);

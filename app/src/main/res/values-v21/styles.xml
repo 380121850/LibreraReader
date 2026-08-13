@@ -11,4 +11,10 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <!-- Launch theme for the launcher activity (API 21+ variant). -->
+    <style name="StyledIndicatorsBlack.Launch" parent="@style/StyledIndicatorsBlack">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowDisablePreview">false</item>
+    </style>
+
 </resources>

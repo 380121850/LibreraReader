@@ -12,6 +12,15 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <!-- Launch theme for the launcher activity: shows the splash drawable as
+         the starting window background so the user gets immediate feedback
+         (instead of a blank screen) while the cold-start work runs. Content
+         drawn by setContentView covers it. -->
+    <style name="StyledIndicatorsBlack.Launch" parent="@style/StyledIndicatorsBlack">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowDisablePreview">false</item>
+    </style>
+
 
     <style name="PagerTabStripText">
         <item name="android:textSize">14sp</item>

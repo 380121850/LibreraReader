@@ -7,7 +7,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.LocaleList;
-
 import com.foobnix.android.utils.LOG;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;

@@ -544,6 +544,10 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         if (errorExist) {
             searchAndOrderAsync();
         } else {
+            // Wait for the deferred DB row count (see AppProfile.init) so a
+            // not-yet-counted library is not mistaken for an empty one and
+            // rescanned destructively. The DB itself is already open.
+            AppProfile.awaitDBReady(2000);
             long count = AppProfile.bookCount;
             LOG.d("worker-starts", "cound-db", count);
             if (count == 0) {

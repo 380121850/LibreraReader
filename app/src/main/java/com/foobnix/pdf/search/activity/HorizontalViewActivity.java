@@ -255,6 +255,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+        AppsConfig.ensureMuPdfLoaded();
         finishOtherViewer(this, VerticalViewActivity.class);
         quickBookmark = getString(R.string.fast_bookmark);
         LOG.d("getRequestedOrientation", AppState.get().orientation, getRequestedOrientation());

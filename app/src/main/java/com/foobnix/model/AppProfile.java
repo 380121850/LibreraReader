@@ -25,6 +25,7 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.drive.GFile;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.FontExtractor;
 import com.foobnix.pdf.info.R;
@@ -40,6 +41,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class AppProfile {
 
@@ -88,7 +91,23 @@ public class AppProfile {
     public static File FONT_LOCAL_ZIP;
 
     public static String profile = "";
-    public static long bookCount;
+
+    // bookCount is filled on a background thread (see init()); readers that need
+    // an up-to-date value must call awaitDBReady() first.
+    public static volatile long bookCount;
+
+    // Signalled once the deferred getCount() task finishes, so consumers
+    // (e.g. SearchFragment2's bookCount decision) can wait safely.
+    private static final CountDownLatch DB_READY = new CountDownLatch(1);
+
+    /** Block up to {@code timeoutMs} until the deferred DB count finishes. */
+    public static void awaitDBReady(long timeoutMs) {
+        try {
+            DB_READY.await(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
 
     public synchronized static void init(Context c) {
@@ -115,9 +134,23 @@ public class AppProfile {
         AppDB.get()
              .open(c, appDB);
 
-        bookCount = AppDB.get()
-                         .getCount();
-        LOG.d("AppProfile init bookCount", profile, bookCount,appDB);
+        // The DB itself is opened synchronously above, so every other reader
+        // (workers, widgets, fragments) always sees a ready database. Only the
+        // row COUNT is deferred to a background thread to keep the main thread
+        // free; SearchFragment2 awaits it via awaitDBReady() before deciding
+        // whether to rescan (so a not-yet-counted library is not mistaken for
+        // an empty one, which would trigger a destructive full rescan).
+        AppsConfig.executorServiceSingle.execute(() -> {
+            try {
+                bookCount = AppDB.get().getCount();
+                LOG.d("AppProfile init bookCount", profile, bookCount, appDB);
+            } catch (Exception e) {
+                LOG.e(e);
+                bookCount = 0;
+            } finally {
+                DB_READY.countDown();
+            }
+        });
 
         SYNC_FOLDER_ROOT = new File(AppSP.get().getRootPath(c));
         SYNC_FOLDER_BOOKS = new File(SYNC_FOLDER_ROOT, "Books");

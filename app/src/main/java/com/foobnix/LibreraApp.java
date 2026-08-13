@@ -71,6 +71,9 @@ public class LibreraApp extends MultiDexApplication {
 
 
         AppsConfig.init(this);
+        // Preload MuPDF off the main thread so its load no longer blocks
+        // cold start; readers re-check synchronously before opening a book.
+        AppsConfig.executorService.execute(AppsConfig::ensureMuPdfLoaded);
         Dips.init(this);
         Prefs.get().init(this);
 
@@ -91,13 +94,17 @@ public class LibreraApp extends MultiDexApplication {
 //                }
 //                AdSettings.addTestDevice("e13a44ef-2006-41e0-8597-ed1afcc727b6");
 
-                MobileAds.initialize(this, new OnInitializationCompleteListener() {
-                    @Override
-                    public void onInitializationComplete(
-                            @NonNull
-                            InitializationStatus initializationStatus) {
-                        LOG.d("ads-complete");
-                    }
+                // MobileAds.initialize pulls in Play Services classes; run it off
+                // the main thread (the SDK is explicitly thread-safe for init).
+                AppsConfig.executorService.execute(() -> {
+                    MobileAds.initialize(this, new OnInitializationCompleteListener() {
+                        @Override
+                        public void onInitializationComplete(
+                                @NonNull
+                                InitializationStatus initializationStatus) {
+                            LOG.d("ads-complete");
+                        }
+                    });
                 });
 //                new Thread(){
 //                    @Override public void run() {
@@ -134,7 +141,7 @@ public class LibreraApp extends MultiDexApplication {
         Log.d("Build", "Build.MODEL :" + Build.MODEL);
         Log.d("Build", "Build.DEVICE:" + Build.DEVICE);
 
-        TTSNotification.initChannels(this);
+        AppsConfig.executorService.execute(() -> TTSNotification.initChannels(this));
 
         CacheZipUtils.init(this);
 
@@ -178,10 +185,11 @@ public class LibreraApp extends MultiDexApplication {
             });
         }
 
-        WorkManager.getInstance(context).pruneWork();
-        WorkManager.getInstance(context).cancelAllWork();
-
-
+        // prune/cancel are housekeeping; run them off the main thread.
+        AppsConfig.executorService.execute(() -> {
+            WorkManager.getInstance(context).pruneWork();
+            WorkManager.getInstance(context).cancelAllWork();
+        });
 
     }
 

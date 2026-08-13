@@ -454,7 +454,11 @@ public class MainTabs2 extends AdsFragmentActivity {
             pager.setBackgroundColor(Color.BLACK);
         }
 
-        pager.setOffscreenPageLimit(10);
+        // Keep only the current page + one neighbour page alive. The old
+        // limit of 10 created the views of ALL tabs during the first layout,
+        // which added ~900ms of fragment inflation before the first frame on
+        // cold start. Pages further away are created lazily on switch.
+        pager.setOffscreenPageLimit(1);
         pager.addOnPageChangeListener(onPageChangeListener);
 
 
@@ -633,45 +637,51 @@ public class MainTabs2 extends AdsFragmentActivity {
             }, 5000);
         }
 
-        try {
-            //ads
-            LOG.d(this, "TEST-ads-device ...");
-            if (AppsConfig.isShowAdsInApp(this)) {
-                ConsentRequestParameters params;
+        // Defer UMP consent / ads init until after the first frame so its Play
+        // Services class loading and async network call don't delay the first frame.
+        // handler is guaranteed non-null here: every early-return path above
+        // (password gate, EXTRA_EXIT) returns before handler is assigned.
+        handler.post(() -> {
+            try {
+                //ads
+                LOG.d(this, "TEST-ads-device ...");
+                if (AppsConfig.isShowAdsInApp(this)) {
+                    ConsentRequestParameters params;
 
-                if (AppsConfig.IS_TEST_DEVICE) {
-                    ConsentDebugSettings
-                            debugSettings =
-                            new ConsentDebugSettings.Builder(this).setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-                                                                  .addTestDeviceHashedId(ADS.getByTestID(this))
-                                                                  .build();
+                    if (AppsConfig.IS_TEST_DEVICE) {
+                        ConsentDebugSettings
+                                debugSettings =
+                                new ConsentDebugSettings.Builder(this).setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+                                                                      .addTestDeviceHashedId(ADS.getByTestID(this))
+                                                                      .build();
 
-                    params =
-                            new ConsentRequestParameters.Builder().setConsentDebugSettings(debugSettings)
-                                                                  .setTagForUnderAgeOfConsent(false)
-                                                                  .build();
-                    LOG.d(this, "TEST-ads-device true", ADS.getByTestID(this));
-                } else {
-                    params = new ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false).build();
-                    LOG.d(this, "TEST-ads-device false", ADS.getByTestID(this));
-                }
-                ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(this);
-
-                if (AppsConfig.IS_TEST_DEVICE) {
-                    //consentInformation.reset();
-                }
-
-                consentInformation.requestConsentInfoUpdate(this, params, () -> {
-                    if (consentInformation.isConsentFormAvailable()) {
-                        loadForm(consentInformation);
+                        params =
+                                new ConsentRequestParameters.Builder().setConsentDebugSettings(debugSettings)
+                                                                      .setTagForUnderAgeOfConsent(false)
+                                                                      .build();
+                        LOG.d(this, "TEST-ads-device true", ADS.getByTestID(this));
+                    } else {
+                        params = new ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false).build();
+                        LOG.d(this, "TEST-ads-device false", ADS.getByTestID(this));
                     }
-                }, formError -> {
-                    LOG.d("formError", formError.getErrorCode(), formError.getMessage());
-                });
+                    ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(this);
+
+                    if (AppsConfig.IS_TEST_DEVICE) {
+                        //consentInformation.reset();
+                    }
+
+                    consentInformation.requestConsentInfoUpdate(this, params, () -> {
+                        if (consentInformation.isConsentFormAvailable()) {
+                            loadForm(consentInformation);
+                        }
+                    }, formError -> {
+                        LOG.d("formError", formError.getErrorCode(), formError.getMessage());
+                    });
+                }
+            } catch (Exception e) {
+                LOG.e(e);
             }
-        } catch (Exception e) {
-            LOG.e(e);
-        }
+        });
     }
 
     public void loadForm(ConsentInformation consentInformation) {

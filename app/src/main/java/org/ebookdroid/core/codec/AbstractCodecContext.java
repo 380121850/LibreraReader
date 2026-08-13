@@ -78,6 +78,10 @@ public abstract class AbstractCodecContext implements CodecContext {
 
     @Override
     public CodecDocument openDocument(String fileNameOriginal, String password) {
+        // Guarantee the native MuPDF library is loaded before any document
+        // is opened (reader, cover thumbnail, library scan all funnel here).
+        // Usually already preloaded on a background thread from Application.
+        AppsConfig.ensureMuPdfLoaded();
         LOG.d("Open-Document", fileNameOriginal);
         // TempHolder.loadingCancelled = false;
         if (ExtUtils.isZip(fileNameOriginal)) {
