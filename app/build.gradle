@@ -285,6 +285,11 @@ android {
 
     sourceSets {
         fdroid { assets.srcDirs = ['src/fdroid/assets', 'src/fdroid/assets/'] }
+        // Native libraries are vendored under prebuilt/native/ (committed .so
+        // for all 4 ABIs). Setting srcDirs replaces the default
+        // src/main/jniLibs lookup so Gradle packages the prebuilt .so directly
+        // (see Builder/prepare-native.sh for the source-build fallback).
+        main { jniLibs.srcDirs = ["${rootDir}/prebuilt/native/mupdf-1.23.7"] }
     }
 
     packagingOptions {

@@ -23,7 +23,10 @@ mkdir -p $MUPDF_JAVA/jni
 
 SRC=jni/~mupdf-$VERSION_TAG
 DEST=$MUPDF_ROOT/source
-LIBS=$BUILD_DIR/../app/src/main/jniLibs
+# Prebuilt native libs now live in the committed prebuilt/native cache
+# (consumed by app/build.gradle jniLibs.srcDirs). Source builds copy REAL .so
+# files here so the cache is regenerated and portable (no symlinks).
+LIBS=$BUILD_DIR/../prebuilt/native/mupdf-$VERSION_TAG
 
 echo "MUPDF :" $VERSION_TAG
 echo "================== "
@@ -54,13 +57,15 @@ cp -Rp jni $MUPDF_JAVA/jni
 mv $MUPDF_JAVA/jni/Android-$VERSION_TAG.mk $MUPDF_JAVA/jni/Android.mk
 
 
-rm -r $LIBS
-mkdir $LIBS
+rm -rf $LIBS
+mkdir -p $LIBS
 
-ln -s $MUPDF_JAVA/libs/armeabi-v7a $LIBS
-ln -s $MUPDF_JAVA/libs/arm64-v8a $LIBS
-ln -s $MUPDF_JAVA/libs/x86 $LIBS
-ln -s $MUPDF_JAVA/libs/x86_64 $LIBS
+# Copy REAL .so files (not symlinks) into the prebuilt/native cache so the
+# committed binaries are portable across machines / git.
+for ABI in armeabi-v7a arm64-v8a x86 x86_64; do
+  mkdir -p $LIBS/$ABI
+  cp $MUPDF_JAVA/libs/$ABI/*.so $LIBS/$ABI/
+done
 
 if [ "$1" == "copy" ]; then
 

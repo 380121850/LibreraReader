@@ -188,3 +188,58 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 
 - 剩余 ~350–540ms 为 ART 类加载(process→onCreate),属 **Baseline Profile** 范畴(需另加 macrobenchmark 模块),本次未涉及;如需再压可单独规划
 - 测试设备无 Google Play Services,故广告 flavor 的 MobileAds/UMP 实际未执行(代码正确,会在有 GMS 的设备上运行)
+
+---
+
+## [2026-08-13] 预编译二进制缓存 prebuilt/ —— 离线构建
+
+**目标**:把所有「需从网上拉取」的二进制缓存进源码树,彻底解决因网络限制(`git://git.ghostscript.com` 被封、jitpack.io 被墙、mavenCentral 慢)导致的编译失败。
+
+### 一、新增 `prebuilt/`(合计 ~374 MB,普通 git blob 入库,**免 LFS**)
+
+| 子目录 | 内容 | 原网络来源 | 体积 | 接入方式 |
+| --- | --- | --- | --- | --- |
+| `native/mupdf-1.23.7/<abi>/` | MuPDF + liblame 原生库(4 ABI × 2 = 8 个 `.so`,RAW) | `git clone git://git.ghostscript.com/mupdf` + ndk-build | 85 MB | `app/build.gradle` `jniLibs.srcDirs` 直读(无需还原) |
+| `gradle-cache/modules-2.tar.gz.part00/01` | 全部 Gradle/Maven 依赖 + 插件(AGP/Kotlin/KSP/jitpack…),**Gradle 原生缓存格式**(158MB 拆 2 片 ≤90MB) | mavenCentral / google / jitpack.io / gradlePluginPortal | 158 MB | `scripts/restore-cache.sh` `cat` 重组后解压到 `~/.gradle/caches/`,用 `--offline` 构建 |
+| `gradle/gradle-8.14.5-bin.zip.part00/01` | Gradle 发行包(132MB 拆 2 片 ≤90MB) | services.gradle.org | 132 MB | `scripts/bootstrap-gradle.sh` `cat` 重组后灌入 `~/.gradle/wrapper/dists/` |
+
+### 二、关键设计决策:用 Gradle 原生缓存,不用 maven 仓库
+
+最初尝试把依赖转成**文件型 maven 仓库**(`prebuilt/maven` + `settings.gradle.kts` 置首),但**构建失败**:现代 AndroidX(room/lifecycle/compose…)用 Gradle Module Metadata 发布**变体产物**(如 `room-runtime-android` 的 .aar 实际名为 `room-runtime-release.aar`),Gradle 从文件仓库按默认名查找、找不到,且因元数据已存在**不回退网络** → 失败。
+
+改为 **vendor Gradle 自己的 `modules-2` 缓存**(原生格式,变体解析天然正确),fresh 机器还原进 `~/.gradle` 后用 `--offline` 构建。**实测**:全新 `GRADLE_USER_HOME`(只有该缓存)+ `--offline` + `clean` → BUILD SUCCESSFUL。
+
+### 三、接入改动
+
+| 文件 | 改动 |
+| --- | --- |
+| `app/build.gradle` | `sourceSets.main.jniLibs.srcDirs = ["${rootDir}/prebuilt/native/mupdf-1.23.7"]`(替换默认 `src/main/jniLibs`,消除旧符号链接冲突) |
+| `Builder/link_to_mupdf_1.23.7.sh` | `LIBS` 改指向 `prebuilt/native/mupdf-1.23.7`;符号链接(`ln -s`)改真实拷贝(`cp`)—— 源码编译结果直接灌入缓存 |
+| `.gitignore` | 加 `/app/src/main/jniLibs/`(gradle 已不读,防旧符号链接误入库) |
+| `.gitattributes`(新增) | `prebuilt/**` 二进制标记 `-text`(**不走 LFS**,含 `.part*`);`*.sh/*.kts/*.gradle` 强制 LF 行尾 |
+| `settings.gradle.kts` | **未改**(依赖走原生缓存 + `--offline`,不需要文件仓库) |
+
+### 四、脚本(均 in-repo)
+
+| 脚本 | 作用 |
+| --- | --- |
+| `scripts/vendor-cache.sh` | 联网构建后运行:打包 `modules-2.tar.gz` 后自动拆成 ≤90MB 分片(`.part00/.part01`)并删原件 |
+| `scripts/restore-cache.sh` | fresh 机器运行:`cat` 重组分片 → 解压到 `~/.gradle/caches/` + 调 bootstrap-gradle.sh |
+| `scripts/bootstrap-gradle.sh` | `cat` 重组分片 → 灌入 wrapper 缓存(`~/.gradle/wrapper/dists/`) |
+| `Builder/prepare-native.sh` | 检查 8 个 `.so`;缺失→调 `link_to_mupdf_1.23.7.sh` 拉源码编译 |
+
+### 五、验证(已通过)
+
+1. **联网构建不回归**:回退 settings.gradle.kts 后正常解析网络,构建通过。
+2. **主机离线**:`./gradlew --offline :app:assembleFdroidDebug` → BUILD SUCCESSFUL(用主机现有缓存)。
+3. **fresh 机器离线(终极)**:全新 `GRADLE_USER_HOME` + vendored 缓存 + `--offline` + `clean` → **BUILD SUCCESSFUL**(38 任务真实执行,非 UP-TO-DATE)。
+4. **gradle zip bootstrap**:`cat` 重组分片 → wrapper 自动解压 → 离线构建成功。
+
+### 六、入库说明
+
+- **免 Git LFS**:本仓库远程是 GitHub **public fork**,public fork 不允许上传 LFS 对象(push 报 `can not upload new objects to public fork`)。故二进制全部以**普通 git blob** 入库,无需 `git lfs install`。
+- 为绕过 GitHub **100MB/单文件**硬上限,两个大包(`gradle-8.14.5-bin.zip` 132MB、`modules-2.tar.gz` 158MB)各拆成 **≤90MB 分片**(`.part00/.part01`),构建脚本用 `cat ...part*` 重组;`.so` 单个均 <25MB,直接入库。
+- 持久主机无需 restore(它已有 `~/.gradle`);restore-cache.sh 仅用于 fresh 机器。
+- `keystore.pkcs12` 仍不入库。
+
+

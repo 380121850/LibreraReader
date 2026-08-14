@@ -14,6 +14,9 @@
 /smartreflow/bin/
 /pro/bin/
 /app/bin/
+# jniLibs is no longer used by Gradle (native libs now come from prebuilt/native);
+# ignore stale symlinks the legacy Builder scripts may have left here.
+/app/src/main/jniLibs/
 /bin
 /Builder/.vscode/
 /Builder/mupdf*

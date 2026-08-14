@@ -1,0 +1,24 @@
+# Large vendored binaries under prebuilt/ are committed as REGULAR git blobs
+# (NO Git LFS): GitHub forbids LFS object uploads to public forks, and this
+# repo's remote is a public fork. To stay under GitHub's 100MB/file hard limit,
+# the two big archives are stored as <=90MB split parts:
+#   prebuilt/gradle/gradle-8.14.5-bin.zip.part00/.part01   (was 132MB)
+#   prebuilt/gradle-cache/modules-2.tar.gz.part00/.part01  (was 158MB)
+# The build scripts (bootstrap-gradle.sh / restore-cache.sh) reassemble them
+# with `cat ...part*`. The *.so files are each <25MB and go in as-is.
+#
+# Mark all binary types -text so git never applies CRLF conversion (the working
+# copy sits on a Samba mount reached from Windows).
+
+prebuilt/**/*.so     -text
+prebuilt/**/*.aar    -text
+prebuilt/**/*.jar    -text
+prebuilt/**/*.zip    -text
+prebuilt/**/*.tar.gz -text
+prebuilt/**/*.part*  -text
+
+# Ensure shell scripts keep Unix line endings (the repo is built on Linux;
+# the Windows working copy is on a Samba mount and must not introduce CRLF).
+*.sh   text eol=lf
+*.kts  text eol=lf
+*.gradle text eol=lf
