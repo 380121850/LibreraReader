@@ -285,6 +285,13 @@ android {
 
     sourceSets {
         fdroid { assets.srcDirs = ['src/fdroid/assets', 'src/fdroid/assets/'] }
+        // GMS stub classes stand in for the removed play-services deps.
+        // Flavors that pull real play-services-base transitively (libDepFree's
+        // play-services-ads) must NOT compile them: the same classes exist in
+        // play-services-base and clash at dex merge. Only GMS-free flavors
+        // (fdroid, pro) compile the stubs from src/gmsStubs.
+        fdroid { java.srcDirs += ['src/gmsStubs/java'] }
+        pro { java.srcDirs += ['src/gmsStubs/java'] }
         // Native libraries are vendored under prebuilt/native/ (committed .so
         // for all 4 ABIs). Setting srcDirs replaces the default
         // src/main/jniLibs lookup so Gradle packages the prebuilt .so directly

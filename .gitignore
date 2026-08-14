@@ -34,3 +34,4 @@ google-services.*
 /shared/build/
 /composeApp/build/
 keystore.pkcs12
+app/placeholder-release.keystore
