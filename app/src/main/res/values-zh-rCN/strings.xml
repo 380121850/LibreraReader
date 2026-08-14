@@ -482,6 +482,14 @@
    <string name="show_search_bar">显示搜索栏</string>
    <string name="never">从不</string>
    <string name="general_settings">常规设置</string>
+   <string name="tabs_config">标签栏配置</string>
+   <string name="backup_config">备份配置</string>
+    <string name="theme_config">主题配置</string>
+    <string name="covers_config">书籍封面配置</string>
+    <string name="reading_config">阅读配置</string>
+    <string name="library_display_config">书库显示配置</string>
+    <string name="file_search_config">文件搜索配置</string>
+   <string name="ui_settings">UI配置</string>
    <string name="cyclic_scrolling_return_to_1_page_">循环翻页</string>
    <string name="normalize_font_size">规范字体大小</string>
    <string name="display_chapters_on_the_progress_line">章节进度条</string>

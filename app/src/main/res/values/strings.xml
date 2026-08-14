@@ -482,6 +482,14 @@
    <string name="show_search_bar">Show search bar</string>
    <string name="never">Never</string>
    <string name="general_settings">General Settings</string>
+   <string name="tabs_config">Tabs settings</string>
+   <string name="backup_config">Backup settings</string>
+    <string name="theme_config">Theme settings</string>
+    <string name="covers_config">Book covers settings</string>
+    <string name="reading_config">Reading settings</string>
+    <string name="library_display_config">Library display settings</string>
+    <string name="file_search_config">File search settings</string>
+   <string name="ui_settings">UI Settings</string>
    <string name="cyclic_scrolling_return_to_1_page_">Loop scroll</string>
    <string name="normalize_font_size">Normalize font size</string>
    <string name="display_chapters_on_the_progress_line">Module/part tick marks</string>

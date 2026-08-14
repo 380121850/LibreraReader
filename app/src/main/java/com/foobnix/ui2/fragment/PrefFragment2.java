@@ -12,6 +12,7 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -55,8 +56,10 @@ import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.IO;
 import com.foobnix.android.utils.IntegerResponse;
+import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
+import com.foobnix.android.utils.ResultResponse;
 import com.foobnix.android.utils.ResultResponse2;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.android.utils.Views;
@@ -77,6 +80,7 @@ import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.Urls;
 import com.foobnix.pdf.info.model.BookCSS;
+import com.foobnix.pdf.info.presentation.PathAdapter;
 import com.foobnix.pdf.info.view.AlertDialogs;
 import com.foobnix.pdf.info.view.BrightnessHelper;
 import com.foobnix.pdf.info.view.CustomSeek;
@@ -133,7 +137,7 @@ public class PrefFragment2 extends UIFragment {
     private static final String WWW_SITE = "https://librera.mobi";
     private static final String WWW_BETA_SITE = "http://beta.librera.mobi";
     private static final String WWW_WIKI_SITE = "https://librera.mobi/faq";
-    View section1, section2, section3, section4, section5, section6, section7, section8, section9, panelRecent, overlay,
+    View section1, section2, section4, section6, section8, section9, panelRecent, overlay,
             statusBarHack;
     TextView singIn, syncInfo, syncInfo2, syncHeader;
     CheckBox isEnableSync;
@@ -186,11 +190,8 @@ public class PrefFragment2 extends UIFragment {
         TintUtil.setStatusBarColor(getActivity(), TintUtil.color);
         TintUtil.setBackgroundFillColor(section1, TintUtil.color);
         TintUtil.setBackgroundFillColor(section2, TintUtil.color);
-        TintUtil.setBackgroundFillColor(section3, TintUtil.color);
         TintUtil.setBackgroundFillColor(section4, TintUtil.color);
-        TintUtil.setBackgroundFillColor(section5, TintUtil.color);
         TintUtil.setBackgroundFillColor(section6, TintUtil.color);
-        TintUtil.setBackgroundFillColor(section7, TintUtil.color);
         TintUtil.setBackgroundFillColor(section8, TintUtil.color);
         TintUtil.setBackgroundFillColor(section9, TintUtil.color);
         TintUtil.setBackgroundFillColor(panelRecent, TintUtil.color);
@@ -491,11 +492,78 @@ public class PrefFragment2 extends UIFragment {
 
         section1 = inflate.findViewById(R.id.section1);
         section2 = inflate.findViewById(R.id.section2);
-        section3 = inflate.findViewById(R.id.section3);
         section4 = inflate.findViewById(R.id.section4);
-        section5 = inflate.findViewById(R.id.section5);
         section6 = inflate.findViewById(R.id.section6);
-        section7 = inflate.findViewById(R.id.section7);
+
+        // collapsible second-level groups: click header to toggle content
+        final View tabsConfigHeader = inflate.findViewById(R.id.tabsConfigHeader);
+        final View tabsConfigContainer = inflate.findViewById(R.id.tabsConfigContainer);
+        tabsConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                tabsConfigContainer.setVisibility(
+                        tabsConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        final View backupConfigHeader = inflate.findViewById(R.id.backupConfigHeader);
+        final View backupConfigContainer = inflate.findViewById(R.id.backupConfigContainer);
+        backupConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                backupConfigContainer.setVisibility(
+                        backupConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        final View themeConfigHeader = inflate.findViewById(R.id.themeConfigHeader);
+        final View themeConfigContainer = inflate.findViewById(R.id.themeConfigContainer);
+        themeConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                themeConfigContainer.setVisibility(
+                        themeConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+
+        final View coversConfigHeader = inflate.findViewById(R.id.coversConfigHeader);
+        final View coversConfigContainer = inflate.findViewById(R.id.coversConfigContainer);
+        coversConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                coversConfigContainer.setVisibility(
+                        coversConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+
+        final View readingConfigHeader = inflate.findViewById(R.id.readingConfigHeader);
+        final View readingConfigContainer = inflate.findViewById(R.id.readingConfigContainer);
+        readingConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                readingConfigContainer.setVisibility(
+                        readingConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+
+        final View libraryDisplayConfigHeader = inflate.findViewById(R.id.libraryDisplayConfigHeader);
+        final View libraryDisplayConfigContainer = inflate.findViewById(R.id.libraryDisplayConfigContainer);
+        libraryDisplayConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                libraryDisplayConfigContainer.setVisibility(
+                        libraryDisplayConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        final View fileSearchConfigHeader = inflate.findViewById(R.id.fileSearchConfigHeader);
+        final View fileSearchConfigContainer = inflate.findViewById(R.id.fileSearchConfigContainer);
+        fileSearchConfigHeader.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                fileSearchConfigContainer.setVisibility(
+                        fileSearchConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        });
+
+
+
 
         onTintChanged();
 
@@ -1340,104 +1408,26 @@ public class PrefFragment2 extends UIFragment {
             }
         };
 
-        View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
-        TxtUtils.underlineTextView(libPrefView)
-                .setOnClickListener(v -> {
-
-                    final CheckBox isScanOnLaunch = new CheckBox(v.getContext());
-                    isScanOnLaunch.setText(getString(R.string.scan_for_new_books_at_launch));
-
-                    final CheckBox isFirstSurname = new CheckBox(v.getContext());
-                    isFirstSurname.setText(getString(R.string.in_the_author_s_name_first_the_surname));
-
-                    final CheckBox isSkipFolderWithNOMEDIA = new CheckBox(v.getContext());
-                    isSkipFolderWithNOMEDIA.setText(getString(R.string.ignore_folder_scan_if_nomedia_file_exists));
-
-                    final CheckBox isAuthorTitleFromMetaPDF = new CheckBox(v.getContext());
-                    isAuthorTitleFromMetaPDF.setText(
-                            R.string.displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags);
-
-                    final CheckBox isShowOnlyOriginalFileNames = new CheckBox(v.getContext());
-                    isShowOnlyOriginalFileNames.setText(R.string.display_original_file_names_without_metadata);
-
-                    final CheckBox isUseCalibreOpf = new CheckBox(v.getContext());
-                    isUseCalibreOpf.setText(R.string.use_calibre_metadata);
-
-                    final CheckBox isDisplayAnnotation = new CheckBox(v.getContext());
-                    isDisplayAnnotation.setText(R.string.show_book_description);
-
-                    final CheckBox isHideReadBook = new CheckBox(v.getContext());
-                    isHideReadBook.setText(R.string.hide_read_books);
-
-                    final CheckBox isShowSeriesNumberInTitle = new CheckBox(v.getContext());
-                    isShowSeriesNumberInTitle.setText(R.string.show_series_number_in_title);
-
-                    final AlertDialog d =
-                            AlertDialogs.showViewDialog(getActivity(), null, isScanOnLaunch, isFirstSurname,
-                                    isSkipFolderWithNOMEDIA,
-                                    isShowOnlyOriginalFileNames, isAuthorTitleFromMetaPDF, isUseCalibreOpf,
-                                    isDisplayAnnotation, isHideReadBook, isShowSeriesNumberInTitle);
-
-                    isScanOnLaunch.setChecked(AppState.get().isScanOnLaunch);
-                    isFirstSurname.setChecked(AppState.get().isFirstSurname);
-                    isSkipFolderWithNOMEDIA.setChecked(AppState.get().isSkipFolderWithNOMEDIA);
-                    isAuthorTitleFromMetaPDF.setChecked(AppState.get().isAuthorTitleFromMetaPDF);
-                    isShowOnlyOriginalFileNames.setChecked(AppState.get().isShowOnlyOriginalFileNames);
-                    isUseCalibreOpf.setChecked(AppState.get().isUseCalibreOpf);
-                    isDisplayAnnotation.setChecked(AppState.get().isDisplayAnnotation);
-                    isHideReadBook.setChecked(AppState.get().isHideReadBook);
-                    isShowSeriesNumberInTitle.setChecked(AppState.get().isShowSeriesNumberInTitle);
-
-                    final OnCheckedChangeListener listener = (buttonView, isChecked) -> {
-                        AppState.get().isScanOnLaunch = isScanOnLaunch.isChecked();
-                        AppState.get().isFirstSurname = isFirstSurname.isChecked();
-                        AppState.get().isSkipFolderWithNOMEDIA = isSkipFolderWithNOMEDIA.isChecked();
-                        AppState.get().isAuthorTitleFromMetaPDF = isAuthorTitleFromMetaPDF.isChecked();
-                        AppState.get().isShowOnlyOriginalFileNames = isShowOnlyOriginalFileNames.isChecked();
-                        AppState.get().isUseCalibreOpf = isUseCalibreOpf.isChecked();
-                        AppState.get().isDisplayAnnotation = isDisplayAnnotation.isChecked();
-                        AppState.get().isShowSeriesNumberInTitle = isShowSeriesNumberInTitle.isChecked();
-
-                        handler.removeCallbacksAndMessages(null);
-                        handler.postDelayed(ask, timeout);
-                        handler.postDelayed(new Runnable() {
-
-                            @Override public void run() {
-                                d.dismiss();
-                            }
-                        }, timeout);
-                    };
-
-                    isScanOnLaunch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                        AppState.get().isScanOnLaunch = isChecked;
-                    });
-                    isFirstSurname.setOnCheckedChangeListener(listener);
-                    isAuthorTitleFromMetaPDF.setOnCheckedChangeListener(listener);
-                    isSkipFolderWithNOMEDIA.setOnCheckedChangeListener(listener);
-                    isShowOnlyOriginalFileNames.setOnCheckedChangeListener(listener);
-                    isUseCalibreOpf.setOnCheckedChangeListener(listener);
-                    isDisplayAnnotation.setOnCheckedChangeListener(listener);
-                    isHideReadBook.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-                        @Override public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            AppState.get().isHideReadBook = isHideReadBook.isChecked();
-                            TempHolder.listHash++;
-                            notifyFragment();
-                        }
-                    });
-                    isShowSeriesNumberInTitle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-                        @Override public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            AppState.get().isShowSeriesNumberInTitle = isShowSeriesNumberInTitle.isChecked();
-                            TempHolder.listHash++;
-                            notifyFragment();
-                        }
-                    });
-
-                });
+View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
+        final LinearLayout moreLibraryConfigContainer = inflate.findViewById(R.id.moreLibraryConfigContainer);
+        TxtUtils.underlineTextView(libPrefView).setOnClickListener(v -> {
+            boolean expand = moreLibraryConfigContainer.getVisibility() != View.VISIBLE;
+            moreLibraryConfigContainer.setVisibility(expand ? View.VISIBLE : View.GONE);
+            if (expand) {
+                populateLibrarySettings(moreLibraryConfigContainer, handler, ask, timeout);
+            }
+        });
 
         ////
         View formatsSettings = inflate.findViewById(R.id.formatsSettings);
-        TxtUtils.underlineTextView(formatsSettings)
-                .setOnClickListener(v -> showFormatsDialog(handler, ask, timeout));
+        final LinearLayout formatsConfigContainer = inflate.findViewById(R.id.formatsConfigContainer);
+        TxtUtils.underlineTextView(formatsSettings).setOnClickListener(v -> {
+            boolean expand = formatsConfigContainer.getVisibility() != View.VISIBLE;
+            formatsConfigContainer.setVisibility(expand ? View.VISIBLE : View.GONE);
+            if (expand) {
+                populateFormats(formatsConfigContainer, handler, ask, timeout);
+            }
+        });
 
         CheckBox isDisplayAllFilesInFolder = inflate.findViewById(R.id.isDisplayAllFilesInFolder);
         isDisplayAllFilesInFolder.setChecked(AppState.get().isDisplayAllFilesInFolder);
@@ -1542,8 +1532,15 @@ public class PrefFragment2 extends UIFragment {
 
         initKeys();
 
+        final LinearLayout libraryFoldersConfigContainer = inflate.findViewById(R.id.libraryFoldersConfigContainer);
         TxtUtils.underlineTextView(inflate.findViewById(R.id.libraryFoldersSettings))
-                .setOnClickListener(v -> onFolderConfigDialog());
+                .setOnClickListener(v -> {
+                    boolean expand = libraryFoldersConfigContainer.getVisibility() != View.VISIBLE;
+                    libraryFoldersConfigContainer.setVisibility(expand ? View.VISIBLE : View.GONE);
+                    if (expand) {
+                        populateFolderConfig(libraryFoldersConfigContainer);
+                    }
+                });
 
         TxtUtils.underlineTextView(inflate.findViewById(R.id.importButton))
                 .setOnClickListener(v -> PrefDialogs.importDialog(getActivity()));
@@ -2549,11 +2546,12 @@ public class PrefFragment2 extends UIFragment {
 
     }
 
-    private void showFormatsDialog(final Handler handler, final Runnable ask, final int timeout) {
+    private void populateFormats(final LinearLayout root, final Handler handler, final Runnable ask, final int timeout) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
+        root.removeAllViews();
         final List<FormatEntry> entries = formatEntries(activity);
         final List<View> rows = new ArrayList<View>();
         final List<TextView> countViews = new ArrayList<TextView>();
@@ -2586,7 +2584,9 @@ public class PrefFragment2 extends UIFragment {
             countViews.add(count);
         }
 
-        AlertDialogs.showViewDialog(activity, null, rows.toArray(new View[rows.size()]));
+        for (View row : rows) {
+            root.addView(row);
+        }
 
         AppsConfig.executorService.execute(() -> {
             final Map<String, Long> extCounts = AppDB.get().getExtCounts();
@@ -2689,21 +2689,226 @@ public class PrefFragment2 extends UIFragment {
         return text;
     }
 
-    public void onFolderConfigDialog() {
+    private void populateLibrarySettings(final LinearLayout root, final Handler handler, final Runnable ask, final int timeout) {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        root.removeAllViews();
 
-        PrefDialogs.chooseFolderDialog(getActivity(), new Runnable() {
+        final CheckBox isScanOnLaunch = new CheckBox(activity);
+        isScanOnLaunch.setText(getString(R.string.scan_for_new_books_at_launch));
 
-            @Override public void run() {
-                saveChanges();
-                LOG.d("Save Changes", 2);
-            }
-        }, new Runnable() {
+        final CheckBox isFirstSurname = new CheckBox(activity);
+        isFirstSurname.setText(getString(R.string.in_the_author_s_name_first_the_surname));
 
-            @Override public void run() {
-                onScan();
-            }
+        final CheckBox isSkipFolderWithNOMEDIA = new CheckBox(activity);
+        isSkipFolderWithNOMEDIA.setText(getString(R.string.ignore_folder_scan_if_nomedia_file_exists));
+
+        final CheckBox isAuthorTitleFromMetaPDF = new CheckBox(activity);
+        isAuthorTitleFromMetaPDF.setText(
+                R.string.displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags);
+
+        final CheckBox isShowOnlyOriginalFileNames = new CheckBox(activity);
+        isShowOnlyOriginalFileNames.setText(R.string.display_original_file_names_without_metadata);
+
+        final CheckBox isUseCalibreOpf = new CheckBox(activity);
+        isUseCalibreOpf.setText(getString(R.string.use_calibre_metadata));
+
+        final CheckBox isDisplayAnnotation = new CheckBox(activity);
+        isDisplayAnnotation.setText(getString(R.string.show_book_description));
+
+        final CheckBox isHideReadBook = new CheckBox(activity);
+        isHideReadBook.setText(getString(R.string.hide_read_books));
+
+        final CheckBox isShowSeriesNumberInTitle = new CheckBox(activity);
+        isShowSeriesNumberInTitle.setText(getString(R.string.show_series_number_in_title));
+
+        root.addView(isScanOnLaunch);
+        root.addView(isFirstSurname);
+        root.addView(isSkipFolderWithNOMEDIA);
+        root.addView(isAuthorTitleFromMetaPDF);
+        root.addView(isShowOnlyOriginalFileNames);
+        root.addView(isUseCalibreOpf);
+        root.addView(isDisplayAnnotation);
+        root.addView(isHideReadBook);
+        root.addView(isShowSeriesNumberInTitle);
+
+        isScanOnLaunch.setChecked(AppState.get().isScanOnLaunch);
+        isFirstSurname.setChecked(AppState.get().isFirstSurname);
+        isSkipFolderWithNOMEDIA.setChecked(AppState.get().isSkipFolderWithNOMEDIA);
+        isAuthorTitleFromMetaPDF.setChecked(AppState.get().isAuthorTitleFromMetaPDF);
+        isShowOnlyOriginalFileNames.setChecked(AppState.get().isShowOnlyOriginalFileNames);
+        isUseCalibreOpf.setChecked(AppState.get().isUseCalibreOpf);
+        isDisplayAnnotation.setChecked(AppState.get().isDisplayAnnotation);
+        isHideReadBook.setChecked(AppState.get().isHideReadBook);
+        isShowSeriesNumberInTitle.setChecked(AppState.get().isShowSeriesNumberInTitle);
+
+        isScanOnLaunch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            AppState.get().isScanOnLaunch = isChecked;
         });
 
+        final OnCheckedChangeListener listener = (buttonView, isChecked) -> {
+            AppState.get().isFirstSurname = isFirstSurname.isChecked();
+            AppState.get().isSkipFolderWithNOMEDIA = isSkipFolderWithNOMEDIA.isChecked();
+            AppState.get().isAuthorTitleFromMetaPDF = isAuthorTitleFromMetaPDF.isChecked();
+            AppState.get().isShowOnlyOriginalFileNames = isShowOnlyOriginalFileNames.isChecked();
+            AppState.get().isUseCalibreOpf = isUseCalibreOpf.isChecked();
+            AppState.get().isDisplayAnnotation = isDisplayAnnotation.isChecked();
+            AppState.get().isShowSeriesNumberInTitle = isShowSeriesNumberInTitle.isChecked();
+
+            handler.removeCallbacksAndMessages(null);
+            handler.postDelayed(ask, timeout);
+        };
+        isFirstSurname.setOnCheckedChangeListener(listener);
+        isAuthorTitleFromMetaPDF.setOnCheckedChangeListener(listener);
+        isSkipFolderWithNOMEDIA.setOnCheckedChangeListener(listener);
+        isShowOnlyOriginalFileNames.setOnCheckedChangeListener(listener);
+        isUseCalibreOpf.setOnCheckedChangeListener(listener);
+        isDisplayAnnotation.setOnCheckedChangeListener(listener);
+        isHideReadBook.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                AppState.get().isHideReadBook = isHideReadBook.isChecked();
+                TempHolder.listHash++;
+                notifyFragment();
+            }
+        });
+        isShowSeriesNumberInTitle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                AppState.get().isShowSeriesNumberInTitle = isShowSeriesNumberInTitle.isChecked();
+                TempHolder.listHash++;
+                notifyFragment();
+            }
+        });
+    }
+
+    private void populateFolderConfig(final LinearLayout root) {
+        final Activity a = getActivity();
+        if (a == null) {
+            return;
+        }
+        root.removeAllViews();
+
+        final Runnable refresh = new Runnable() {
+            @Override public void run() {
+                populateFolderConfig(root);
+            }
+        };
+
+        final PathAdapter recentAdapter = new PathAdapter();
+        recentAdapter.setOnDeleClick(new ResultResponse<Uri>() {
+            @Override
+            public boolean onResultRecive(Uri result) {
+                String path = result.getPath();
+                BookCSS.get().searchPathsJson = JsonDB.remove(BookCSS.get().searchPathsJson, path);
+                saveChanges();
+                refresh.run();
+                return false;
+            }
+        });
+        recentAdapter.setPaths(JsonDB.get(BookCSS.get().searchPathsJson));
+
+        final LinearLayout pathsList = new LinearLayout(a);
+        pathsList.setOrientation(LinearLayout.VERTICAL);
+        for (int i = 0; i < recentAdapter.getCount(); i++) {
+            pathsList.addView(recentAdapter.getView(i, null, pathsList));
+        }
+        root.addView(pathsList, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        final LinearLayout addRow = new LinearLayout(a);
+        addRow.setOrientation(LinearLayout.HORIZONTAL);
+        addRow.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
+
+        final TextView addFolder = new TextView(a);
+        addFolder.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_folder)));
+        addRow.addView(addFolder, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        final TextView addFile = new TextView(a);
+        addFile.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_file)));
+        addFile.setPadding(Dips.dpToPx(10), 0, 0, 0);
+        addRow.addView(addFile, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        root.addView(addRow, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        final TextView search = new TextView(a);
+        search.setText(TxtUtils.notAndUnderline("", a.getString(R.string.search)));
+        search.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
+        search.setOnClickListener(v -> onScan());
+        root.addView(search, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        addFolder.setOnClickListener(v -> ChooserDialogFragment
+                .chooseFolder(getActivity(), BookCSS.get().dirLastPath)
+                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                    @Override
+                    public boolean onResultRecive(String nPath, Dialog dialog) {
+                        if (nPath.equals("/")) {
+                            Toast.makeText(a, String.format("[ / ] %s", a.getString(R.string.incorrect_value)),
+                                    Toast.LENGTH_LONG).show();
+                            return false;
+                        }
+                        boolean isExists = false;
+                        String existPath = "";
+                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                            if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
+                                isExists = true;
+                                existPath = str;
+                                break;
+                            }
+                        }
+                        if (ExtUtils.isExteralSD(nPath)) {
+                            Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                        } else if (isExists) {
+                            Toast.makeText(a,
+                                    String.format("[ %s == %s ] %s", nPath, existPath,
+                                            a.getString(R.string.this_directory_is_already_in_the_list)),
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        }
+                        dialog.dismiss();
+                        saveChanges();
+                        refresh.run();
+                        return false;
+                    }
+                }));
+
+        addFile.setOnClickListener(v -> ChooserDialogFragment
+                .chooseFile(getActivity(), "")
+                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                    @Override
+                    public boolean onResultRecive(String nPath, Dialog dialog) {
+                        if (!new File(nPath).isFile()) {
+                            Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        boolean isExists = false;
+                        String existPath = "";
+                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                            if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
+                                isExists = true;
+                                existPath = str;
+                                break;
+                            }
+                        }
+                        if (isExists) {
+                            Toast.makeText(a,
+                                    String.format("[ %s == %s ] %s", nPath, existPath,
+                                            a.getString(R.string.this_directory_is_already_in_the_list)),
+                                    Toast.LENGTH_LONG).show();
+                        } else {
+                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        }
+                        dialog.dismiss();
+                        saveChanges();
+                        refresh.run();
+                        return false;
+                    }
+                }));
     }
 
     @Override public void onResume() {
