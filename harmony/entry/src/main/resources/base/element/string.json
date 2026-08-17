@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Librera Reader entry module"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Librera Reader for HarmonyOS"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Librera"
+    }
+  ]
+}

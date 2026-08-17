@@ -1,0 +1,13 @@
+{
+  "modelVersion": "6.1.1",
+  "name": "librera",
+  "version": "1.0.0",
+  "description": "Librera Reader for HarmonyOS",
+  "main": "",
+  "author": "foobnix",
+  "license": "GPL-3.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.21"
+  }
+}

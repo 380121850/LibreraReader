@@ -1,0 +1,53 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "liberadebug",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "./signing/app-sign-cert.cer",
+          "storeFile": "./signing/librera-sign.p12",
+          "profile": "./signing/librera-debug.p7b",
+          "keyAlias": "app-sign-key",
+          "keyPassword": "RUN_GEN_SIGNING_TO_FILL",
+          "storePassword": "RUN_GEN_SIGNING_TO_FILL",
+          "signAlg": "SHA256withECDSA"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "liberadebug",
+        "compatibleSdkVersion": "6.1.1(24)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        },
+        "targetSdkVersion": "6.1.1(24)"
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}

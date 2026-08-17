@@ -35,3 +35,30 @@ google-services.*
 /composeApp/build/
 keystore.pkcs12
 app/placeholder-release.keystore
+
+# ---------- HarmonyOS ----------
+# hvigor / ohpm build state
+harmony/.hvigor/
+harmony/oh_modules/
+harmony/build/
+harmony/entry/build/
+harmony/entry/.cxx/
+harmony/native/build-arm64-v8a/
+harmony/native/build-x86_64/
+# MuPDF cross-compile output is staged here from prebuilt/harmony or native builds
+harmony/entry/libs/
+# IDE / logs / scratch
+harmony/.idea/
+harmony/**/hilog*
+harmony/build_output.txt
+# local signing material: keep ONLY the whitelisted scripts + README
+harmony/signing/*
+!harmony/signing/gen_signing.sh
+!harmony/signing/make_material.js
+!harmony/signing/README.md
+# stray signing copies in harmony root (never commit keys)
+harmony/material/
+harmony/*.p12
+harmony/*.p7b
+harmony/*.cer
+harmony/*.csr

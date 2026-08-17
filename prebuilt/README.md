@@ -15,6 +15,7 @@ and reassembled by the build scripts (`.gitattributes` only marks them `-text`).
 ```
 prebuilt/
   native/mupdf-1.23.7/<abi>/{libMuPDF.so, liblame.so}   # 8 .so, ~85 MB (RAW)
+  harmony/mupdf-1.23.7/<abi>/libmupdf.so                # 2 .so, ~103 MB (RAW, HarmonyOS/OHOS build)
   gradle-cache/modules-2.tar.gz.part00 .part01           # ~158 MB split (90+68 MB)
   gradle/gradle-8.14.5-bin.zip.part00 .part01            # ~132 MB split (90+42 MB)
 ```
@@ -22,6 +23,7 @@ prebuilt/
 | Part | What | Original network source | Wired how | Regenerate |
 | --- | --- | --- | --- | --- |
 | `native/` | MuPDF + liblame native libs (4 ABIs) | `git clone git://git.ghostscript.com/mupdf` + ndk-build | `app/build.gradle` `jniLibs.srcDirs` (Gradle reads the .so directly — **no restore step**) | `Builder/prepare-native.sh` (fallback to `Builder/link_to_mupdf_1.23.7.sh`) |
+| `harmony/` | MuPDF for HarmonyOS (arm64-v8a + x86_64, ~53 MB each — embedded CJK fonts, under the 100 MB limit so committed as-is) | same mupdf source + OHOS SDK toolchain | `harmony/scripts/restore-harmony-libs.sh` copies into `harmony/entry/libs/<abi>/` before `hvigorw` | `harmony/native/build_mupdf_harmony.sh` |
 | `gradle-cache/` | ALL Gradle/Maven deps + plugins (AGP, Kotlin, KSP, jitpack…) as Gradle's own cache (stored as split `.part*`) | mavenCentral / google / jitpack.io / gradlePluginPortal | `scripts/restore-cache.sh` reassembles (`cat .part*`) then extracts to `~/.gradle/caches/`; build with `--offline` | `scripts/vendor-cache.sh` (after an online build; auto-splits) |
 | `gradle/` | Gradle 8.14.5 distribution (stored as split `.part*`) | services.gradle.org | `scripts/bootstrap-gradle.sh` reassembles (`cat .part*`) then seeds `~/.gradle/wrapper/dists/` | drop a new `gradle-<ver>-bin.zip` here (then split ≤90 MB) |
 
