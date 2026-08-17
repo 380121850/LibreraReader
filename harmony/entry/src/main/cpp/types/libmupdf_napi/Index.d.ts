@@ -36,6 +36,8 @@ export function openDocument(path: string): ESObject;
 export function openDocumentByFd(fd: number): ESObject;
 export function pageCount(handle: ESObject): number;
 export function renderPage(handle: ESObject, pageNumber: number, zoom: number): RenderResult;
+/** Async render: returns Promise<RenderResult>, renders on worker thread with pthread-locked fz_context */
+export function renderPageAsync(handle: ESObject, pageNumber: number, zoom: number): Promise<RenderResult>;
 /** Extract text content from a page */
 export function getText(handle: ESObject, pageNumber: number, zoom: number): string;
 /** Search text and return bounding rectangles */

@@ -1,5 +1,6 @@
 import fs from '@ohos.file.fs';
 import image from '@ohos.multimedia.image';
+import router from '@ohos.router';
 import { version, openDocument, pageCount, renderPage, getText, searchText, getDocumentInfo, RenderResult, TextRect, DocumentInfo } from 'libmupdf_napi.so';
 
 @Entry
@@ -127,6 +128,24 @@ struct Index {
         .fontColor(Color.Green)
         .textAlign(TextAlign.Center)
         .margin({ top: 4 })
+
+      // Entry button to the Reader (Swiper paging UI)
+      Button('打开阅读器 (Reader)')
+        .fontSize(16)
+        .fontColor(Color.White)
+        .backgroundColor(Color.Blue)
+        .width('70%')
+        .height(44)
+        .margin({ top: 16 })
+        .onClick(() => {
+          router.pushUrl({ url: 'components/Reader' })
+            .then(() => {
+              console.info('[Index] Navigated to Reader');
+            })
+            .catch((err: Error) => {
+              console.error('[Index] Navigate failed: ' + JSON.stringify(err));
+            });
+        })
     }
     .width('100%')
     .height('100%')
