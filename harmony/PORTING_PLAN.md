@@ -15,6 +15,15 @@
 
 已知限制：MuPDF 1.23.7 EPUB CSS parser 在某些文件上触发 SIGSEGV（fz_chartorune NULL deref），需升级 MuPDF 或等上游修复。
 
+## 已修复问题记录（2026-08-18）
+
+### 启动概率闪退（SIGSEGV in RenderJobExecute）✅ 已修复
+- **现象**：VM 上手动打开 APP 有概率闪退，faultlog 签名全部为 `NativeAsyncWork::AsyncWorkCallback → RenderJobExecute` 内 SEGV_ACCERR。
+- **主根因**：`renderPageAsync` 90/270 度旋转的像素拷贝索引公式错误 —— `(y*stride + (w-1-x)) * 4` 把本已是字节单位的 stride 又乘了 4，y≥1 即按 4 倍行距越界读源 pixmap，撞堆 guard page。Index 每次启动都跑 rot=90 渲染测试 → "概率"取决于堆布局（debug 越界落未用堆页不崩，release -O2 必崩）。
+- **次根因（一并修复）**：closeDocument 显式 `delete h` 后 napi_external finalizer 再次 drop → double-free/UAF；RenderJob 持裸 DocumentHandle* 无引用计数；全文件无 fz_var()（longjmp 后局部变量 UB）；PageCount/GetDocumentInfo/SearchText 有裸 MuPDF 调用（无 try 即 abort）。
+- **修复**：DocumentHandle 引入 refs/closed 引用计数（ReleaseHandle 为唯一删除点）；RenderJob 入队前 AcquireHandle；所有 fz_try 块补 fz_var 并集中 fz_always 释放；裸调用包 try；修正旋转索引公式。
+- **验证**：release 版循环启动 15 次零崩溃、faultlog 零新增、10 项 API 测试全过。
+
 ---
 
 ## 阶段 1：环境与构建链路 ✅ 已完成

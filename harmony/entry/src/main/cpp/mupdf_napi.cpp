@@ -7,22 +7,37 @@
  *   openDocumentByFd(fd)           -> fz_open_file_ptr_no_close
  *   pageCount(handle)              -> fz_count_pages
  *   renderPage(handle, no, zoom)   -> RGBA pixels as ArrayBuffer
- *   renderPageAsync(handle, no, o) -> Promise<RenderResult>, napi_async_worker + pthread lock
+ *   renderPageAsync(handle, no, o) -> Promise<RenderResult>, napi_async_worker
  *   getToc(handle)                 -> flat outline list with depth markers
  *   getPageSize(handle, page)      -> native media size in points (0 deg)
  *   getText(handle, page, zoom)    -> text content as UTF-8 string
  *   searchText(handle, text, page) -> array of {x0, y0, x1, y1} rects
  *   getDocumentInfo(handle)        -> object with title/author/creator etc.
  *   closeDocument(handle)          -> explicit drop (finalize also guards)
+ *
+ * Threading & lifetime:
+ * - MuPDF contexts are not thread-safe. All native access is serialized
+ *   through g_mu; the async render worker holds it for its whole job.
+ * - DocumentHandle is reference-counted: the napi_external holds one
+ *   reference, each queued RenderJob holds one. closeDocument only drops
+ *   the MuPDF document and marks the handle closed (tombstone); the
+ *   context and the handle itself are freed exactly once, when the last
+ *   reference is released (GC finalizer or async-job completion).
+ * - Every fz_try block follows MuPDF's fz_var() discipline: locals that
+ *   are written inside the try and read after a potential longjmp are
+ *   protected, so optimized (release -O2) builds stay well-defined.
  */
 #include "napi/native_api.h"
 #include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
 
+#include <atomic>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <pthread.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -30,53 +45,71 @@ namespace {
 /* PATH_MAX is not reliably exposed by the OHOS musl headers */
 constexpr size_t kMaxPath = 4096;
 
-/* MuPDF contexts are not thread-safe. Serialize all native access through one mutex;
- * the async render worker holds it for its whole job, so concurrent renders queue up. */
 pthread_mutex_t g_mu = PTHREAD_MUTEX_INITIALIZER;
 
-/* Wrap MuPDF's fz_try/fz_catch with a mutex. Usage:
- *   MU_TRY(h) { ...body... } MU_ALWAYS(h) { ...always... } MU_CATCH(h, on_err)
- * Without MU_ALWAYS: MU_TRY(h) { ... } MU_CATCH(h, on_err)
- * on_err must be a statement (or empty comment). All paths unlock and return nullptr. */
-#define MU_TRY(h) \
-    pthread_mutex_lock(&g_mu); \
-    if (!fz_setjmp(*fz_push_try((h)->ctx))) do
-#define MU_ALWAYS(h) \
-    while (0); if (fz_do_always((h)->ctx)) do
-/* on_err must be a statement (or empty). Always unlocks and returns nullptr. */
-#define MU_CATCH(h, on_err) \
-    while (0); \
-    if (fz_do_catch((h)->ctx)) { \
-        do { on_err; } while (0); \
-        pthread_mutex_unlock(&g_mu); \
-        return nullptr; \
-    } \
-    pthread_mutex_unlock(&g_mu);
-
 struct DocumentHandle {
-    fz_context *ctx;
-    fz_document *doc;
+    fz_context *ctx;          /* valid until the last reference is released */
+    fz_document *doc;         /* nullptr once closed */
+    std::atomic<int> refs;    /* 1 (napi_external) + N in-flight render jobs */
+    std::atomic<bool> closed; /* set by closeDocument / finalizer */
 };
 
-void DropDocumentHandle(void *data)
+static void AcquireHandle(DocumentHandle *h)
 {
-    auto *h = static_cast<DocumentHandle *>(data);
-    if (h != nullptr) {
-        if (h->doc != nullptr) {
-            fz_drop_document(h->ctx, h->doc);
-            h->doc = nullptr;
-        }
-        if (h->ctx != nullptr) {
-            fz_drop_context(h->ctx);
-            h->ctx = nullptr;
-        }
-        delete h;
+    h->refs.fetch_add(1);
+}
+
+/* Drop one reference; on the last reference free the MuPDF resources and
+ * the handle itself. This is the ONLY place that deletes a DocumentHandle,
+ * so a napi_external can never wrap freed memory after an explicit close. */
+static void ReleaseHandle(DocumentHandle *h)
+{
+    if (h->refs.fetch_sub(1) != 1) {
+        return;
     }
+    pthread_mutex_lock(&g_mu);
+    if (h->doc != nullptr) {
+        fz_drop_document(h->ctx, h->doc);
+        h->doc = nullptr;
+    }
+    fz_context *ctx = h->ctx;
+    h->ctx = nullptr;
+    h->closed = true;
+    pthread_mutex_unlock(&g_mu);
+    if (ctx != nullptr) {
+        fz_drop_context(ctx);
+    }
+    delete h;
 }
 
 void FinalizeDocument(napi_env /*env*/, void *data, void * /*hint*/)
 {
-    DropDocumentHandle(data);
+    auto *h = static_cast<DocumentHandle *>(data);
+    if (h != nullptr) {
+        /* Soft-close on GC: stop further use, then drop the external's ref. */
+        pthread_mutex_lock(&g_mu);
+        if (!h->closed) {
+            h->closed = true;
+            if (h->doc != nullptr) {
+                fz_drop_document(h->ctx, h->doc);
+                h->doc = nullptr;
+            }
+        }
+        pthread_mutex_unlock(&g_mu);
+        ReleaseHandle(h);
+    }
+}
+
+napi_value MakeExternal(napi_env env, fz_context *ctx, fz_document *doc)
+{
+    auto *handle = new DocumentHandle();
+    handle->ctx = ctx;
+    handle->doc = doc;
+    handle->refs = 1; /* the napi_external's reference */
+    handle->closed = false;
+    napi_value external;
+    napi_create_external(env, handle, FinalizeDocument, nullptr, &external);
+    return external;
 }
 
 napi_value Version(napi_env env, napi_callback_info /*info*/)
@@ -120,10 +153,7 @@ napi_value OpenDocument(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    auto *handle = new DocumentHandle{ctx, doc};
-    napi_value external;
-    napi_create_external(env, handle, FinalizeDocument, nullptr, &external);
-    return external;
+    return MakeExternal(env, ctx, doc);
 }
 
 DocumentHandle *GetHandle(napi_env env, napi_value value)
@@ -131,6 +161,10 @@ DocumentHandle *GetHandle(napi_env env, napi_value value)
     DocumentHandle *handle = nullptr;
     if (napi_get_value_external(env, value, reinterpret_cast<void **>(&handle)) != napi_ok || handle == nullptr) {
         napi_throw_type_error(env, nullptr, "invalid document handle");
+        return nullptr;
+    }
+    if (handle->closed) {
+        napi_throw_error(env, "DOC_CLOSED", "document already closed");
         return nullptr;
     }
     return handle;
@@ -145,8 +179,22 @@ napi_value PageCount(napi_env env, napi_callback_info info)
     if (h == nullptr) {
         return nullptr;
     }
+
+    int count = 0;
+    fz_var(count);
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        count = fz_count_pages(h->ctx, h->doc);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "COUNT_FAILED", "cannot count pages");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
     napi_value result;
-    napi_create_int32(env, fz_count_pages(h->ctx, h->doc), &result);
+    napi_create_int32(env, count, &result);
     return result;
 }
 
@@ -174,10 +222,18 @@ napi_value RenderPage(napi_env env, napi_callback_info info)
     int width = 0;
     int height = 0;
     napi_value dataBuffer = nullptr;
+    napi_value result = nullptr;
     bool failed = false;
-
     fz_pixmap *pix = nullptr;
-    MU_TRY(h) {
+    fz_var(width);
+    fz_var(height);
+    fz_var(dataBuffer);
+    fz_var(result);
+    fz_var(failed);
+    fz_var(pix);
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
         pix = fz_new_pixmap_from_page_number(h->ctx, h->doc, pageNumber, fz_scale(zoom, zoom),
             fz_device_rgb(h->ctx), 1);
         width = fz_pixmap_width(h->ctx, pix);
@@ -191,21 +247,27 @@ napi_value RenderPage(napi_env env, napi_callback_info info)
         } else {
             failed = true;
         }
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+        if (pix != nullptr) {
+            fz_drop_pixmap(h->ctx, pix);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "RENDER_FAILED", "page rendering failed");
+        return nullptr;
     }
-    MU_ALWAYS(h) {
-        fz_drop_pixmap(h->ctx, pix);
-    }
-    MU_CATCH(h, napi_throw_error(env, "RENDER_FAILED", "page rendering failed"))
+    pthread_mutex_unlock(&g_mu);
 
     if (failed || dataBuffer == nullptr) {
         napi_throw_error(env, "OOM", "cannot allocate pixel buffer");
         return nullptr;
     }
 
-    napi_value result;
+    napi_create_object(env, &result);
     napi_value wVal;
     napi_value hVal;
-    napi_create_object(env, &result);
     napi_create_int32(env, width, &wVal);
     napi_create_int32(env, height, &hVal);
     napi_set_named_property(env, result, "width", wVal);
@@ -217,7 +279,7 @@ napi_value RenderPage(napi_env env, napi_callback_info info)
 /* ---- renderPageAsync (napi_async_worker + pthread lock) ---- */
 
 struct RenderJob {
-    DocumentHandle *h;
+    DocumentHandle *h; /* holds a reference for the lifetime of the job */
     int pageNumber;
     double zoom;
     int rotationDeg;
@@ -230,55 +292,61 @@ struct RenderJob {
     napi_deferred deferred = nullptr;
 };
 
-static void RenderJobExecute(napi_env env, void *data)
+static void RenderJobExecute(napi_env /*env*/, void *data)
 {
     auto *job = static_cast<RenderJob *>(data);
     auto *h = job->h;
 
+    fz_pixmap *pix = nullptr;
+    uint8_t *out = nullptr;
+    size_t outSize = 0;
+    fz_var(pix);
+    fz_var(out);
+    fz_var(outSize);
+
     pthread_mutex_lock(&g_mu);
-    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
-        /* MuPDF 1.23.7 has no from_page_number variant with transform; render then rotate in software */
-        fz_pixmap *pix = fz_new_pixmap_from_page_number(h->ctx, h->doc, job->pageNumber,
+    if (h->closed) {
+        /* Document was closed while this job was queued. */
+        job->failed = true;
+    } else if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pix = fz_new_pixmap_from_page_number(h->ctx, h->doc, job->pageNumber,
             fz_scale(job->zoom, job->zoom), fz_device_rgb(h->ctx), 1);
 
-        /* rotation/inversion are post-process on the RGBA buffer */
         int w = fz_pixmap_width(h->ctx, pix);
         int ht = fz_pixmap_height(h->ctx, pix);
         int stride = fz_pixmap_stride(h->ctx, pix);
         const uint8_t *src = fz_pixmap_samples(h->ctx, pix);
 
+        /* rotation/inversion are post-process on the RGBA buffer;
+         * buffers come from the MuPDF allocator so failures longjmp
+         * into the catch below instead of throwing C++ bad_alloc
+         * across the setjmp boundary */
         if (job->rotationDeg == 90 || job->rotationDeg == 270) {
-            /* rotate 90/270: output is ht x w */
-            std::vector<uint8_t> out(static_cast<size_t>(ht) * w * 4);
+            outSize = static_cast<size_t>(ht) * static_cast<size_t>(w) * 4;
+            out = static_cast<uint8_t *>(fz_calloc(h->ctx, outSize, 1));
             for (int y = 0; y < ht; y++) {
                 for (int x = 0; x < w; x++) {
                     const uint8_t *s;
                     if (job->rotationDeg == 90) {
-                        /* new(x',y') = old(y', w-1-x') */
-                        s = src + (static_cast<size_t>(y) * stride + static_cast<size_t>(w - 1 - x)) * 4;
+                        /* new(x',y') = old(y', w-1-x'); byte offset = y'*stride + (w-1-x')*4 */
+                        s = src + static_cast<size_t>(y) * stride + static_cast<size_t>(w - 1 - x) * 4;
                     } else {
-                        /* new(x',y') = old(ht-1-y', x') */
-                        s = src + (static_cast<size_t>(ht - 1 - y) * stride + static_cast<size_t>(x)) * 4;
+                        /* new(x',y') = old(ht-1-y', x'); byte offset = (ht-1-y')*stride + x'*4 */
+                        s = src + static_cast<size_t>(ht - 1 - y) * stride + static_cast<size_t>(x) * 4;
                     }
-                    uint8_t *d = out.data() + (static_cast<size_t>(y) * w + x) * 4;
+                    uint8_t *d = out + (static_cast<size_t>(y) * w + x) * 4;
                     d[0] = s[0]; d[1] = s[1]; d[2] = s[2]; d[3] = s[3];
                 }
             }
-            if (job->invert) {
-                for (auto &b : out) {
-                    b = static_cast<uint8_t>(b ^ 0xFF);
-                }
-            }
-            job->pixels.swap(out);
             job->width = ht;
             job->height = w;
         } else {
-            /* 0 / 180: copy rows, optionally flipped + inverted */
-            std::vector<uint8_t> out(static_cast<size_t>(stride) * ht);
+            outSize = static_cast<size_t>(stride) * ht;
+            out = static_cast<uint8_t *>(fz_calloc(h->ctx, outSize, 1));
             for (int y = 0; y < ht; y++) {
                 int sy = (job->rotationDeg == 180) ? (ht - 1 - y) : y;
                 const uint8_t *srow = src + static_cast<size_t>(sy) * stride;
-                uint8_t *drow = out.data() + static_cast<size_t>(y) * stride;
+                uint8_t *drow = out + static_cast<size_t>(y) * stride;
                 for (int x = 0; x < w; x++) {
                     int sx = (job->rotationDeg == 180) ? (w - 1 - x) : x;
                     drow[x * 4 + 0] = srow[sx * 4 + 0];
@@ -287,17 +355,24 @@ static void RenderJobExecute(napi_env env, void *data)
                     drow[x * 4 + 3] = srow[sx * 4 + 3];
                 }
             }
-            if (job->invert) {
-                for (auto &b : out) {
-                    b = static_cast<uint8_t>(b ^ 0xFF);
-                }
-            }
-            job->pixels.swap(out);
             job->width = w;
             job->height = ht;
         }
 
-        fz_drop_pixmap(h->ctx, pix);
+        if (job->invert) {
+            for (size_t i = 0; i < outSize; i++) {
+                out[i] = static_cast<uint8_t>(out[i] ^ 0xFF);
+            }
+        }
+        job->pixels.assign(out, out + outSize);
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+        if (out != nullptr) {
+            fz_free(h->ctx, out);
+        }
+        if (pix != nullptr) {
+            fz_drop_pixmap(h->ctx, pix);
+        }
     } while (0);
     if (fz_do_catch(h->ctx)) {
         job->failed = true;
@@ -305,47 +380,44 @@ static void RenderJobExecute(napi_env env, void *data)
     pthread_mutex_unlock(&g_mu);
 }
 
+static void RenderJobReject(napi_env env, napi_deferred deferred, const char *code)
+{
+    napi_value e;
+    if (napi_create_string_utf8(env, code, NAPI_AUTO_LENGTH, &e) == napi_ok) {
+        napi_reject_deferred(env, deferred, e);
+    }
+}
+
 static void RenderJobComplete(napi_env env, napi_status status, void *data)
 {
     auto *job = static_cast<RenderJob *>(data);
-    if (status != napi_cancelled) {
-        if (!job->failed && !job->pixels.empty()) {
-            napi_value dataBuffer;
+    if (job->deferred != nullptr) {
+        if (status == napi_cancelled) {
+            RenderJobReject(env, job->deferred, "CANCELLED");
+        } else if (job->failed || job->pixels.empty()) {
+            RenderJobReject(env, job->deferred, "RENDER_FAILED");
+        } else {
+            napi_value dataBuffer = nullptr;
             void *bufData = nullptr;
-            if (napi_create_arraybuffer(env, job->pixels.size(), &bufData, &dataBuffer) == napi_ok && bufData != nullptr) {
+            if (napi_create_arraybuffer(env, job->pixels.size(), &bufData, &dataBuffer) == napi_ok &&
+                bufData != nullptr) {
                 memcpy(bufData, job->pixels.data(), job->pixels.size());
-
-                napi_value result, wVal, hVal;
+                napi_value result = nullptr;
+                napi_value wVal;
+                napi_value hVal;
                 napi_create_object(env, &result);
                 napi_create_int32(env, job->width, &wVal);
                 napi_create_int32(env, job->height, &hVal);
                 napi_set_named_property(env, result, "width", wVal);
                 napi_set_named_property(env, result, "height", hVal);
                 napi_set_named_property(env, result, "data", dataBuffer);
-                if (job->deferred != nullptr) {
-                    napi_resolve_deferred(env, job->deferred, result);
-                }
+                napi_resolve_deferred(env, job->deferred, result);
             } else {
-                if (job->deferred != nullptr) {
-                    napi_value e;
-                    napi_create_string_utf8(env, "OOM", NAPI_AUTO_LENGTH, &e);
-                    napi_reject_deferred(env, job->deferred, e);
-                }
+                RenderJobReject(env, job->deferred, "OOM");
             }
-        } else {
-            if (job->deferred != nullptr) {
-                napi_value e;
-                napi_create_string_utf8(env, "RENDER_FAILED", NAPI_AUTO_LENGTH, &e);
-                napi_reject_deferred(env, job->deferred, e);
-            }
-        }
-    } else {
-        if (job->deferred != nullptr) {
-            napi_value e;
-            napi_create_string_utf8(env, "CANCELLED", NAPI_AUTO_LENGTH, &e);
-            napi_reject_deferred(env, job->deferred, e);
         }
     }
+    ReleaseHandle(job->h); /* job's reference */
     delete job;
 }
 
@@ -375,12 +447,6 @@ napi_value RenderPageAsync(napi_env env, napi_callback_info info)
     if (napi_typeof(env, args[2], &t) == napi_ok && t == napi_number) {
         napi_get_value_double(env, args[2], &zoom);
     } else {
-        /* options object */
-        bool isArr = false;
-        if (napi_is_array(env, args[2], &isArr) == napi_ok && isArr) {
-            napi_throw_type_error(env, nullptr, "options must be a plain object");
-            return nullptr;
-        }
         napi_value v;
         if (napi_get_named_property(env, args[2], "zoom", &v) == napi_ok) {
             napi_valuetype vt = napi_undefined;
@@ -411,36 +477,31 @@ napi_value RenderPageAsync(napi_env env, napi_callback_info info)
         zoom = 1.0;
     }
 
-    auto *job = new RenderJob{h, pageNumber, zoom, rot, inv, 0, 0, {}, false};
-    job->deferred = nullptr;
+    auto *job = new RenderJob{h, pageNumber, zoom, rot, inv, 0, 0, {}, false, nullptr};
+    AcquireHandle(h); /* job's reference, released in RenderJobComplete */
 
-    napi_value deferredVal;
+    napi_value deferredVal = nullptr;
     if (napi_create_promise(env, &job->deferred, &deferredVal) != napi_ok || job->deferred == nullptr) {
+        ReleaseHandle(h);
         delete job;
+        napi_throw_error(env, "PROMISE_FAILED", "cannot create promise");
         return nullptr;
     }
 
     napi_async_work work = nullptr;
-    const char *nameStr = "mupdf_render_page";
-    napi_value nameVal;
-    if (napi_create_string_utf8(env, nameStr, NAPI_AUTO_LENGTH, &nameVal) != napi_ok) {
-        delete job;
-        return nullptr;
-    }
-
+    napi_value nameVal = nullptr;
+    napi_create_string_utf8(env, "mupdf_render_page", NAPI_AUTO_LENGTH, &nameVal);
     if (napi_create_async_work(env, nullptr, nameVal, RenderJobExecute, RenderJobComplete, job, &work) != napi_ok ||
         work == nullptr) {
+        RenderJobReject(env, job->deferred, "WORK_FAILED");
+        ReleaseHandle(h);
         delete job;
-        return nullptr;
+        return deferredVal;
     }
     if (napi_queue_async_work(env, work) != napi_ok) {
-        /* cannot queue; resolve with a rejection so the JS side sees an error */
         napi_delete_async_work(env, work);
-        napi_value e;
-        napi_create_string_utf8(env, "QUEUE_FAILED", NAPI_AUTO_LENGTH, &e);
-        if (job->deferred != nullptr) {
-            napi_reject_deferred(env, job->deferred, e);
-        }
+        RenderJobReject(env, job->deferred, "QUEUE_FAILED");
+        ReleaseHandle(h);
         delete job;
         return deferredVal;
     }
@@ -456,9 +517,22 @@ napi_value CloseDocument(napi_env env, napi_callback_info info)
     if (h == nullptr) {
         return nullptr;
     }
+    /*
+     * Drop the MuPDF document and mark the handle closed, but do NOT free
+     * the handle: the napi_external still wraps it and its GC finalizer
+     * (plus any in-flight render jobs) own references. The handle itself
+     * is deleted exactly once in ReleaseHandle when the last ref drops.
+     */
     pthread_mutex_lock(&g_mu);
-    DropDocumentHandle(h);
+    if (!h->closed) {
+        h->closed = true;
+        if (h->doc != nullptr) {
+            fz_drop_document(h->ctx, h->doc);
+            h->doc = nullptr;
+        }
+    }
     pthread_mutex_unlock(&g_mu);
+
     napi_value result;
     napi_get_undefined(env, &result);
     return result;
@@ -512,10 +586,7 @@ napi_value OpenDocumentByFd(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    auto *handle = new DocumentHandle{ctx, doc};
-    napi_value external;
-    napi_create_external(env, handle, FinalizeDocument, nullptr, &external);
-    return external;
+    return MakeExternal(env, ctx, doc);
 }
 
 /* ---- getText ---- */
@@ -540,60 +611,59 @@ napi_value GetText(napi_env env, napi_callback_info info)
         zoom = 1.0;
     }
 
-    pthread_mutex_lock(&g_mu);
     fz_display_list *dl = nullptr;
     fz_stext_page *stext = nullptr;
     char *text = nullptr;
-    bool ok = true;
-    fz_try(h->ctx) {
+    napi_value result = nullptr;
+    fz_var(dl);
+    fz_var(stext);
+    fz_var(text);
+    fz_var(result);
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
         dl = fz_new_display_list_from_page_number(h->ctx, h->doc, pageNumber);
         stext = fz_new_stext_page(h->ctx, fz_infinite_rect);
-        if (stext == nullptr) {
-            ok = false;
-        } else {
-            fz_stext_options opts;
-            memset(&opts, 0, sizeof(opts));
-            fz_device *dev = fz_new_stext_device(h->ctx, stext, &opts);
-            fz_rect scissor = fz_infinite_rect;
-            fz_cookie cookie = {0};
-            fz_run_display_list(h->ctx, dl, dev, fz_identity, scissor, &cookie);
+        fz_stext_options opts;
+        memset(&opts, 0, sizeof(opts));
+        fz_device *dev = fz_new_stext_device(h->ctx, stext, &opts);
+        fz_try(h->ctx) {
+            fz_run_display_list(h->ctx, dl, dev, fz_identity, fz_infinite_rect, nullptr);
+        }
+        fz_always(h->ctx) {
             fz_close_device(h->ctx, dev);
             fz_drop_device(h->ctx, dev);
-            text = fz_copy_rectangle(h->ctx, stext, stext->mediabox, 0);
-            if (text == nullptr) {
-                ok = false;
-            }
         }
-    }
-    fz_catch(h->ctx) {
-        ok = false;
-    }
-    pthread_mutex_unlock(&g_mu);
-
-    if (!ok || text == nullptr) {
+        fz_catch(h->ctx) {
+            fz_rethrow(h->ctx);
+        }
+        text = fz_copy_rectangle(h->ctx, stext, stext->mediabox, 0);
+        if (text != nullptr) {
+            napi_create_string_utf8(env, text, strlen(text), &result);
+        }
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+        if (text != nullptr) {
+            fz_free(h->ctx, text);
+        }
         if (stext != nullptr) {
-            pthread_mutex_lock(&g_mu);
             fz_drop_stext_page(h->ctx, stext);
-            pthread_mutex_unlock(&g_mu);
         }
         if (dl != nullptr) {
-            pthread_mutex_lock(&g_mu);
             fz_drop_display_list(h->ctx, dl);
-            pthread_mutex_unlock(&g_mu);
         }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
         napi_throw_error(env, "TEXT_FAILED", "failed to extract text");
         return nullptr;
     }
-
-    size_t len = strlen(text);
-    napi_value result;
-    napi_create_string_utf8(env, text, len, &result);
-
-    pthread_mutex_lock(&g_mu);
-    fz_free(h->ctx, text);
-    fz_drop_stext_page(h->ctx, stext);
-    fz_drop_display_list(h->ctx, dl);
     pthread_mutex_unlock(&g_mu);
+
+    if (result == nullptr) {
+        napi_throw_error(env, "TEXT_FAILED", "failed to copy text");
+        return nullptr;
+    }
     return result;
 }
 
@@ -623,23 +693,37 @@ napi_value SearchText(napi_env env, napi_callback_info info)
     int32_t pageNumber = 0;
     napi_get_value_int32(env, args[2], &pageNumber);
 
-    /*
-     * MuPDF 1.23.7 fz_search_page writes the found quads into the
-     * caller-provided hit_bbox array and returns the hit count. The
-     * array must be non-NULL; hit_mark is optional.
-     */
-    int capacity = 64;
-    fz_quad *hit_bbox = (fz_quad *)fz_calloc(h->ctx, sizeof(fz_quad) * static_cast<size_t>(capacity), 1);
+    const int capacity = 64;
+    fz_quad *hit_bbox = nullptr;
     int hit_count = 0;
+    fz_var(hit_bbox);
+    fz_var(hit_count);
 
-    MU_TRY(h) {
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        hit_bbox = static_cast<fz_quad *>(fz_calloc(h->ctx, sizeof(fz_quad) * static_cast<size_t>(capacity), 1));
         fz_page *page = fz_load_page(h->ctx, h->doc, pageNumber);
-        if (page) {
+        fz_try(h->ctx) {
             hit_count = fz_search_page(h->ctx, page, pattern, nullptr, hit_bbox, capacity);
+        }
+        fz_always(h->ctx) {
             fz_drop_page(h->ctx, page);
         }
+        fz_catch(h->ctx) {
+            fz_rethrow(h->ctx);
+        }
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+        if (hit_bbox != nullptr) {
+            fz_free(h->ctx, hit_bbox);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "SEARCH_FAILED", "search error");
+        return nullptr;
     }
-    MU_CATCH(h, /* ignore search errors */)
+    pthread_mutex_unlock(&g_mu);
 
     if (hit_count > capacity) {
         hit_count = capacity;
@@ -648,7 +732,6 @@ napi_value SearchText(napi_env env, napi_callback_info info)
     /* Build result array */
     napi_value arr;
     napi_create_array(env, &arr);
-
     for (int i = 0; i < hit_count; i++) {
         fz_rect r = fz_rect_from_quad(hit_bbox[i]);
         napi_value obj;
@@ -664,10 +747,6 @@ napi_value SearchText(napi_env env, napi_callback_info info)
         napi_set_named_property(env, obj, "y1", y1Val);
         napi_set_element(env, arr, static_cast<size_t>(i), obj);
     }
-
-    pthread_mutex_lock(&g_mu);
-    fz_free(h->ctx, hit_bbox);
-    pthread_mutex_unlock(&g_mu);
     return arr;
 }
 
@@ -682,53 +761,41 @@ napi_value GetDocumentInfo(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    /* pdf_metadata is a function in MuPDF 1.23.7: pdf_obj *pdf_metadata(fz_context *, pdf_document *) */
+    static const char *kKeys[] = {"title", "author", "subject", "creator", "producer", "creationDate", "modDate"};
+    std::vector<std::pair<std::string, std::string>> collected;
+
     pthread_mutex_lock(&g_mu);
-    pdf_obj *meta = pdf_metadata(h->ctx, reinterpret_cast<pdf_document *>(h->doc));
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_obj *meta = pdf_metadata(h->ctx, reinterpret_cast<pdf_document *>(h->doc));
+        if (meta != nullptr) {
+            for (const char *key : kKeys) {
+                pdf_obj *val = pdf_dict_gets(h->ctx, meta, key);
+                if (val == nullptr || pdf_is_null(h->ctx, val)) {
+                    continue;
+                }
+                const char *str = pdf_to_name(h->ctx, val);
+                if (str == nullptr || str[0] == '\0') {
+                    str = pdf_to_text_string(h->ctx, val);
+                }
+                if (str != nullptr && str[0] != '\0') {
+                    /* copy under the lock: the pdf memory goes away at close */
+                    collected.emplace_back(key, str);
+                }
+            }
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        /* damaged metadata is not fatal: return whatever we collected */
+    }
     pthread_mutex_unlock(&g_mu);
 
     napi_value result;
     napi_create_object(env, &result);
-
-    /* Helper lambda to set optional string field from pdf_obj */
-    auto setOptional = [&](const char *key, const char *default_val) {
-        if (meta) {
-            pdf_obj *val = pdf_dict_gets(h->ctx, meta, key);
-            if (val && !pdf_is_null(h->ctx, val)) {
-                const char *str = pdf_to_name(h->ctx, val);
-                if (str && str[0] != '\0') {
-                    napi_value v;
-                    napi_create_string_utf8(env, str, NAPI_AUTO_LENGTH, &v);
-                    napi_set_named_property(env, result, key, v);
-                    return;
-                }
-                /* Fallback: try as text string */
-                str = pdf_to_text_string(h->ctx, val);
-                if (str && str[0] != '\0') {
-                    napi_value v;
-                    napi_create_string_utf8(env, str, NAPI_AUTO_LENGTH, &v);
-                    napi_set_named_property(env, result, key, v);
-                    return;
-                }
-            }
-        }
-        if (default_val && default_val[0] != '\0') {
-            napi_value v;
-            napi_create_string_utf8(env, default_val, NAPI_AUTO_LENGTH, &v);
-            napi_set_named_property(env, result, key, v);
-        }
-    };
-
-    if (meta) {
-        setOptional("title", nullptr);
-        setOptional("author", nullptr);
-        setOptional("subject", nullptr);
-        setOptional("creator", nullptr);
-        setOptional("producer", nullptr);
-        setOptional("creationDate", nullptr);
-        setOptional("modDate", nullptr);
+    for (size_t i = 0; i < collected.size(); i++) {
+        napi_value v;
+        napi_create_string_utf8(env, collected[i].second.c_str(), NAPI_AUTO_LENGTH, &v);
+        napi_set_named_property(env, result, collected[i].first.c_str(), v);
     }
-
     return result;
 }
 
@@ -744,10 +811,12 @@ napi_value GetToc(napi_env env, napi_callback_info info)
     }
 
     fz_outline *toc = nullptr;
-    MU_TRY(h) {
+    fz_var(toc);
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
         toc = fz_load_outline(h->ctx, h->doc);
-    }
-    fz_catch(h->ctx) {
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
         /* no outline is not an error */
     }
     pthread_mutex_unlock(&g_mu);
@@ -755,8 +824,10 @@ napi_value GetToc(napi_env env, napi_callback_info info)
     napi_value arr;
     napi_create_array(env, &arr);
 
+    /* DFS to flatten the outline tree (->next / ->down), recording depth per node.
+     * Safe outside the lock: the outline is owned by this handle and only this
+     * (JS) thread touches it between load and drop. */
     int index = 0;
-    /* DFS to flatten the outline tree (->next / ->down), recording depth per node */
     struct Frame { fz_outline *o; int depth; };
     std::vector<Frame> stack;
     if (toc != nullptr) {
@@ -824,14 +895,26 @@ napi_value GetPageSize(napi_env env, napi_callback_info info)
     napi_get_value_int32(env, args[1], &pageNumber);
 
     fz_rect media = fz_infinite_rect;
-    MU_TRY(h) {
+    fz_var(media);
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
         fz_page *page = fz_load_page(h->ctx, h->doc, pageNumber);
-        if (page != nullptr) {
+        fz_try(h->ctx) {
             media = fz_bound_page(h->ctx, page);
+        }
+        fz_always(h->ctx) {
             fz_drop_page(h->ctx, page);
         }
+        fz_catch(h->ctx) {
+            fz_rethrow(h->ctx);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "PAGE_FAILED", "cannot read page bounds");
+        return nullptr;
     }
-    MU_CATCH(h, napi_throw_error(env, "PAGE_FAILED", "cannot read page bounds"))
+    pthread_mutex_unlock(&g_mu);
 
     napi_value result, x0Val, y0Val, x1Val, y1Val;
     napi_create_object(env, &result);

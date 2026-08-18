@@ -63,8 +63,16 @@ export async function getRecentBooks(ctx: Context): Promise<RecentBook[]> {
     if (json.length === 0 || json === '[]') {
       return [];
     }
-    const arr: RecentBook[] = JSON.parse(json) as RecentBook[];
-    return arr;
+    const raw: object[] = JSON.parse(json) as object[];
+    /* drop entries with a corrupted shape so Index.build never throws on them */
+    const list: RecentBook[] = [];
+    for (let i = 0; i < raw.length; i++) {
+      const b = raw[i] as RecentBook;
+      if (typeof b.path === 'string' && typeof b.title === 'string' && typeof b.page === 'number') {
+        list.push(b);
+      }
+    }
+    return list;
   } catch (e) {
     console.error('[Progress] getRecentBooks failed');
     return [];
