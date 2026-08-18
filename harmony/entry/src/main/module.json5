@@ -29,6 +29,21 @@
             "actions": [
               "action.system.home"
             ]
+          },
+          {
+            "entities": [
+              "entity.system.fileService"
+            ],
+            "actions": [
+              "ohos.want.action.sendData"
+            ],
+            "uris": [
+              {
+                "scheme": "file",
+                "utd": "general.pdf",
+                "maxFileSupported": 1
+              }
+            ]
           }
         ]
       }
