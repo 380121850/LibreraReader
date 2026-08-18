@@ -32,15 +32,39 @@ export interface TocEntry {
   depth: number;
 }
 
+/** Normalized (0..1) rectangle within the page, used for cropping */
+export interface CropRect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/** An annotation on a page. Coordinates are normalized (0..1). */
+export interface AnnotationInfo {
+  /** 0-based index within the page's annotation list */
+  index: number;
+  /** 'highlight' | 'underline' | 'strikeout' | 'ink' | 'text' | 'unknown' */
+  type: string;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  /** text content for text notes / popup text */
+  contents: string;
+}
+
 /**
  * Render options for renderPageAsync.
  * rotationDeg must be a multiple of 90 (0/90/180/270).
  * invert flips R/G/B channels after rendering.
+ * crop selects a normalized sub-rectangle of the rendered page (0..1).
  */
 export interface RenderOptions {
   zoom: number;
   rotationDeg?: number;
   invert?: boolean;
+  crop?: CropRect;
 }
 
 export interface MupdfDocument {
@@ -60,6 +84,30 @@ export function renderPageAsync(handle: ESObject, pageNumber: number, options: R
 export function getToc(handle: ESObject): TocEntry[];
 /** Native media size in points at 0 degrees rotation */
 export function getPageSize(handle: ESObject, pageNumber: number): TextRect;
+/**
+ * Re-layout a reflowable document (EPUB/HTML/TXT) to the given page size.
+ * widthPx/heightPx are in points; em is the base font size in points.
+ * css (optional) is user CSS applied before layout (e.g. body margin /
+ * line-height) — reflowable docs re-parse with it when parameters change.
+ * No-op for fixed-layout documents (PDF). Call before rendering.
+ */
+export function layoutDocument(handle: ESObject, widthPx: number, heightPx: number, em: number, css?: string): void;
+/** Whether the document is reflowable (EPUB/HTML/TXT) vs fixed-layout (PDF). */
+export function isReflowable(handle: ESObject): boolean;
+/** List annotations on a page (PDF only). Coordinates normalized 0..1. */
+export function getAnnotations(handle: ESObject, pageNumber: number): AnnotationInfo[];
+/**
+ * Add a highlight annotation on a PDF page.
+ * Coordinates are normalized (0..1); color is '#rrggbb' hex string.
+ */
+export function addHighlight(handle: ESObject, pageNumber: number, x0: number, y0: number,
+  x1: number, y1: number, color: string): void;
+/** Add an ink (freehand) annotation from a stroke of normalized points. */
+export function addInkStroke(handle: ESObject, pageNumber: number, points: TextRect[]): void;
+/** Delete the annotation at `index` on the page. */
+export function deleteAnnotation(handle: ESObject, pageNumber: number, index: number): void;
+/** Save the (modified) document back to `path` (PDF only). */
+export function saveDocument(handle: ESObject, path: string): void;
 /** Extract text content from a page */
 export function getText(handle: ESObject, pageNumber: number, zoom: number): string;
 /** Search text and return bounding rectangles */

@@ -284,6 +284,9 @@ struct RenderJob {
     double zoom;
     int rotationDeg;
     bool invert;
+    /* normalized (0..1) crop rect applied to the final rotated buffer */
+    bool hasCrop;
+    double cropX0, cropY0, cropX1, cropY1;
 
     int width = 0;
     int height = 0;
@@ -364,7 +367,35 @@ static void RenderJobExecute(napi_env /*env*/, void *data)
                 out[i] = static_cast<uint8_t>(out[i] ^ 0xFF);
             }
         }
-        job->pixels.assign(out, out + outSize);
+
+        if (job->hasCrop) {
+            /* crop is applied on the final (rotated) buffer, in normalized 0..1 coords */
+            int cw = job->width;
+            int cht = job->height;
+            int cx0 = static_cast<int>(job->cropX0 * cw);
+            int cy0 = static_cast<int>(job->cropY0 * cht);
+            int cx1 = static_cast<int>(job->cropX1 * cw);
+            int cy1 = static_cast<int>(job->cropY1 * cht);
+            if (cx1 <= cx0) { cx1 = cx0 + 1; }
+            if (cy1 <= cy0) { cy1 = cy0 + 1; }
+            if (cx0 < 0) { cx0 = 0; }
+            if (cy0 < 0) { cy0 = 0; }
+            if (cx1 > cw) { cx1 = cw; }
+            if (cy1 > cht) { cy1 = cht; }
+            int cW = cx1 - cx0;
+            int cH = cy1 - cy0;
+            std::vector<uint8_t> cropped(static_cast<size_t>(cW) * cH * 4);
+            for (int y = 0; y < cH; y++) {
+                const uint8_t *srow = out + (static_cast<size_t>(cy0 + y) * cw + cx0) * 4;
+                uint8_t *drow = cropped.data() + static_cast<size_t>(y) * cW * 4;
+                memcpy(drow, srow, static_cast<size_t>(cW) * 4);
+            }
+            job->pixels.swap(cropped);
+            job->width = cW;
+            job->height = cH;
+        } else {
+            job->pixels.assign(out, out + outSize);
+        }
     } while (0);
     if (fz_do_always(h->ctx)) do {
         if (out != nullptr) {
@@ -441,8 +472,10 @@ napi_value RenderPageAsync(napi_env env, napi_callback_info info)
     double zoom = 1.0;
     int32_t rot = 0;
     bool inv = false;
+    bool hasCrop = false;
+    double cropX0 = 0.0, cropY0 = 0.0, cropX1 = 1.0, cropY1 = 1.0;
 
-    /* args[2] is either a plain number (zoom) or an options object { zoom, rotationDeg?, invert? } */
+    /* args[2] is either a plain number (zoom) or an options object { zoom, rotationDeg?, invert?, crop? } */
     napi_valuetype t = napi_undefined;
     if (napi_typeof(env, args[2], &t) == napi_ok && t == napi_number) {
         napi_get_value_double(env, args[2], &zoom);
@@ -471,13 +504,35 @@ napi_value RenderPageAsync(napi_env env, napi_callback_info info)
         if (napi_get_named_property(env, args[2], "invert", &v) == napi_ok) {
             napi_get_value_bool(env, v, &inv);
         }
+        if (napi_get_named_property(env, args[2], "crop", &v) == napi_ok) {
+            napi_valuetype vt = napi_undefined;
+            if (napi_typeof(env, v, &vt) == napi_ok && vt == napi_object) {
+                napi_value c;
+                if (napi_get_named_property(env, v, "x0", &c) == napi_ok) {
+                    napi_get_value_double(env, c, &cropX0);
+                }
+                if (napi_get_named_property(env, v, "y0", &c) == napi_ok) {
+                    napi_get_value_double(env, c, &cropY0);
+                }
+                if (napi_get_named_property(env, v, "x1", &c) == napi_ok) {
+                    napi_get_value_double(env, c, &cropX1);
+                }
+                if (napi_get_named_property(env, v, "y1", &c) == napi_ok) {
+                    napi_get_value_double(env, c, &cropY1);
+                }
+                if (cropX1 > cropX0 && cropY1 > cropY0) {
+                    hasCrop = true;
+                }
+            }
+        }
     }
 
     if (zoom <= 0.0 || zoom > 16.0) {
         zoom = 1.0;
     }
 
-    auto *job = new RenderJob{h, pageNumber, zoom, rot, inv, 0, 0, {}, false, nullptr};
+    auto *job = new RenderJob{h, pageNumber, zoom, rot, inv, hasCrop, cropX0, cropY0, cropX1, cropY1,
+        0, 0, {}, false, nullptr};
     AcquireHandle(h); /* job's reference, released in RenderJobComplete */
 
     napi_value deferredVal = nullptr;
@@ -766,20 +821,39 @@ napi_value GetDocumentInfo(napi_env env, napi_callback_info info)
 
     pthread_mutex_lock(&g_mu);
     if (!fz_setjmp(*fz_push_try(h->ctx))) do {
-        pdf_obj *meta = pdf_metadata(h->ctx, reinterpret_cast<pdf_document *>(h->doc));
-        if (meta != nullptr) {
-            for (const char *key : kKeys) {
-                pdf_obj *val = pdf_dict_gets(h->ctx, meta, key);
-                if (val == nullptr || pdf_is_null(h->ctx, val)) {
-                    continue;
+        /* Only PDF documents have a pdf_document: casting h->doc blindly (as
+         * we did before) reads past the struct of EPUB/HTML/CBZ documents and
+         * segfaults (heap-layout dependent). Guard with pdf_specifics. */
+        pdf_document *pdf = pdf_specifics(h->ctx, h->doc);
+        if (pdf != nullptr) {
+            pdf_obj *meta = pdf_metadata(h->ctx, pdf);
+            if (meta != nullptr) {
+                for (const char *key : kKeys) {
+                    pdf_obj *val = pdf_dict_gets(h->ctx, meta, key);
+                    if (val == nullptr || pdf_is_null(h->ctx, val)) {
+                        continue;
+                    }
+                    const char *str = pdf_to_name(h->ctx, val);
+                    if (str == nullptr || str[0] == '\0') {
+                        str = pdf_to_text_string(h->ctx, val);
+                    }
+                    if (str != nullptr && str[0] != '\0') {
+                        /* copy under the lock: the pdf memory goes away at close */
+                        collected.emplace_back(key, str);
+                    }
                 }
-                const char *str = pdf_to_name(h->ctx, val);
-                if (str == nullptr || str[0] == '\0') {
-                    str = pdf_to_text_string(h->ctx, val);
-                }
-                if (str != nullptr && str[0] != '\0') {
-                    /* copy under the lock: the pdf memory goes away at close */
-                    collected.emplace_back(key, str);
+            }
+        } else {
+            /* generic metadata for reflowable / image documents */
+            const char *genKeys[] = {FZ_META_INFO_TITLE, FZ_META_INFO_AUTHOR};
+            const char *genNames[] = {"title", "author"};
+            char buf[512];
+            fz_var(buf);
+            for (int i = 0; i < 2; i++) {
+                buf[0] = '\0';
+                int r = fz_lookup_metadata(h->ctx, h->doc, genKeys[i], buf, sizeof(buf));
+                if (r >= 0 && buf[0] != '\0') {
+                    collected.emplace_back(genNames[i], buf);
                 }
             }
         }
@@ -929,6 +1003,527 @@ napi_value GetPageSize(napi_env env, napi_callback_info info)
     return result;
 }
 
+/* ---- layoutDocument (reflow) ---- */
+napi_value LayoutDocument(napi_env env, napi_callback_info info)
+{
+    size_t argc = 5;
+    napi_value args[5];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 4) {
+        napi_throw_type_error(env, nullptr, "layoutDocument(handle, widthPx, heightPx, em, css?) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    double w = 595.0;
+    double ht = 842.0;
+    double em = 12.0;
+    napi_get_value_double(env, args[1], &w);
+    napi_get_value_double(env, args[2], &ht);
+    napi_get_value_double(env, args[3], &em);
+    if (w <= 0.0 || ht <= 0.0 || em <= 0.0) {
+        napi_throw_type_error(env, nullptr, "width/height/em must be positive");
+        return nullptr;
+    }
+
+    /* Optional 5th arg: user CSS (body margin / line-height / font-size).
+     * fz_set_user_css affects the context; MuPDF's html/epub docs re-parse
+     * with it when layout parameters change, which is exactly the "font,
+     * line-height, margin" setting pipeline for reflowable documents. */
+    std::string css;
+    if (argc >= 5) {
+        napi_valuetype t = napi_undefined;
+        napi_typeof(env, args[4], &t);
+        if (t == napi_string) {
+            size_t len = 0;
+            napi_get_value_string_utf8(env, args[4], nullptr, 0, &len);
+            if (len > 0) {
+                css.resize(len);
+                napi_get_value_string_utf8(env, args[4], &css[0], len + 1, &len);
+            }
+        }
+    }
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        if (!css.empty()) {
+            fz_set_user_css(h->ctx, css.c_str());
+        }
+        /* no-op for fixed-layout docs; reflows HTML/EPUB/TXT docs */
+        fz_layout_document(h->ctx, h->doc, static_cast<float>(w), static_cast<float>(ht), static_cast<float>(em));
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "LAYOUT_FAILED", "cannot layout document");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+/* ---- isReflowable ---- */
+napi_value IsReflowable(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 1) {
+        napi_throw_type_error(env, nullptr, "isReflowable(handle) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    bool reflowable = false;
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        reflowable = fz_is_document_reflowable(h->ctx, h->doc);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "REFLLOW_FAILED", "cannot query reflowability");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value result;
+    napi_get_boolean(env, reflowable, &result);
+    return result;
+}
+
+/* ---- PDF annotations (pdf layer, MuPDF 1.23.7) ---- */
+
+/* Get the pdf_document for a handle, or nullptr (with a JS error) if not PDF. */
+static pdf_document *GetPdfDoc(napi_env env, DocumentHandle *h)
+{
+    pdf_document *pdf = pdf_specifics(h->ctx, h->doc);
+    if (pdf == nullptr) {
+        napi_throw_error(env, "NOT_PDF", "annotations require a PDF document");
+    }
+    return pdf;
+}
+
+/* Load a pdf_page by number under the lock. Caller drops it. */
+static pdf_page *LoadPdfPageLocked(fz_context *ctx, pdf_document *pdf, int pageNumber)
+{
+    pdf_page *page = nullptr;
+    if (!fz_setjmp(*fz_push_try(ctx))) do {
+        page = pdf_load_page(ctx, pdf, pageNumber);
+    } while (0);
+    if (fz_do_catch(ctx)) {
+        return nullptr;
+    }
+    return page;
+}
+
+static const char *AnnotTypeName(enum pdf_annot_type t)
+{
+    switch (t) {
+        case PDF_ANNOT_TEXT: return "text";
+        case PDF_ANNOT_HIGHLIGHT: return "highlight";
+        case PDF_ANNOT_UNDERLINE: return "underline";
+        case PDF_ANNOT_STRIKE_OUT: return "strikeout";
+        case PDF_ANNOT_INK: return "ink";
+        default: return "unknown";
+    }
+}
+
+/* ---- getAnnotations ---- */
+napi_value GetAnnotations(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    int32_t pageNumber = 0;
+    napi_get_value_int32(env, args[1], &pageNumber);
+
+    /* page size in points for normalization */
+    fz_rect media = fz_infinite_rect;
+    pdf_page *page = nullptr;
+    pdf_document *pdf = GetPdfDoc(env, h);
+    if (pdf == nullptr) {
+        return nullptr;
+    }
+
+    napi_value arr;
+    napi_create_array(env, &arr);
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        page = pdf_load_page(h->ctx, pdf, pageNumber);
+        if (page != nullptr) {
+            media = fz_bound_page(h->ctx, (fz_page *)page);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        /* ignore: empty result */
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    float pw = (media.x1 - media.x0) > 0 ? (media.x1 - media.x0) : 1.0f;
+    float ph = (media.y1 - media.y0) > 0 ? (media.y1 - media.y0) : 1.0f;
+    if (page == nullptr) {
+        return arr;
+    }
+
+    int index = 0;
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_annot *annot = pdf_first_annot(h->ctx, page);
+        while (annot != nullptr) {
+            enum pdf_annot_type t = pdf_annot_type(h->ctx, annot);
+            fz_rect r = pdf_bound_annot(h->ctx, annot);
+            const char *contents = pdf_annot_contents(h->ctx, annot);
+
+            napi_value obj;
+            napi_value v;
+            napi_create_object(env, &obj);
+            napi_create_int32(env, index, &v);
+            napi_set_named_property(env, obj, "index", v);
+            napi_create_string_utf8(env, AnnotTypeName(t), NAPI_AUTO_LENGTH, &v);
+            napi_set_named_property(env, obj, "type", v);
+            napi_create_double(env, (r.x0 - media.x0) / pw, &v);
+            napi_set_named_property(env, obj, "x0", v);
+            napi_create_double(env, (r.y0 - media.y0) / ph, &v);
+            napi_set_named_property(env, obj, "y0", v);
+            napi_create_double(env, (r.x1 - media.x0) / pw, &v);
+            napi_set_named_property(env, obj, "x1", v);
+            napi_create_double(env, (r.y1 - media.y0) / ph, &v);
+            napi_set_named_property(env, obj, "y1", v);
+            napi_create_string_utf8(env, contents ? contents : "", NAPI_AUTO_LENGTH, &v);
+            napi_set_named_property(env, obj, "contents", v);
+            napi_set_element(env, arr, static_cast<size_t>(index), obj);
+
+            index++;
+            annot = pdf_next_annot(h->ctx, annot);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        /* partial results ok */
+    }
+    if (page != nullptr) {
+        fz_drop_page(h->ctx, (fz_page *)page);
+    }
+    pthread_mutex_unlock(&g_mu);
+    return arr;
+}
+
+/* Parse a '#rrggbb' hex color into rgb 0..1 floats. Defaults to yellow. */
+static void ParseHexColor(const char *hex, float *rgb)
+{
+    rgb[0] = 1.0f; rgb[1] = 1.0f; rgb[2] = 0.0f; /* default yellow */
+    if (hex == nullptr) {
+        return;
+    }
+    if (hex[0] == '#') {
+        hex++;
+    }
+    int r = 0, g = 0, b = 0;
+    if (sscanf(hex, "%2x%2x%2x", &r, &g, &b) == 3) {
+        rgb[0] = r / 255.0f;
+        rgb[1] = g / 255.0f;
+        rgb[2] = b / 255.0f;
+    }
+}
+
+/* ---- addHighlight ---- */
+napi_value AddHighlight(napi_env env, napi_callback_info info)
+{
+    size_t argc = 7;
+    napi_value args[7];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 7) {
+        napi_throw_type_error(env, nullptr, "addHighlight(handle, page, x0, y0, x1, y1, color) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    int32_t pageNumber = 0;
+    double x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+    napi_get_value_int32(env, args[1], &pageNumber);
+    napi_get_value_double(env, args[2], &x0);
+    napi_get_value_double(env, args[3], &y0);
+    napi_get_value_double(env, args[4], &x1);
+    napi_get_value_double(env, args[5], &y1);
+    char color[16] = {0};
+    size_t colorLen = 0;
+    napi_get_value_string_utf8(env, args[6], color, sizeof(color), &colorLen);
+
+    pdf_document *pdf = GetPdfDoc(env, h);
+    if (pdf == nullptr) {
+        return nullptr;
+    }
+
+    /* page size in points for conversion */
+    fz_rect media = fz_infinite_rect;
+    pdf_page *page = nullptr;
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        page = pdf_load_page(h->ctx, pdf, pageNumber);
+        if (page != nullptr) {
+            media = fz_bound_page(h->ctx, (fz_page *)page);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        page = nullptr;
+    }
+    if (page != nullptr) {
+        fz_drop_page(h->ctx, (fz_page *)page);
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    if (fz_is_infinite_rect(media)) {
+        napi_throw_error(env, "PAGE_FAILED", "cannot load page");
+        return nullptr;
+    }
+    float pw = media.x1 - media.x0;
+    float ph = media.y1 - media.y0;
+    if (pw <= 0.0f || ph <= 0.0f) {
+        napi_throw_error(env, "PAGE_FAILED", "bad page size");
+        return nullptr;
+    }
+
+    /* convert normalized rect to page points */
+    fz_rect pr;
+    pr.x0 = media.x0 + static_cast<float>(x0) * pw;
+    pr.y0 = media.y0 + static_cast<float>(y0) * ph;
+    pr.x1 = media.x0 + static_cast<float>(x1) * pw;
+    pr.y1 = media.y0 + static_cast<float>(y1) * ph;
+
+    float rgb[3];
+    ParseHexColor(color, rgb);
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_page *pg = pdf_load_page(h->ctx, pdf, pageNumber);
+        pdf_annot *annot = pdf_create_annot(h->ctx, pg, PDF_ANNOT_HIGHLIGHT);
+        pdf_set_annot_color(h->ctx, annot, 3, rgb);
+        /* a quad has 4 corners: bottom-left, bottom-right, top-right, top-left */
+        fz_quad q;
+        q.ll = fz_make_point(pr.x0, pr.y1);
+        q.lr = fz_make_point(pr.x1, pr.y1);
+        q.ur = fz_make_point(pr.x1, pr.y0);
+        q.ul = fz_make_point(pr.x0, pr.y0);
+        pdf_add_annot_quad_point(h->ctx, annot, q);
+        pdf_update_annot(h->ctx, annot);
+        fz_drop_page(h->ctx, (fz_page *)pg);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "ANNOT_FAILED", "cannot create highlight");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+/* ---- addInkStroke ---- */
+napi_value AddInkStroke(napi_env env, napi_callback_info info)
+{
+    size_t argc = 3;
+    napi_value args[3];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 3) {
+        napi_throw_type_error(env, nullptr, "addInkStroke(handle, page, points) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    int32_t pageNumber = 0;
+    napi_get_value_int32(env, args[1], &pageNumber);
+
+    pdf_document *pdf = GetPdfDoc(env, h);
+    if (pdf == nullptr) {
+        return nullptr;
+    }
+
+    /* collect normalized points from the array arg (each {x0,y0,x1,y1}) */
+    uint32_t n = 0;
+    napi_get_array_length(env, args[2], &n);
+    if (n == 0) {
+        napi_throw_type_error(env, nullptr, "points array required");
+        return nullptr;
+    }
+    std::vector<fz_point> pts;
+    for (uint32_t i = 0; i < n; i++) {
+        napi_value item;
+        napi_get_element(env, args[2], i, &item);
+        napi_value cx, cy;
+        double px = 0, py = 0;
+        if (napi_get_named_property(env, item, "x0", &cx) == napi_ok) {
+            napi_get_value_double(env, cx, &px);
+        }
+        if (napi_get_named_property(env, item, "y0", &cy) == napi_ok) {
+            napi_get_value_double(env, cy, &py);
+        }
+        pts.push_back(fz_make_point(static_cast<float>(px), static_cast<float>(py)));
+    }
+
+    /* page size for normalization */
+    fz_rect media = fz_infinite_rect;
+    pdf_page *page = nullptr;
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        page = pdf_load_page(h->ctx, pdf, pageNumber);
+        if (page != nullptr) {
+            media = fz_bound_page(h->ctx, (fz_page *)page);
+        }
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        page = nullptr;
+    }
+    if (page != nullptr) {
+        fz_drop_page(h->ctx, (fz_page *)page);
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    if (fz_is_infinite_rect(media)) {
+        napi_throw_error(env, "PAGE_FAILED", "cannot load page");
+        return nullptr;
+    }
+    float pw = media.x1 - media.x0;
+    float ph = media.y1 - media.y0;
+    if (pw <= 0.0f || ph <= 0.0f) {
+        napi_throw_error(env, "PAGE_FAILED", "bad page size");
+        return nullptr;
+    }
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_page *pg = pdf_load_page(h->ctx, pdf, pageNumber);
+        pdf_annot *annot = pdf_create_annot(h->ctx, pg, PDF_ANNOT_INK);
+        pdf_set_annot_color(h->ctx, annot, 3, (const float[]){0.0f, 0.0f, 0.0f});
+        pdf_add_annot_ink_list(h->ctx, annot, static_cast<int>(pts.size()), pts.data());
+        pdf_update_annot(h->ctx, annot);
+        fz_drop_page(h->ctx, (fz_page *)pg);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "ANNOT_FAILED", "cannot create ink stroke");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+/* ---- deleteAnnotation ---- */
+napi_value DeleteAnnotation(napi_env env, napi_callback_info info)
+{
+    size_t argc = 3;
+    napi_value args[3];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 3) {
+        napi_throw_type_error(env, nullptr, "deleteAnnotation(handle, page, index) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    int32_t pageNumber = 0;
+    int32_t index = 0;
+    napi_get_value_int32(env, args[1], &pageNumber);
+    napi_get_value_int32(env, args[2], &index);
+
+    pdf_document *pdf = GetPdfDoc(env, h);
+    if (pdf == nullptr) {
+        return nullptr;
+    }
+
+    bool deleted = false;
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_page *pg = pdf_load_page(h->ctx, pdf, pageNumber);
+        int i = 0;
+        pdf_annot *annot = pdf_first_annot(h->ctx, pg);
+        while (annot != nullptr) {
+            if (i == index) {
+                pdf_delete_annot(h->ctx, pg, annot);
+                deleted = true;
+                break;
+            }
+            i++;
+            annot = pdf_next_annot(h->ctx, annot);
+        }
+        fz_drop_page(h->ctx, (fz_page *)pg);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        deleted = false;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    if (!deleted) {
+        napi_throw_error(env, "ANNOT_NOT_FOUND", "annotation index out of range");
+        return nullptr;
+    }
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+/* ---- saveDocument ---- */
+napi_value SaveDocument(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 2) {
+        napi_throw_type_error(env, nullptr, "saveDocument(handle, path) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    char path[kMaxPath] = {0};
+    size_t pathLen = 0;
+    napi_get_value_string_utf8(env, args[1], path, sizeof(path), &pathLen);
+    if (pathLen == 0) {
+        napi_throw_type_error(env, nullptr, "path required");
+        return nullptr;
+    }
+
+    pdf_document *pdf = GetPdfDoc(env, h);
+    if (pdf == nullptr) {
+        return nullptr;
+    }
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        pdf_save_document(h->ctx, pdf, path, &pdf_default_write_options);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "SAVE_FAILED", "cannot save document");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
@@ -940,6 +1535,13 @@ napi_value Init(napi_env env, napi_value exports)
         {"renderPageAsync", nullptr, RenderPageAsync, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getToc", nullptr, GetToc, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getPageSize", nullptr, GetPageSize, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"layoutDocument", nullptr, LayoutDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"isReflowable", nullptr, IsReflowable, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getAnnotations", nullptr, GetAnnotations, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addHighlight", nullptr, AddHighlight, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"addInkStroke", nullptr, AddInkStroke, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"deleteAnnotation", nullptr, DeleteAnnotation, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"saveDocument", nullptr, SaveDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getText", nullptr, GetText, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"searchText", nullptr, SearchText, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getDocumentInfo", nullptr, GetDocumentInfo, nullptr, nullptr, nullptr, napi_default, nullptr},

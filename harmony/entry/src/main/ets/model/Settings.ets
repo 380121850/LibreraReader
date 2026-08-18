@@ -1,0 +1,126 @@
+import preferences from '@ohos.data.preferences';
+
+/**
+ * Global reader settings persisted via @ohos.data.preferences (sprint E).
+ * Loaded by the Reader on open and edited from the Index settings tab and
+ * the Reader settings panel; every change is saved immediately.
+ */
+
+/** Theme ids */
+export const THEME_LIGHT: number = 0;
+export const THEME_DARK: number = 1;
+export const THEME_OLED: number = 2;
+export const THEME_INK: number = 3;
+export const THEME_NAMES: string[] = ['浅色', '深色', 'OLED', '墨'];
+
+export interface ReaderSettings {
+  /** 0=浅色 1=深色 2=OLED 3=墨 */
+  theme: number;
+  /** default render zoom (0.5..4) */
+  zoom: number;
+  /** 0=horizontal Swiper, 1=vertical List */
+  scrollMode: number;
+  /** 0=single 1=double 2=musician */
+  pageMode: number;
+  /** night invert (derived from theme for dark/oled) */
+  nightMode: boolean;
+  autoFlip: boolean;
+  /** seconds between flips */
+  autoFlipInterval: number;
+  /** system brightness 1..255 */
+  brightness: number;
+  /** TTS rate 0.5..2.0 */
+  ttsRate: number;
+  /** TTS pitch 0.5..2.0 */
+  ttsPitch: number;
+  /** RSVP speed in wpm 100..800 */
+  rsvpWpm: number;
+  /** base font size (em) for reflowable docs, points */
+  fontSize: number;
+  /** line-height multiplier for reflowable docs */
+  lineHeight: number;
+  /** body margin for reflowable docs, points */
+  margin: number;
+}
+
+const PREF_NAME = 'librera_settings';
+const KEY_SETTINGS = 'settings';
+
+let prefInstance: preferences.Preferences | undefined = undefined;
+
+async function getPrefs(ctx: Context): Promise<preferences.Preferences> {
+  if (prefInstance === undefined) {
+    prefInstance = await preferences.getPreferences(ctx, PREF_NAME);
+  }
+  return prefInstance;
+}
+
+export function defaultSettings(): ReaderSettings {
+  return {
+    theme: 0,
+    zoom: 1.5,
+    scrollMode: 0,
+    pageMode: 0,
+    nightMode: false,
+    autoFlip: false,
+    autoFlipInterval: 3,
+    brightness: 128,
+    ttsRate: 1.0,
+    ttsPitch: 1.0,
+    rsvpWpm: 300,
+    fontSize: 16,
+    lineHeight: 1.6,
+    margin: 20
+  };
+}
+
+export async function loadSettings(ctx: Context): Promise<ReaderSettings> {
+  const d = defaultSettings();
+  try {
+    const prefs = await getPrefs(ctx);
+    const json: string = await prefs.get(KEY_SETTINGS, '') as string;
+    if (json.length === 0) {
+      return d;
+    }
+    const raw: object = JSON.parse(json) as object;
+    const r = raw as ReaderSettings;
+    /* field-by-field merge with defaults so newer builds stay compatible */
+    const s: ReaderSettings = {
+      theme: typeof r.theme === 'number' ? r.theme : d.theme,
+      zoom: typeof r.zoom === 'number' ? r.zoom : d.zoom,
+      scrollMode: typeof r.scrollMode === 'number' ? r.scrollMode : d.scrollMode,
+      pageMode: typeof r.pageMode === 'number' ? r.pageMode : d.pageMode,
+      nightMode: r.nightMode === true,
+      autoFlip: r.autoFlip === true,
+      autoFlipInterval: typeof r.autoFlipInterval === 'number' ? r.autoFlipInterval : d.autoFlipInterval,
+      brightness: typeof r.brightness === 'number' ? r.brightness : d.brightness,
+      ttsRate: typeof r.ttsRate === 'number' ? r.ttsRate : d.ttsRate,
+      ttsPitch: typeof r.ttsPitch === 'number' ? r.ttsPitch : d.ttsPitch,
+      rsvpWpm: typeof r.rsvpWpm === 'number' ? r.rsvpWpm : d.rsvpWpm,
+      fontSize: typeof r.fontSize === 'number' ? r.fontSize : d.fontSize,
+      lineHeight: typeof r.lineHeight === 'number' ? r.lineHeight : d.lineHeight,
+      margin: typeof r.margin === 'number' ? r.margin : d.margin
+    };
+    return s;
+  } catch (e) {
+    return d;
+  }
+}
+
+export async function saveSettings(ctx: Context, s: ReaderSettings): Promise<void> {
+  try {
+    const prefs = await getPrefs(ctx);
+    await prefs.put(KEY_SETTINGS, JSON.stringify(s));
+    await prefs.flush();
+    console.info('[Settings] saved: theme=' + s.theme + ' zoom=' + s.zoom.toFixed(2) +
+      ' mode=' + s.scrollMode + '/' + s.pageMode + ' font=' + s.fontSize +
+      ' lh=' + s.lineHeight.toFixed(1) + ' m=' + s.margin);
+  } catch (e) {
+    console.error('[Settings] save failed');
+  }
+}
+
+/** Build the user CSS for reflowable layout from font/line-height/margin settings. */
+export function reflowCss(s: ReaderSettings): string {
+  return 'body{margin:' + s.margin + 'pt;line-height:' + s.lineHeight.toFixed(2) + '}';
+}

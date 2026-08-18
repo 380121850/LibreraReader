@@ -1,0 +1,18 @@
+Librera Reader - HarmonyOS Demo (TXT)
+=======================================
+
+这是一份纯文本演示文件，用于验证 TXT 格式的打开、渲染与重排。
+
+TXT 是可变排版（reflowable）文档：在阅读器设置面板里可以调整字号、
+行距与页边距，页面数量会随之变化。
+
+English paragraph:
+
+This plain-text file exercises the TXT reader pipeline: open, page layout,
+text extraction, search and reflow. The quick brown fox jumps over the lazy
+dog. Speed reading and text-to-speech work on TXT documents as well.
+
+结语：
+
+感谢测试鸿蒙版 Librera Reader 的多格式支持。
+The end. Thank you for reading.

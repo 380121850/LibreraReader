@@ -42,6 +42,26 @@
                 "scheme": "file",
                 "utd": "general.pdf",
                 "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.epub",
+                "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.plain-text",
+                "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.html",
+                "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.ebook",
+                "maxFileSupported": 1
               }
             ]
           }
