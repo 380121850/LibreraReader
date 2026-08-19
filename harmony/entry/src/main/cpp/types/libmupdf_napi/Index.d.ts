@@ -114,4 +114,8 @@ export function getText(handle: ESObject, pageNumber: number, zoom: number): str
 export function searchText(handle: ESObject, text: string, pageNumber: number): TextRect[];
 /** Get document metadata */
 export function getDocumentInfo(handle: ESObject): DocumentInfo;
+/** Get individual text span rectangles on a page (normalized 0..1). Returns JSON string array. */
+export function getTextRects(handle: ESObject, pageNumber: number): string;
+/** Load a custom font file for reflowable documents. Returns true if applied. */
+export function loadFont(handle: ESObject, fontPath: string): boolean;
 export function closeDocument(handle: ESObject): void;

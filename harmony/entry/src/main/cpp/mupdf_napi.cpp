@@ -52,6 +52,7 @@ struct DocumentHandle {
     fz_document *doc;         /* nullptr once closed */
     std::atomic<int> refs;    /* 1 (napi_external) + N in-flight render jobs */
     std::atomic<bool> closed; /* set by closeDocument / finalizer */
+    char customFontPath[512]; /* sprint H3: loaded font path (empty = none) */
 };
 
 static void AcquireHandle(DocumentHandle *h)
@@ -107,6 +108,7 @@ napi_value MakeExternal(napi_env env, fz_context *ctx, fz_document *doc)
     handle->doc = doc;
     handle->refs = 1; /* the napi_external's reference */
     handle->closed = false;
+    memset(handle->customFontPath, 0, sizeof(handle->customFontPath));
     napi_value external;
     napi_create_external(env, handle, FinalizeDocument, nullptr, &external);
     return external;
@@ -1524,6 +1526,171 @@ napi_value SaveDocument(napi_env env, napi_callback_info info)
     return result;
 }
 
+
+/* ---- getTextRects (sprint H2): return line-level text bounding boxes ---- */
+napi_value GetTextRects(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 2) {
+        napi_throw_type_error(env, nullptr, "getTextRects(handle, pageNumber) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    int32_t pageNumber = 0;
+    napi_get_value_int32(env, args[1], &pageNumber);
+
+    fz_display_list *dl = nullptr;
+    fz_stext_page *stext = nullptr;
+    napi_value result = nullptr;
+    fz_var(dl);
+    fz_var(stext);
+    fz_var(result);
+
+    pthread_mutex_lock(&g_mu);
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        dl = fz_new_display_list_from_page_number(h->ctx, h->doc, pageNumber);
+        stext = fz_new_stext_page(h->ctx, fz_infinite_rect);
+        fz_stext_options opts;
+        memset(&opts, 0, sizeof(opts));
+        opts.flags = FZ_STEXT_PRESERVE_WHITESPACE | FZ_STEXT_MEDIABOX_CLIP;
+        fz_device *dev = fz_new_stext_device(h->ctx, stext, &opts);
+        fz_try(h->ctx) {
+            fz_run_display_list(h->ctx, dl, dev, fz_identity, fz_infinite_rect, nullptr);
+        }
+        fz_always(h->ctx) {
+            fz_close_device(h->ctx, dev);
+            fz_drop_device(h->ctx, dev);
+        }
+        fz_catch(h->ctx) {
+            fz_rethrow(h->ctx);
+        }
+
+        /* Page dimensions from mediabox (fz_rect, not fz_irect) */
+        float pw = stext->mediabox.x1 - stext->mediabox.x0;
+        float ph = stext->mediabox.y1 - stext->mediabox.y0;
+        if (pw <= 0.0f) pw = 612.0f;
+        if (ph <= 0.0f) ph = 792.0f;
+
+        /* Count total text lines for buffer sizing */
+        size_t lineCount = 0;
+        for (const fz_stext_block *block = stext->first_block; block != nullptr; block = block->next) {
+            if (block->type != FZ_STEXT_BLOCK_TEXT) continue;
+            for (const fz_stext_line *line = block->u.t.first_line; line != nullptr; line = line->next) {
+                lineCount++;
+            }
+        }
+
+        /* Build JSON array of line rectangles: [{x0,y0,x1,y1},...] normalized 0..1 */
+        size_t bufSize = 256 + lineCount * 80;
+        char *json = static_cast<char *>(fz_calloc(h->ctx, bufSize, 1));
+        if (json == nullptr) break;
+
+        int offset = snprintf(json, bufSize, "[");
+        bool first = true;
+        for (const fz_stext_block *block = stext->first_block; block != nullptr && offset < (int)(bufSize - 64); block = block->next) {
+            if (block->type != FZ_STEXT_BLOCK_TEXT) continue;
+            for (const fz_stext_line *line = block->u.t.first_line; line != nullptr && offset < (int)(bufSize - 64); line = line->next) {
+                if (!first) json[offset++] = ',';
+                first = false;
+                float x0 = (line->bbox.x0 - stext->mediabox.x0) / pw;
+                float y0 = (line->bbox.y0 - stext->mediabox.y0) / ph;
+                float x1 = (line->bbox.x1 - stext->mediabox.x0) / pw;
+                float y1 = (line->bbox.y1 - stext->mediabox.y0) / ph;
+                if (x0 < 0.0f) x0 = 0.0f; if (x1 > 1.0f) x1 = 1.0f;
+                if (y0 < 0.0f) y0 = 0.0f; if (y1 > 1.0f) y1 = 1.0f;
+                int n = snprintf(json + offset, 80,
+                    "{\"x0\":%.4f,\"y0\":%.4f,\"x1\":%.4f,\"y1\":%.4f}",
+                    x0, y0, x1, y1);
+                if (n > 0) offset += n;
+            }
+        }
+        json[offset++] = ']';
+        json[offset] = '\0';
+
+        napi_create_string_utf8(env, json, strlen(json), &result);
+        fz_free(h->ctx, json);
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+        if (stext != nullptr) fz_drop_stext_page(h->ctx, stext);
+        if (dl != nullptr) fz_drop_display_list(h->ctx, dl);
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "TEXT_RECTS_FAILED", "failed to extract text rects");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    if (result == nullptr) {
+        napi_create_string_utf8(env, "[]", 2, &result);
+    }
+    return result;
+}
+
+/* ---- loadFont (sprint H3): register a custom font file for reflowable docs ---- */
+napi_value LoadFont(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 2) {
+        napi_throw_type_error(env, nullptr, "loadFont(handle, fontPath) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+    char pathBuf[512] = {0};
+    size_t len = 0;
+    napi_get_value_string_utf8(env, args[1], pathBuf, sizeof(pathBuf) - 1, &len);
+    if (len == 0) {
+        napi_throw_type_error(env, nullptr, "loadFont: empty font path");
+        return nullptr;
+    }
+
+    fz_var(h->customFontPath);
+    pthread_mutex_lock(&g_mu);
+    bool ok = false;
+    if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+        /* Store the font path for use in CSS @font-face injection */
+        strncpy(h->customFontPath, pathBuf, sizeof(h->customFontPath) - 1);
+        h->customFontPath[sizeof(h->customFontPath) - 1] = '\0';
+
+        /* For reflowable documents, inject a CSS rule referencing the font file.
+         * MuPDF's fz_set_user_css can include @font-face with local() src. */
+        if (fz_is_document_reflowable(h->ctx, h->doc)) {
+            char cssBuf[1024];
+            snprintf(cssBuf, sizeof(cssBuf),
+                "@font-face {{ font-family: 'custom'; src: url('%s'); }} "
+                "body {{ font-family: 'custom', serif; }}", pathBuf);
+            fz_set_user_css(h->ctx, cssBuf);
+            ok = true;
+        } else {
+            /* PDF: store for potential future use (MuPDF doesn't support
+             * runtime font substitution in PDFs without full re-render) */
+            ok = false;
+        }
+    } while (0);
+    if (fz_do_always(h->ctx)) do {
+    } while (0);
+    if (fz_do_catch(h->ctx)) {
+        pthread_mutex_unlock(&g_mu);
+        napi_throw_error(env, "FONT_FAILED", "failed to load font");
+        return nullptr;
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    napi_value boolResult;
+    napi_get_boolean(env, ok, &boolResult);
+    return boolResult;
+}
+
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
@@ -1543,6 +1710,8 @@ napi_value Init(napi_env env, napi_value exports)
         {"deleteAnnotation", nullptr, DeleteAnnotation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"saveDocument", nullptr, SaveDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getText", nullptr, GetText, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"getTextRects", nullptr, GetTextRects, nullptr, nullptr, nullptr, napi_default, nullptr},
+    {"loadFont", nullptr, LoadFont, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"searchText", nullptr, SearchText, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getDocumentInfo", nullptr, GetDocumentInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"closeDocument", nullptr, CloseDocument, nullptr, nullptr, nullptr, napi_default, nullptr},

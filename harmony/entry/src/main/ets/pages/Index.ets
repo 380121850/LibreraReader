@@ -13,7 +13,7 @@ import {
   exportRecentBooks, replaceRecentBooks,
   RecentBook
 } from '../model/ReadingProgress';
-import { exportBookmarks, replaceBookmarks, Bookmark } from '../model/Bookmarks';
+import { exportBookmarks, replaceBookmarks, getBookmarks, removeBookmark, addBookmark, Bookmark } from '../model/Bookmarks';
 import {
   loadSettings, saveSettings, defaultSettings, THEME_NAMES, ReaderSettings
 } from '../model/Settings';
@@ -45,6 +45,12 @@ struct Index {
   @State recentBooks: RecentBook[] = [];
   @State starredBooks: RecentBook[] = [];
 
+  // ---- Sprint G: Bookmark manager + Browse tab ----
+  @State allBookmarks: Bookmark[] = [];
+  @State bookmarkFilter: string = '';
+  @State browseViewMode: number = 0; /* 0=list, 1=grid */
+  @State browseCurrentDir: string = '';
+
   // ---- Settings (sprint E) ----
   @State settings: ReaderSettings = defaultSettings();
   @State backupText: string = '';
@@ -71,6 +77,8 @@ struct Index {
     this.ensureDemoBook();
     this.consumePendingUri();
     this.initSettings();
+    this.loadAllBookmarks();
+    this.initBrowseDir();
   }
 
   private async initSettings(): Promise<void> {
@@ -81,6 +89,119 @@ struct Index {
 
   private async saveNow(): Promise<void> {
     await saveSettings(getContext(this), this.settings);
+  }
+
+  /** Load all bookmarks across documents for the Bookmark manager tab (sprint G). */
+  private async loadAllBookmarks(): Promise<void> {
+    try {
+      const ctx = getContext(this);
+      this.allBookmarks = await exportBookmarks(ctx);
+      console.info(`[Index] All bookmarks loaded: ${this.allBookmarks.length}`);
+    } catch (e) {
+      console.error('[Index] loadAllBookmarks failed');
+    }
+  }
+
+  /** Initialize browse directory to cacheDir (where imported books live). */
+  private initBrowseDir(): void {
+    try {
+      const ctx = getContext(this);
+      this.browseCurrentDir = ctx.cacheDir;
+      console.info(`[Index] Browse dir initialized: ${this.browseCurrentDir}`);
+    } catch (e) {
+      this.browseCurrentDir = '';
+    }
+  }
+
+  /** Get filtered bookmarks based on search query. */
+  private getFilteredBookmarks(): Bookmark[] {
+    if (this.bookmarkFilter.length === 0) {
+      return this.allBookmarks;
+    }
+    const q: string = this.bookmarkFilter.toLowerCase();
+    const result: Bookmark[] = [];
+    for (let i = 0; i < this.allBookmarks.length; i++) {
+      const bm = this.allBookmarks[i];
+      const name = bm.path.substring(bm.path.lastIndexOf('/') + 1).toLowerCase();
+      if (name.indexOf(q) >= 0 || bm.label.toLowerCase().indexOf(q) >= 0) {
+        result.push(bm);
+      }
+    }
+    return result;
+  }
+
+  /** Open a book from a bookmark entry. */
+  private openBookmarkBook(bm: Bookmark): void {
+    const name = bm.path.substring(bm.path.lastIndexOf('/') + 1);
+    router.pushUrl({ url: 'components/Reader', params: { docPath: bm.path, title: name } })
+      .then(() => {
+        console.info(`[Index] Opened book from bookmark: ${name} page=${bm.page}`);
+      })
+      .catch((err: Error) => {
+        console.error('[Index] Navigate to bookmark book failed');
+      });
+  }
+
+  /** Delete a bookmark entry. */
+  private async deleteBookmarkEntry(bm: Bookmark): Promise<void> {
+    try {
+      const ctx = getContext(this);
+      await removeBookmark(ctx, bm.path, bm.page);
+      await this.loadAllBookmarks();
+      console.info(`[Index] Bookmark deleted: page ${bm.page} of ${bm.path}`);
+    } catch (e) {
+      console.error('[Index] deleteBookmarkEntry failed');
+    }
+  }
+
+  /** List files in current browse directory. */
+  private getBrowseFiles(): string[] {
+    try {
+      const entries: string[] = fs.listFileSync(this.browseCurrentDir);
+      /* filter to known book extensions */
+      const exts: string[] = ['.pdf', '.epub', '.txt', '.html', '.cbz', '.mobi', '.xps'];
+      const result: string[] = [];
+      for (let i = 0; i < entries.length; i++) {
+        const lower = entries[i].toLowerCase();
+        for (let j = 0; j < exts.length; j++) {
+          if (lower.endsWith(exts[j])) {
+            result.push(entries[i]);
+            break;
+          }
+        }
+      }
+      return result;
+    } catch (e) {
+      console.error('[Index] getBrowseFiles failed');
+      return [];
+    }
+  }
+
+  /** Open a file from the browse tab. */
+  private openBrowseFile(fileName: string): void {
+    const fullPath = this.browseCurrentDir + '/' + fileName;
+    const book: RecentBook = {
+      path: fullPath,
+      title: fileName,
+      page: 0,
+      totalPages: 0,
+      lastRead: new Date().toISOString(),
+      star: false,
+      coverPath: '',
+      author: ''
+    };
+    const ctx = getContext(this);
+    saveRecentBook(ctx, book).then(() => {
+      this.generateCover(ctx, book);
+      this.loadLibrary();
+    });
+    router.pushUrl({ url: 'components/Reader', params: { docPath: fullPath, title: fileName } })
+      .then(() => {
+        console.info(`[Index] Opened from browse: ${fileName}`);
+      })
+      .catch((err: Error) => {
+        console.error('[Index] Navigate to browse file failed');
+      });
   }
 
   /** Export settings + recents + bookmarks to a JSON file in the sandbox. */
@@ -539,25 +660,36 @@ struct Index {
       }
       .width('94%')
 
-      // Main tabs
-      Tabs({ barPosition: BarPosition.Start, index: this.currentTab }) {
+      // Main tabs (sprint G: 5 tabs, bottom bar like Android)
+      Tabs({ barPosition: BarPosition.End, index: this.currentTab }) {
         TabContent() {
           this.buildRecentTab()
         }
-        .tabBar('最近阅读')
+        .tabBar(this.buildTabLabel('📖', '最近'))
 
         TabContent() {
           this.buildStarredTab()
         }
-        .tabBar('收藏')
+        .tabBar(this.buildTabLabel('⭐', '收藏'))
+
+        TabContent() {
+          this.buildBookmarkTab()
+        }
+        .tabBar(this.buildTabLabel('🔖', '书签'))
+
+        TabContent() {
+          this.buildBrowseTab()
+        }
+        .tabBar(this.buildTabLabel('📁', '浏览'))
 
         TabContent() {
           this.buildSettingsTab()
         }
-        .tabBar('设置')
+        .tabBar(this.buildTabLabel('⚙', '设置'))
       }
       .width('100%')
       .layoutWeight(1)
+      .barMode(BarMode.Fixed)
       .onChange((index: number) => {
         this.currentTab = index;
         console.info(`[Index] Tab switched to ${index}`);
@@ -613,6 +745,160 @@ struct Index {
     }
     .width('100%')
     .height('100%')
+  }
+
+  /** Tab bar label with icon + text (sprint G). */
+  @Builder
+  buildTabLabel(icon: string, text: string) {
+    Column({ space: 2 }) {
+      Text(icon).fontSize(18)
+      Text(text).fontSize(10).fontColor('#666')
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  buildBookmarkTab() {
+    Column({ space: 8 }) {
+      /* Search bar */
+      Row({ space: 8 }) {
+        TextInput({ placeholder: '搜索书签...' })
+          .fontSize(13)
+          .height(34)
+          .layoutWeight(1)
+          .onChange((value: string) => {
+            this.bookmarkFilter = value;
+          })
+      }
+      .width('94%')
+
+      /* Bookmark list */
+      Scroll() {
+        Column({ space: 6 }) {
+          if (this.getFilteredBookmarks().length === 0) {
+            Text(this.allBookmarks.length === 0 ? '还没有书签，在阅读器中点 🔖 添加' : '无匹配结果')
+              .fontSize(13).fontColor('#999')
+              .margin({ top: 40 })
+          } else {
+            ForEach(this.getFilteredBookmarks(), (bm: Bookmark) => {
+              Row() {
+                Column({ space: 2 }) {
+                  Text(bm.label.length > 0 ? bm.label : `第 ${bm.page + 1} 页`)
+                    .fontSize(13).fontColor('#333').maxLines(1)
+                  Text(bm.path.substring(bm.path.lastIndexOf('/') + 1))
+                    .fontSize(11).fontColor('#888').maxLines(1)
+                }
+                .layoutWeight(1)
+                .alignItems(HorizontalAlign.Start)
+
+                Text('✖')
+                  .fontSize(14).fontColor('#ccc')
+                  .margin({ right: 8 })
+                  .onClick(() => {
+                    this.deleteBookmarkEntry(bm);
+                  })
+              }
+              .width('100%')
+              .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+              .backgroundColor('#fafafa')
+              .borderRadius(6)
+              .onClick(() => {
+                this.openBookmarkBook(bm);
+              })
+            }, (bm: Bookmark) => `${bm.path}_${bm.page}`)
+          }
+        }
+        .width('100%')
+        .padding({ left: 8, right: 8, top: 4 })
+      }
+      .layoutWeight(1)
+      .width('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ top: 8 })
+  }
+
+  @Builder
+  buildBrowseTab() {
+    Column({ space: 6 }) {
+      /* Path bar + view toggle */
+      Row({ space: 8 }) {
+        Text(this.browseCurrentDir.length > 30 ? '...' + this.browseCurrentDir.substring(this.browseCurrentDir.length - 30) : this.browseCurrentDir)
+          .fontSize(11).fontColor('#666').maxLines(1)
+          .layoutWeight(1)
+        Button(this.browseViewMode === 0 ? '▦ 网格' : '≡ 列表')
+          .fontSize(11).height(30)
+          .backgroundColor('#e0e0e0').fontColor('#333')
+          .onClick(() => {
+            this.browseViewMode = this.browseViewMode === 0 ? 1 : 0;
+            console.info(`[Index] Browse view mode: ${this.browseViewMode}`);
+          })
+      }
+      .width('94%')
+
+      /* File list */
+      Scroll() {
+        if (this.browseViewMode === 0) {
+          /* Grid view */
+          Column({ space: 10 }) {
+            ForEach(this.getBrowseFiles(), (fileName: string) => {
+              Column({ space: 4 }) {
+                Text('📄')
+                  .fontSize(36)
+                Text(fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName)
+                  .fontSize(10).fontColor('#555')
+                  .maxLines(1)
+              }
+              .width('30%')
+              .padding(8)
+              .backgroundColor('#f5f5f5')
+              .borderRadius(6)
+              .onClick(() => {
+                this.openBrowseFile(fileName);
+              })
+            }, (name: string) => name)
+          }
+          .width('100%')
+          .padding({ left: 8, right: 8, top: 8 })
+        } else {
+          /* List view */
+          Column({ space: 4 }) {
+            ForEach(this.getBrowseFiles(), (fileName: string) => {
+              Row() {
+                Text('📄').fontSize(16)
+                Text(fileName)
+                  .fontSize(13).fontColor('#333')
+                  .margin({ left: 8 })
+                  .maxLines(1)
+                  .layoutWeight(1)
+              }
+              .width('100%')
+              .padding({ left: 8, right: 8, top: 6, bottom: 6 })
+              .onClick(() => {
+                this.openBrowseFile(fileName);
+              })
+            }, (name: string) => name)
+          }
+          .width('100%')
+        }
+      }
+      .layoutWeight(1)
+      .width('100%')
+
+      /* Import button */
+      Button('📥 导入文件到浏览目录')
+        .fontSize(12).height(34)
+        .backgroundColor('#2a7').fontColor(Color.White)
+        .width('90%')
+        .onClick(() => {
+          this.openFilePicker();
+        })
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ top: 8 })
   }
 
   @Builder
@@ -807,6 +1093,77 @@ struct Index {
           Text(`${this.settings.margin}pt`)
             .fontSize(11).fontColor('#777').width(36)
         }
+
+        // ---- Sprint K: System integration settings ----
+        Text('\u7CFB\u7EDF\u96C6\u6210')
+          .fontSize(15).fontWeight(FontWeight.Bold)
+          .margin({ top: 8 })
+
+        /* K2: App lock */
+        Row({ space: 8 }) {
+          Text('\u5E94\u7528\u9501:')
+            .fontSize(13).fontColor('#555')
+          Button(this.settings.appLockEnabled ? '\u5F00' : '\u5173')
+            .fontSize(12).height(32)
+            .backgroundColor(this.settings.appLockEnabled ? '#e57373' : '#e0e0e0')
+            .fontColor(this.settings.appLockEnabled ? Color.White : '#333')
+            .onClick(() => {
+              this.settings.appLockEnabled = !this.settings.appLockEnabled;
+              this.saveNow();
+              console.info(`[Index] App lock: ${this.settings.appLockEnabled}`);
+            })
+          Text('(\u6307\u7EB9/\u5BC6\u7801)')
+            .fontSize(10).fontColor('#999')
+        }
+
+        /* K3: Proxy settings */
+        Row({ space: 8 }) {
+          Text('\u4EE3\u7406:')
+            .fontSize(13).fontColor('#555')
+          Button(this.settings.proxyType === 0 ? '\u5173' : (this.settings.proxyType === 1 ? 'HTTP' : 'SOCKS'))
+            .fontSize(12).height(32)
+            .backgroundColor(this.settings.proxyType > 0 ? '#2a7' : '#e0e0e0')
+            .fontColor(this.settings.proxyType > 0 ? Color.White : '#333')
+            .onClick(() => {
+              this.settings.proxyType = (this.settings.proxyType + 1) % 3;
+              this.saveNow();
+              console.info(`[Index] Proxy type: ${this.settings.proxyType}`);
+            })
+          if (this.settings.proxyType > 0) {
+            Text(`${this.settings.proxyHost}:${this.settings.proxyPort}`)
+              .fontSize(11).fontColor('#777')
+          }
+        }
+
+        /* K4: Render quality */
+        Row({ space: 8 }) {
+          Text('\u6E32\u67D3\u8D28\u91CF:')
+            .fontSize(13).fontColor('#555')
+          Button(this.settings.renderQuality === 0 ? '\u5FEB\u901F' : (this.settings.renderQuality === 1 ? '\u5E73\u8861' : '\u9AD8\u6E05'))
+            .fontSize(12).height(32)
+            .backgroundColor('#e0e0e0').fontColor('#333')
+            .onClick(() => {
+              this.settings.renderQuality = (this.settings.renderQuality + 1) % 3;
+              this.saveNow();
+              console.info(`[Index] Render quality: ${this.settings.renderQuality}`);
+            })
+        }
+
+        /* K6: Page flip animation */
+        Row({ space: 8 }) {
+          Text('\u7FFB\u9875\u52A8\u753B:')
+            .fontSize(13).fontColor('#555')
+          Button(this.settings.flipAnimation === 0 ? '\u6ED1\u52A8' : (this.settings.flipAnimation === 1 ? '\u7FFB\u8F6C' : '\u6DE1\u5165'))
+            .fontSize(12).height(32)
+            .backgroundColor('#e0e0e0').fontColor('#333')
+            .onClick(() => {
+              this.settings.flipAnimation = (this.settings.flipAnimation + 1) % 3;
+              this.saveNow();
+              console.info(`[Index] Flip animation: ${this.settings.flipAnimation}`);
+            })
+        }
+
+        Divider().color('#ddd')
 
         // Backup / restore
         Row({ space: 8 }) {

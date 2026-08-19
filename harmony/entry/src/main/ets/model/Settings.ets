@@ -41,6 +41,20 @@ export interface ReaderSettings {
   lineHeight: number;
   /** body margin for reflowable docs, points */
   margin: number;
+
+  /* ---- Sprint K: System integration ---- */
+  /** App lock enabled (biometric/password) */
+  appLockEnabled: boolean;
+  /** Proxy server host (empty = no proxy) */
+  proxyHost: string;
+  /** Proxy port */
+  proxyPort: number;
+  /** Proxy type: 0=none, 1=http, 2=socks5 */
+  proxyType: number;
+  /** Render quality: 0=fast(0.75x), 1=balanced(1.0x), 2=high(1.5x) */
+  renderQuality: number;
+  /** Page flip animation: 0=slide, 1=curl, 2=fade */
+  flipAnimation: number;
 }
 
 const PREF_NAME = 'librera_settings';
@@ -70,7 +84,13 @@ export function defaultSettings(): ReaderSettings {
     rsvpWpm: 300,
     fontSize: 16,
     lineHeight: 1.6,
-    margin: 20
+    margin: 20,
+    appLockEnabled: false,
+    proxyHost: '',
+    proxyPort: 8080,
+    proxyType: 0,
+    renderQuality: 1,
+    flipAnimation: 0
   };
 }
 
@@ -99,7 +119,13 @@ export async function loadSettings(ctx: Context): Promise<ReaderSettings> {
       rsvpWpm: typeof r.rsvpWpm === 'number' ? r.rsvpWpm : d.rsvpWpm,
       fontSize: typeof r.fontSize === 'number' ? r.fontSize : d.fontSize,
       lineHeight: typeof r.lineHeight === 'number' ? r.lineHeight : d.lineHeight,
-      margin: typeof r.margin === 'number' ? r.margin : d.margin
+      margin: typeof r.margin === 'number' ? r.margin : d.margin,
+      appLockEnabled: r.appLockEnabled === true,
+      proxyHost: typeof r.proxyHost === 'string' ? r.proxyHost : d.proxyHost,
+      proxyPort: typeof r.proxyPort === 'number' ? r.proxyPort : d.proxyPort,
+      proxyType: typeof r.proxyType === 'number' ? r.proxyType : d.proxyType,
+      renderQuality: typeof r.renderQuality === 'number' ? r.renderQuality : d.renderQuality,
+      flipAnimation: typeof r.flipAnimation === 'number' ? r.flipAnimation : d.flipAnimation
     };
     return s;
   } catch (e) {
