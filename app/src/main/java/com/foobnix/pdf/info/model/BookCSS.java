@@ -95,6 +95,7 @@ public class BookCSS {
     public int lineHeight12;
     public int paragraphHeight;
     public int textIndent;
+    public int letterSpacing;
     public int fontWeight;
     public String customCSS2;
     public int textAlign;
@@ -208,9 +209,10 @@ public class BookCSS {
 
         emptyLine = 1;
 
-        lineHeight12 = 14;
+        lineHeight12 = 18;
         paragraphHeight = 1;
-        textIndent = 10;
+        textIndent = 20;
+        letterSpacing = 0;
         fontWeight = 400;
 
         fontFolder = AppProfile.syncFontFolder.getPath();
@@ -669,6 +671,9 @@ public class BookCSS {
             //always important
             builder.append(String.format("line-height:%s !important;", em(lineHeight12)));
             builder.append(String.format("text-indent:%s !important;", em(textIndent)));
+            if (letterSpacing > 0) {
+                builder.append(String.format("letter-spacing:%.2fem !important;", letterSpacing / 100.0f));
+            }
             builder.append(String.format("text-align:%s;", getTextAlignConst(textAlign)));
 
             if (isUrlFont(normalFont)) {
@@ -779,6 +784,19 @@ public class BookCSS {
             final AppBook load = SharedBooks.load(bookPath);
             if (load != null) {
                 AppSP.get().hypenLang = load.ln;
+            }
+        }
+
+        // Book language unknown: fall back to the app/system language instead of
+        // leaving hypenLang empty. An empty value makes the reader show the
+        // "hyphenation language" prompt bar on first open, which confuses users
+        // (it looks like an app-language picker). Languages without a hyphenation
+        // pattern (e.g. zh) simply leave auto-hyphenation as a no-op.
+        if (TxtUtils.isEmpty(AppSP.get().hypenLang)) {
+            final String appLang = AppState.get().getAppLang();
+            if (TxtUtils.isNotEmpty(appLang)) {
+                AppSP.get().hypenLang = appLang;
+                LOG.d("detectLang fallback to app lang", bookPath, appLang);
             }
         }
     }

@@ -234,6 +234,14 @@
         </com.foobnix.pdf.info.view.CustomSeek>
 
         <com.foobnix.pdf.info.view.CustomSeek
+            android:id="@+id/letterSpacing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dip"
+            myseek:text="@string/moon_letter_spacing" >
+        </com.foobnix.pdf.info.view.CustomSeek>
+
+        <com.foobnix.pdf.info.view.CustomSeek
             android:id="@+id/paragraphHeight"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

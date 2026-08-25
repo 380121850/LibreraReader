@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dip">
+
+            <!-- 最近阅读 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/recentHeader" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recentRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginTop="14dip"
+                android:background="#e0e0e0" />
+
+            <!-- 我的珍藏 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/favHeader" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/favRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginTop="14dip"
+                android:background="#e0e0e0" />
+
+            <!-- 我的文件 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/filesHeader" />
+
+            <LinearLayout
+                android:id="@+id/filesRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginTop="14dip"
+                android:background="#e0e0e0" />
+
+            <!-- 网上书库 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/netHeader" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/netRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginTop="14dip"
+                android:background="#e0e0e0" />
+
+            <!-- 书签 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/bookmarkHeader" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/bookmarkRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dip"
+                android:layout_marginTop="14dip"
+                android:background="#e0e0e0" />
+
+            <!-- 阅读统计 -->
+            <include layout="@layout/dashboard_section_header" android:id="@+id/statsHeader" />
+
+            <LinearLayout
+                android:id="@+id/statsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip">
+
+                <include layout="@layout/dashboard_stat_item" android:id="@+id/statTotal" />
+
+                <include layout="@layout/dashboard_stat_item" android:id="@+id/statRead" />
+
+                <include layout="@layout/dashboard_stat_item" android:id="@+id/statHours" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

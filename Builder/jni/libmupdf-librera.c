@@ -1764,6 +1764,8 @@ Java_org_ebookdroid_droids_mupdf_codec_MuPdfDocument_deleteAnnotationInternal(JN
     }
 }
 
+static void librera_refresh_page_annots(fz_context* ctx, renderpage_t* page, pdf_annot* annot);
+
 JNIEXPORT void JNICALL
 Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_addMarkupAnnotationInternal(JNIEnv* env,
                                                                              jobject thiz,
@@ -1865,8 +1867,7 @@ Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_addMarkupAnnotationInternal(JNI
         pdf_set_annot_quad_points(ctx, (pdf_annot*)annot, n / 4, pts);
         pdf_set_annot_color(ctx, annot, 3, color);
         pdf_set_annot_opacity(ctx, annot, alpha);
-        pdf_update_annot(ctx, annot);
-        pdf_update_page(ctx, (pdf_page*)page->page);
+        librera_refresh_page_annots(ctx, page, annot);
         // dump_annotation_display_lists(glo);
     }
     fz_always(ctx)
@@ -1880,6 +1881,143 @@ Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_addMarkupAnnotationInternal(JNI
         if (cls != NULL)
             (*env)->ThrowNew(env, cls, "Out of memory in MuPDFCore_searchPage");
         (*env)->DeleteLocalRef(env, cls);
+    }
+}
+
+/*
+ * Annotations created via pdf_create_annot_raw are invisible to the render
+ * path for two reasons:
+ *  1. They have no /AP appearance stream until MuPDF resynthesis runs, and
+ *     pdf_process_annot skips annots without one.
+ *  2. Pages are rendered from page->pageList, a display list built once at
+ *     page open (fz_run_page); later-added annots are not in that list.
+ * So after creating an annotation we must synthesize its appearance and
+ * rebuild the display list. Must be called with TempHolder.lock held
+ * (same as renderPage).
+ */
+static void
+librera_refresh_page_annots(fz_context* ctx, renderpage_t* page, pdf_annot* annot)
+{
+    fz_display_list* newList = NULL;
+    fz_device* dev = NULL;
+    fz_rect mediabox;
+
+    if (!page || !page->page)
+        return;
+
+    // 1) Mark the new annot for appearance resynthesis and let
+    //    pdf_update_page generate its /AP stream (icon for TEXT, quad-based
+    //    fill/stroke for HIGHLIGHT/UNDERLINE/STRIKE_OUT).
+    if (annot)
+        pdf_annot_request_resynthesis(ctx, annot);
+    pdf_update_page(ctx, (pdf_page*)page->page);
+
+    // 2) Rebuild the display list so renderPage includes the annotation.
+    fz_var(newList);
+    fz_var(dev);
+    fz_try(ctx)
+    {
+        mediabox = fz_bound_page(ctx, page->page);
+        newList = fz_new_display_list(ctx, mediabox);
+        dev = fz_new_list_device(ctx, newList);
+        fz_run_page(ctx, page->page, dev, fz_identity, NULL);
+        fz_close_device(ctx, dev);
+        fz_drop_device(ctx, dev);
+        dev = NULL;
+        if (page->pageList)
+            fz_drop_display_list(ctx, page->pageList);
+        page->pageList = newList;
+        newList = NULL; // ownership transferred to page
+    }
+    fz_always(ctx)
+    {
+        if (dev)
+        {
+            fz_close_device(ctx, dev);
+            fz_drop_device(ctx, dev);
+        }
+        if (newList)
+            fz_drop_display_list(ctx, newList);
+    }
+    fz_catch(ctx)
+    {
+        // Keep the old display list on failure; the annotation will appear
+        // the next time the page is opened.
+    }
+}
+
+
+JNIEXPORT void JNICALL
+Java_org_ebookdroid_droids_mupdf_codec_MuPdfPage_addTextNoteInternal(JNIEnv* env,
+                                                                             jobject thiz,
+                                                                             jlong handle,
+                                                                             jlong pagehandle,
+                                                                             jobjectArray points,
+                                                                             jstring text,
+                                                                             jobjectArray jcolors)
+{
+    renderdocument_t* doc_t = (renderdocument_t*)(long)handle;
+    renderpage_t* page = (renderpage_t*)(long)pagehandle;
+    if (!page) {
+        return;
+    }
+
+    fz_context* ctx = doc_t->ctx;
+    pdf_document* idoc = pdf_specifics(ctx, doc_t->document);
+    if (idoc == NULL)
+        return;
+
+    jclass pt_cls;
+    jfieldID x_fid, y_fid;
+    int n;
+    float color[3];
+
+    pt_cls = (*env)->FindClass(env, "android/graphics/PointF");
+    if (pt_cls == NULL)
+        return;
+    x_fid = (*env)->GetFieldID(env, pt_cls, "x", "F");
+    y_fid = (*env)->GetFieldID(env, pt_cls, "y", "F");
+
+    n = (*env)->GetArrayLength(env, points);
+    if (n < 4)
+        return;
+
+    // First quad point order is ll, lr, ur, ul — anchor the sticky-note icon
+    // at the top-left (ul) corner of the first selected rect.
+    jobject opt = (*env)->GetObjectArrayElement(env, points, 3);
+    float ux = opt ? (*env)->GetFloatField(env, opt, x_fid) : 0.0f;
+    float uy = opt ? (*env)->GetFloatField(env, opt, y_fid) : 0.0f;
+    if (opt)
+        (*env)->DeleteLocalRef(env, opt);
+
+    jfloat* co = (*env)->GetPrimitiveArrayCritical(env, jcolors, 0);
+    color[0] = co[0];
+    color[1] = co[1];
+    color[2] = co[2];
+    (*env)->ReleasePrimitiveArrayCritical(env, jcolors, co, 0);
+
+    const char* noteText = (*env)->GetStringUTFChars(env, text, 0);
+
+    fz_try(ctx)
+    {
+        pdf_annot* annot;
+        float iconSize = 24;
+        fz_rect r = { ux, uy - iconSize, ux + iconSize, uy };
+        annot = (pdf_annot*)pdf_create_annot_raw(ctx, (pdf_page*)page->page, PDF_ANNOT_TEXT);
+        pdf_set_annot_rect(ctx, annot, r);
+        if (noteText && *noteText)
+            pdf_set_annot_contents(ctx, annot, noteText);
+        pdf_set_annot_color(ctx, annot, 3, color);
+        librera_refresh_page_annots(ctx, page, annot);
+    }
+    fz_always(ctx)
+    {
+        if (noteText)
+            (*env)->ReleaseStringUTFChars(env, text, noteText);
+    }
+    fz_catch(ctx)
+    {
+        // LOGE("addTextNoteInternal: %s", ctx->error->message);
     }
 }
 

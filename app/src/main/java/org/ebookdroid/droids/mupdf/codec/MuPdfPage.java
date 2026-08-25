@@ -337,6 +337,8 @@ public class MuPdfPage extends AbstractCodecPage {
 
     private native void addMarkupAnnotationInternal(long docHandle, long pageHandle, PointF[] quadPoints, int type, float color[]);
 
+    private native void addTextNoteInternal(long docHandle, long pageHandle, PointF[] quadPoints, String text, float color[]);
+
     private native byte[] getPageAsHtml(long docHandle, long pageHandle, int opts);
 
     @Override
@@ -390,6 +392,21 @@ public class MuPdfPage extends AbstractCodecPage {
             TempHolder.lock.unlock();
         }
 
+    }
+
+    @Override
+    public void addTextNote(PointF[] quadPoints, String text, float color[]) {
+        if (quadPoints.length < 4) {
+            LOG.d("addTextNote", "skip");
+            return;
+        }
+        LOG.d("addTextNote", quadPoints.length, text);
+        TempHolder.lock.lock();
+        try {
+            addTextNoteInternal(docHandle, pageHandle, quadPoints, text, color);
+        } finally {
+            TempHolder.lock.unlock();
+        }
     }
 
     @Override

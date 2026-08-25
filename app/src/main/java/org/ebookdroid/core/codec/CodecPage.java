@@ -43,6 +43,8 @@ public interface CodecPage {
 
 	void addMarkupAnnotation(PointF[] quadPoints, AnnotationType type, float[] color);
 
+	void addTextNote(PointF[] quadPoints, String text, float[] color);
+
     String getPageHTML();
 
     String getPageHTMLWithImages();

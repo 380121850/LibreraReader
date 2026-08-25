@@ -4,11 +4,13 @@ import static com.foobnix.pdf.info.Android6.MY_PERMISSIONS_REQUEST_WES;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -17,11 +19,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +43,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
 import com.cloudrail.si.CloudRail;
+import com.foobnix.LibreraBuildConfig;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.LOG;
@@ -50,12 +59,14 @@ import com.foobnix.model.AppState;
 import com.foobnix.pdf.SlidingTabLayout;
 import com.foobnix.pdf.info.ADS;
 import com.foobnix.pdf.info.Android6;
+import com.foobnix.pdf.info.AndroidWhatsNew;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.Clouds;
 import com.foobnix.pdf.info.IMG;
 import com.foobnix.pdf.info.PasswordDialog;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
+import com.foobnix.pdf.info.Urls;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.view.BrightnessHelper;
 import com.foobnix.pdf.info.view.Dialogs;
@@ -73,6 +84,7 @@ import com.foobnix.sys.TempHolder;
 import com.foobnix.ui2.adapter.TabsAdapter2;
 import com.foobnix.ui2.fragment.BookmarksFragment2;
 import com.foobnix.ui2.fragment.BrowseFragment2;
+import com.foobnix.ui2.fragment.DashboardFragment2;
 import com.foobnix.ui2.fragment.OpdsFragment2;
 import com.foobnix.ui2.fragment.PrefFragment2;
 import com.foobnix.ui2.fragment.RecentFragment2;
@@ -114,6 +126,8 @@ public class MainTabs2 extends AdsFragmentActivity {
     List<UIFragment> tabFragments;
     TabsAdapter2 adapter;
     ImageView imageMenu;
+    ImageView onImportBooks;
+    TextView topBarTitle;
     View imageMenuParent, overlay;
     TextView toastBrightnessText, onSubscribe;
     Handler handler;
@@ -125,13 +139,27 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         @Override
         public void onPageSelected(int pos) {
+            // This listener is registered on the ViewPager directly, so it
+            // gets RAW virtual positions (0 and N+1 are edge ghost clones in
+            // looping mode) — translate to the real tab index first.
+            if (adapter != null) {
+                pos = adapter.toReal(pos);
+            }
             uiFragment = tabFragments.get(pos);
             uiFragment.onSelectFragment();
             TempHolder.get().currentTab = pos;
 
             LOG.d("onPageSelected", uiFragment);
-            Apps.accessibilityText(MainTabs2.this, adapter.getPageTitle(pos)
-                                                          .toString() + " " + getString(R.string.tab_selected));
+            CharSequence title = adapter.getRealPageTitle(pos);
+            // On the dashboard home the bar shows the app name instead of
+            // "Home" (Moon+ style); the tab itself keeps its own label.
+            if (uiFragment instanceof DashboardFragment2) {
+                title = getAppName();
+            }
+            if (topBarTitle != null && topBarTitle.getVisibility() == View.VISIBLE) {
+                topBarTitle.setText(title.toString());
+            }
+            Apps.accessibilityText(MainTabs2.this, title.toString() + " " + getString(R.string.tab_selected));
         }
 
         @Override
@@ -358,6 +386,12 @@ public class MainTabs2 extends AdsFragmentActivity {
         imageMenuParent = findViewById(R.id.imageParent1);
         imageMenuParent.setBackgroundColor(TintUtil.color);
 
+        topBarTitle = findViewById(R.id.topBarTitle);
+        onImportBooks = findViewById(R.id.onImportBooks);
+        // The "+" import button in the top bar is removed; importing is still
+        // reachable from the Library page and the drawer.
+        onImportBooks.setVisibility(View.GONE);
+
         fab = findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
         fab.setOnClickListener(new OnClickListener() {
@@ -417,8 +451,6 @@ public class MainTabs2 extends AdsFragmentActivity {
             tabFragments.add(new PrefFragment2());
             //tabFragments.add(new CloudsFragment2());
         }
-        getSupportFragmentManager().beginTransaction().replace(R.id.left_drawer, new PrefFragment2()).commit();
-
         drawerLayout = findViewById(R.id.drawer_layout);
 
         imageMenu.setOnClickListener(new OnClickListener() {
@@ -432,23 +464,52 @@ public class MainTabs2 extends AdsFragmentActivity {
             }
         });
 
-        if (UITab.isShowLibrary() || !AppState.get().tapPositionTop) {
-            imageMenu.setVisibility(View.GONE);
-        } else {
+        imageMenu.setVisibility(View.VISIBLE);
 
-            imageMenu.setVisibility(View.VISIBLE);
-        }
+        buildDrawerNavHeader((LinearLayout) findViewById(R.id.drawerNavHeader));
 
         // ((BrigtnessDraw)
         // findViewById(R.id.brigtnessProgressView)).setActivity(this);
 
         adapter = new TabsAdapter2(this, tabFragments);
+        // Moon+ style: swiping past either edge of the tab bar wraps around.
+        // Needs at least two tabs; with one there is nothing to wrap to.
+        adapter.setLooping(tabFragments.size() >= 2);
         pager = findViewById(R.id.pager);
         pager.setAccessibilityDelegate(new View.AccessibilityDelegate());
 
-        //if (Android6.canWrite(this)) {
+        //if (Android6.canWrite(this) ) {
             pager.setAdapter(adapter);
        // }
+
+        if (adapter.isLooping()) {
+            // Real tabs live at virtual positions 1..N; start on the first one.
+            pager.setCurrentItem(1, false);
+            // A raw-position listener (SlidingTabLayout's is already mapped to
+            // real indices): when the swipe settles on an edge ghost clone,
+            // teleport to the matching real page without animation so the wrap
+            // reads as a single continuous gesture.
+            pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+                    if (state == ViewPager.SCROLL_STATE_IDLE && adapter.isLooping()) {
+                        int cur = pager.getCurrentItem();
+                        int n = adapter.getRealCount();
+                        if (cur <= 0 || cur > n) {
+                            pager.setCurrentItem(adapter.toVirtual(adapter.toReal(cur)), false);
+                        }
+                    }
+                }
+            });
+        }
 
         if (AppState.get().appTheme == AppState.THEME_DARK_OLED) {
             pager.setBackgroundColor(Color.BLACK);
@@ -460,6 +521,16 @@ public class MainTabs2 extends AdsFragmentActivity {
         // cold start. Pages further away are created lazily on switch.
         pager.setOffscreenPageLimit(1);
         pager.addOnPageChangeListener(onPageChangeListener);
+
+        // onPageSelected does not fire for the initial page, so set the bar
+        // title to the first tab explicitly (e.g. "Home" on a fresh install).
+        if (topBarTitle != null && adapter.getRealCount() > 0) {
+            CharSequence title = adapter.getRealPageTitle(0);
+            if (tabFragments.get(0) instanceof DashboardFragment2) {
+                title = getAppName();
+            }
+            topBarTitle.setText(title.toString());
+        }
 
 
         drawerLayout.addDrawerListener(new DrawerListener() {
@@ -503,6 +574,8 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         if (AppState.get().tapPositionTop) {
             indicator = findViewById(R.id.slidingTabs1);
+            topBarTitle.setVisibility(View.GONE);
+            onImportBooks.setVisibility(View.GONE);
         } else {
             indicator = findViewById(R.id.slidingTabs2);
         }
@@ -559,6 +632,7 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         if (AppState.get().appTheme == AppState.THEME_INK) {
             TintUtil.setTintImageNoAlpha(imageMenu, TintUtil.color);
+            TintUtil.setTintImageNoAlpha(onImportBooks, TintUtil.color);
             indicator.setSelectedIndicatorColors(TintUtil.color);
             indicator.setDividerColors(TintUtil.color);
             indicator.setBackgroundColor(Color.TRANSPARENT);
@@ -739,15 +813,253 @@ public class MainTabs2 extends AdsFragmentActivity {
     public void goToPageMsg(SearchMetaMsg msg){
             int index = UITab.getCurrentTabIndex(UITab.SearchFragment);
             if(index>=0) {
-                pager.setCurrentItem(index);
+                pager.setCurrentItem(adapter.toVirtual(index));
             }
+    }
+
+    // Moon+ style drawer: banner on top (XML), five nav rows here, then the
+    // fixed bottom bar with 设置选项/软件说明/晚上模式/退出.
+    private static final int DRAWER_ICON_GRAY = Color.parseColor("#737373");
+
+    private void buildDrawerNavHeader(LinearLayout parent) {
+        if (parent == null) {
+            return;
+        }
+
+        addDrawerNavRow(parent, R.string.moon_home_recent, R.drawable.glyphicons_55_clock, UITab.RecentFragment);
+        addDrawerNavRow(parent, R.string.moon_drawer_library, R.drawable.glyphicons_589_book_open, UITab.SearchFragment);
+        addDrawerNavRow(parent, R.string.moon_home_files, R.drawable.glyphicons_145_folder_open, UITab.BrowseFragment);
+        addDrawerNavRow(parent, R.string.moon_home_net, R.drawable.glyphicons_417_globe, UITab.OpdsFragment);
+        addDrawerNavRow(parent, R.string.bookmarks, R.drawable.glyphicons_73_bookmark, UITab.BookmarksFragment);
+
+        buildDrawerBottomBar();
+    }
+
+    private void addDrawerNavRow(LinearLayout parent, int labelRes, int iconRes, final UITab tab) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(Dips.dpToPx(52));
+        row.setPadding(Dips.dpToPx(16), 0, Dips.dpToPx(16), 0);
+        row.setBackgroundResource(android.R.drawable.list_selector_background);
+
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(iconRes);
+        TintUtil.setTintImageWithAlpha(icon, DRAWER_ICON_GRAY);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(Dips.dpToPx(24), Dips.dpToPx(24));
+        iconParams.rightMargin = Dips.dpToPx(18);
+        row.addView(icon, iconParams);
+
+        TextView label = new TextView(this);
+        label.setText(labelRes);
+        label.setTextSize(16);
+        row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        row.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navigateToTab(tab);
+            }
+        });
+        parent.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private void buildDrawerBottomBar() {
+        View bar = findViewById(R.id.drawerBottomBar);
+        if (bar == null) {
+            return;
+        }
+
+        // jump to the preferences tab in the bottom tab bar (Moon+ style:
+        // the drawer itself no longer embeds the settings page)
+        bindDrawerBottomButton(bar, R.id.drawerBtnSettings, R.id.drawerBtnSettingsIcon, R.id.drawerBtnSettingsLabel, R.string.moon_drawer_settings, new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navigateToTab(UITab.PrefFragment);
+            }
+        });
+
+        bindDrawerBottomButton(bar, R.id.drawerBtnAbout, R.id.drawerBtnAboutIcon, R.id.drawerBtnAboutLabel, R.string.moon_drawer_about, new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAboutDialog();
+            }
+        });
+
+        bindDrawerBottomButton(bar, R.id.drawerBtnNight, R.id.drawerBtnNightIcon, R.id.drawerBtnNightLabel, R.string.moon_night_mode, new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean night = AppState.get().appTheme == AppState.THEME_DARK || AppState.get().appTheme == AppState.THEME_DARK_OLED;
+                applyDayNight(!night);
+            }
+        });
+
+        bindDrawerBottomButton(bar, R.id.drawerBtnExit, R.id.drawerBtnExitIcon, R.id.drawerBtnExitLabel, R.string.moon_drawer_exit, new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onDestroyBanner();
+                finish();
+            }
+        });
+    }
+
+    private void bindDrawerBottomButton(View bar, int buttonId, int iconId, int labelId, int labelRes, OnClickListener listener) {
+        View button = bar.findViewById(buttonId);
+        if (button == null) {
+            return;
+        }
+        ImageView icon = (ImageView) button.findViewById(iconId);
+        TextView label = (TextView) button.findViewById(labelId);
+        TintUtil.setTintImageWithAlpha(icon, DRAWER_ICON_GRAY);
+        label.setText(labelRes);
+        button.setOnClickListener(listener);
+    }
+
+    /**
+     * 软件说明 (Moon+ style): only the bottom "about" block of the preferences
+     * page — version header "Librera: x.y.z", Librera pro, changelog, licence,
+     * support mail, web and rate links — NOT the settings sections themselves.
+     */
+    private void showAboutDialog() {
+        View content = LayoutInflater.from(this).inflate(R.layout.dialog_about, null);
+        bindAboutSection(content);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.moon_drawer_about)
+                .setView(content)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    /** Wire the shared about_section layout (same block the 偏好 page shows at its bottom). */
+    private void bindAboutSection(View root) {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = packageInfo.versionName + " (" + AppsConfig.MUPDF_FZ_VERSION + "-" + LibreraBuildConfig.FLAVOR + ")";
+            ((TextView) root.findViewById(R.id.pVersion)).setText(
+                    String.format("%s: %s", getString(R.string.version), version));
+            ((TextView) root.findViewById(R.id.section6)).setText(
+                    String.format("%s: %s %s %s", Apps.getApplicationName(this), version,
+                            "SDK: " + Build.VERSION.SDK_INT, Build.MANUFACTURER));
+        } catch (PackageManager.NameNotFoundException e) {
+            LOG.e(e);
+        }
+
+        TextView whatIsNew = root.findViewById(R.id.whatIsNew);
+        whatIsNew.setText(getString(R.string.what_is_new_in) + " " + Apps.getApplicationName(this) + " " + Apps.getVersionName(this));
+        TxtUtils.underlineTextView(whatIsNew);
+        whatIsNew.setOnClickListener(v -> AndroidWhatsNew.show2(this));
+
+        TextView licenses = root.findViewById(R.id.libraryLicenses);
+        TxtUtils.underlineTextView(licenses);
+        licenses.setOnClickListener(v -> showLicensesDialog());
+
+        TextView onMail = root.findViewById(R.id.onMailSupport);
+        onMail.setText(TxtUtils.underline(getString(R.string.my_email)));
+        onMail.setOnClickListener(v -> onEmailSupport());
+
+        TextView openWeb = root.findViewById(R.id.openWeb);
+        TxtUtils.underlineTextView(openWeb);
+        openWeb.setOnClickListener(v -> Urls.open(this, "https://librera.mobi"));
+
+        TextView proText = root.findViewById(R.id.downloadPRO);
+        TxtUtils.underlineTextView(proText);
+        ((View) proText.getParent()).setOnClickListener(v -> Urls.openPdfPro(this));
+
+        TextView rateIt = root.findViewById(R.id.onRateIt);
+        TxtUtils.underlineTextView(rateIt);
+        rateIt.setOnClickListener(v -> Urls.rateIT(this));
+    }
+
+    private void showLicensesDialog() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(R.string.licenses_for_libraries);
+        WebView wv = new WebView(this);
+        wv.loadUrl("file:///android_asset/licenses.html");
+        wv.setWebViewClient(new WebViewClient() {
+            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        alert.setView(wv);
+        alert.setNegativeButton(R.string.close, (dialog, id) -> dialog.dismiss());
+        alert.show();
+    }
+
+    private void onEmailSupport() {
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        String address = getString(R.string.my_email).replace("<u>", "").replace("</u>", "");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{address});
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT,
+                Apps.getApplicationName(this) + " " + Apps.getVersionName(this));
+        emailIntent.setType("plain/text");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "Hi Support, ");
+        try {
+            startActivity(Intent.createChooser(emailIntent, getString(R.string.send_mail)));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(this, R.string.there_are_no_email_applications_installed_, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    CharSequence appNameCache;
+
+    private CharSequence getAppName() {
+        if (appNameCache == null) {
+            try {
+                appNameCache = getPackageManager().getApplicationLabel(getApplicationInfo());
+            } catch (Exception e) {
+                LOG.e(e);
+                appNameCache = "Librera";
+            }
+        }
+        return appNameCache;
+    }
+
+    /**
+     * Drawer header switch: flip the whole-app day/night theme and restart,
+     * the same way the settings page does (PrefFragment2.onTheme). Keeping the
+     * reader flag isDayNotInvert in sync so books open in the matching mode.
+     */
+    private void applyDayNight(boolean night) {
+        AppState.get().isSystemThemeColor = false;
+        if (night) {
+            // preserve a user-chosen OLED black over plain dark
+            AppState.get().appTheme = AppState.get().appTheme == AppState.THEME_DARK_OLED ? AppState.THEME_DARK_OLED : AppState.THEME_DARK;
+            AppState.get().isDayNotInvert = false;
+        } else {
+            AppState.get().appTheme = AppState.THEME_LIGHT;
+            AppState.get().isDayNotInvert = true;
+        }
+        IMG.clearDiscCache();
+        IMG.clearMemoryCache();
+        AppProfile.save(this);
+        AppProfile.clear();
+        finish();
+        MainTabs2.startActivity(this, TempHolder.get().currentTab);
+    }
+
+    private void navigateToTab(UITab tab) {
+        boolean found = false;
+        for (int i = 0; i < tabFragments.size(); i++) {
+            if (tab.getClazz().isInstance(tabFragments.get(i))) {
+                pager.setCurrentItem(adapter.toVirtual(i));
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            Toast.makeText(this, R.string.moon_tab_hidden, Toast.LENGTH_SHORT).show();
+        }
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
+        }
     }
 
     public void checkGoToPage(Intent intent) {
         try {
             int pos = intent.getIntExtra(EXTRA_PAGE_NUMBER, -1);
-            if (pos != -1) {
-                pager.setCurrentItem(pos);
+            if (pos != -1 && adapter != null && pos < adapter.getRealCount()) {
+                pager.setCurrentItem(adapter.toVirtual(pos));
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -924,7 +1236,8 @@ public class MainTabs2 extends AdsFragmentActivity {
 //        }
 
         if (tabFragments != null) {
-            if (!tabFragments.isEmpty() && tabFragments.get(pager.getCurrentItem()).isBackPressed()) {
+            int realPos = adapter.toReal(pager.getCurrentItem());
+            if (!tabFragments.isEmpty() && realPos >= 0 && realPos < tabFragments.size() && tabFragments.get(realPos).isBackPressed()) {
                 return;
             }
             RefiewForm.show(this, closeActivityRunnable);
@@ -949,8 +1262,8 @@ public class MainTabs2 extends AdsFragmentActivity {
         public void onReceive(Context context, Intent intent) {
             int pos = intent.getIntExtra(EXTRA_PAGE_NUMBER, -1);
             if (pos != -1) {
-                if (pos >= 0) {
-                    pager.setCurrentItem(pos);
+                if (pos >= 0 && adapter != null && pos < adapter.getRealCount()) {
+                    pager.setCurrentItem(adapter.toVirtual(pos));
                 }
 
                 if (intent.getBooleanExtra(EXTRA_NOTIFY_REFRESH, false)) {
@@ -961,7 +1274,7 @@ public class MainTabs2 extends AdsFragmentActivity {
                     TintUtil.setTintImageNoAlpha(imageMenu, TintUtil.color);
                     indicator.setSelectedIndicatorColors(TintUtil.color);
                     indicator.setDividerColors(TintUtil.color);
-                    indicator.updateIcons(pager.getCurrentItem());
+                    indicator.updateIcons(adapter.toReal(pager.getCurrentItem()));
                 } else {
                     indicator.setBackgroundColor(TintUtil.color);
                     imageMenuParent.setBackgroundColor(TintUtil.color);

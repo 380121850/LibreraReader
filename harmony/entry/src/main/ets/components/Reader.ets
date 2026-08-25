@@ -21,7 +21,7 @@ import brightness from '@system.brightness';
 import webview from '@ohos.web.webview';
 import {
   version, openDocument, pageCount, renderPageAsync, closeDocument, getToc, getPageSize,
-  searchText, getText, getAnnotations, addHighlight, addInkStroke, deleteAnnotation, saveDocument,
+  searchText, searchDocument, getText, getAnnotations, addHighlight, addInkStroke, deleteAnnotation, saveDocument,
   layoutDocument, isReflowable, getDocumentInfo, getTextRects, loadFont,
   RenderResult, RenderOptions, TocEntry, CropRect, TextRect, AnnotationInfo, DocumentInfo
 } from 'libmupdf_napi.so';
@@ -29,6 +29,7 @@ import { saveRecentBook, getPageForPath, RecentBook } from '../model/ReadingProg
 import { getBookmarks, addBookmark, removeBookmark, Bookmark } from '../model/Bookmarks';
 import { TextUtils } from '../model/TextUtils';
 import { loadSettings, saveSettings, THEME_NAMES, ReaderSettings } from '../model/Settings';
+import { startTtsBackgroundTask, stopTtsBackgroundTask, showTtsNotification, cancelTtsNotification } from '../service/TtsService';
 
 const LEFT_ZONE_RATIO: number = 0.3;
 const RIGHT_ZONE_RATIO: number = 0.3;
@@ -397,7 +398,11 @@ struct Reader {
   @State tocEntries: TocEntry[] = [];
   @State showSearch: boolean = false;
   @State searchQuery: string = '';
-  @State searchHits: TextRect[] = [];       /* normalized hits on the current page */
+  @State searchHits: TextRect[] = [];
+  /* Sprint O2: full search results */
+  @State searchResults: number[][] = []; /* [page, count] pairs */
+  @State searchTotalHits: number = 0;
+  @State searchCurrentIdx: number = -1;       /* normalized hits on the current page */
   @State searchHitPage: number = -1;        /* page the hits belong to */
   @State brightnessLevel: number = 128;     /* 1..255 system brightness */
   @State autoFlip: boolean = false;
@@ -417,6 +422,10 @@ struct Reader {
   @State ttsEngineOk: boolean = true;
   @State ttsRate: number = 1.0;             /* 0.5..2.0 */
   @State ttsPitch: number = 1.0;            /* 0.5..2.0 */
+  /* Sprint M1: voice + language */
+  @State ttsVoiceIndex: number = 0;
+  @State ttsLang: string = '';
+  @State ttsVoices: string[] = [];          /* display names */
   @State ttsSentences: string[] = [];
   @State ttsIndex: number = 0;
   @State ttsPaused: boolean = false;
@@ -460,6 +469,10 @@ struct Reader {
   @State textAlign: number = 0; /* 0=left, 1=center, 2=right, 3=justify */
   @State paragraphSpacing: number = 8;
   @State hyphenationEnabled: boolean = false;
+  /* Sprint L: full CSS typography */
+  @State textIndent: number = 2;
+  @State dropCapEnabled: boolean = false;
+  @State fontFamilyIdx: number = 0; /* 0=default,1=serif,2=sans-serif,3=monospace */
   @State cropEnabled: boolean = false; /* H6: 10% margin trim */
 
   // ---- Sprint I: Advanced reading features ----
@@ -575,6 +588,11 @@ struct Reader {
       proxyPort: 8080,
       proxyType: 0,
       renderQuality: this.renderQualityLevel,
+      ttsVoiceIndex: this.ttsVoiceIndex,
+      ttsLang: this.ttsLang,
+      textIndent: this.textIndent,
+      dropCapEnabled: this.dropCapEnabled,
+      fontFamily: ['default', 'serif', 'sans-serif', 'monospace'][this.fontFamilyIdx],
       flipAnimation: 0
     };
     await saveSettings(getContext(this), s);
@@ -618,7 +636,7 @@ struct Reader {
       return;
     }
     try {
-      const css = `body{margin:${this.pageMargin}pt;line-height:${this.lineHeight.toFixed(2)}}`;
+      const css = this.buildCss();
       layoutDocument(handle, REFLOW_W, REFLOW_H, this.fontSize, css);
       const newTotal: number = pageCount(handle);
       this.pageList = [];
@@ -715,7 +733,10 @@ struct Reader {
         lastRead: new Date().toISOString(),
         star: false,
         coverPath: '',
-        author: ''
+        author: '',
+        tags: [],
+        series: '',
+        genre: ''
       };
       saveRecentBook(ctx, book);
     }
@@ -760,7 +781,10 @@ struct Reader {
         lastRead: new Date().toISOString(),
         star: false,
         coverPath: '',
-        author: ''
+        author: '',
+        tags: [],
+        series: '',
+        genre: ''
       };
       saveRecentBook(ctx, book);
     }
@@ -819,7 +843,7 @@ struct Reader {
     console.info('[Reader] Search bar closed');
   }
 
-  /** Search the whole book, jumping to the first page with hits. */
+  /** Sprint O2: search whole book using NAPI searchDocument, build hit list. */
   private async doSearch(): Promise<void> {
     const q: string = this.searchQuery.trim();
     if (q.length === 0 || this.totalPages <= 0) {
@@ -830,66 +854,82 @@ struct Reader {
       return;
     }
     console.info(`[Reader] Search '${q}'...`);
-    for (let p = 0; p < this.totalPages; p++) {
-      try {
-        const rects: TextRect[] = searchText(handle, q, p);
-        if (rects.length > 0) {
-          /* convert pt*1000 coords to normalized 0..1 using page size */
-          const size: TextRect = getPageSize(handle, p);
-          const pw = (size.x1 - size.x0) > 0 ? (size.x1 - size.x0) : 1;
-          const ph = (size.y1 - size.y0) > 0 ? (size.y1 - size.y0) : 1;
-          const norm: TextRect[] = [];
-          for (let i = 0; i < rects.length; i++) {
-            const n: TextRect = {
-              x0: (rects[i].x0 - size.x0) / pw,
-              y0: (rects[i].y0 - size.y0) / ph,
-              x1: (rects[i].x1 - size.x0) / pw,
-              y1: (rects[i].y1 - size.y0) / ph
-            };
-            norm.push(n);
-          }
-          this.searchHits = norm;
-          this.searchHitPage = p;
-          this.currentPage = p;
-          this.onPageChanged(p);
-          console.info(`[Reader] Search '${q}': ${norm.length} hits on page ${p + 1}`);
-          return;
-        }
-      } catch (e) {
-        console.error(`[Reader] Search page ${p} failed`);
+    try {
+      const jsonStr: string = searchDocument(handle, q);
+      const parsed: object = JSON.parse(jsonStr) as object;
+      const pagesArr: object[] = (parsed['pages'] !== undefined ? parsed['pages'] : []) as object[];
+      this.searchTotalHits = parsed['totalHits'] !== undefined ? parsed['totalHits'] as number : 0;
+      this.searchResults = [];
+      for (let i = 0; i < pagesArr.length; i++) {
+        const pg: number = pagesArr[i]['page'] as number;
+        const ct: number = pagesArr[i]['count'] as number;
+        this.searchResults.push([pg, ct]);
       }
+      if (this.searchResults.length > 0) {
+        /* Jump to first hit page and load its rects */
+        const firstPage: number = this.searchResults[0][0];
+        this.searchCurrentIdx = 0;
+        this.highlightPageHits(firstPage);
+        console.info(`[Reader] Search '${q}': ${this.searchTotalHits} hits on ${this.searchResults.length} pages`);
+      } else {
+        this.searchHits = [];
+        this.searchHitPage = -1;
+        console.info(`[Reader] Search '${q}': no hits`);
+      }
+    } catch (e) {
+      console.error('[Reader] searchDocument failed: ' + String(e));
     }
-    console.info(`[Reader] Search '${q}': no hits`);
-    this.searchHits = [];
-    this.searchHitPage = -1;
   }
 
-  /** Jump to the next page that contains hits. */
-  private nextHitPage(): void {
-    if (this.searchQuery.length === 0) {
-      return;
-    }
+  /** Sprint O2: load and normalize hit rects for a specific page. */
+  private highlightPageHits(pageIdx: number): void {
     const handle: ESObject | undefined = this.dataSource.getDocHandle();
-    if (handle === undefined) {
-      return;
-    }
-    for (let p = this.currentPage + 1; p < this.totalPages; p++) {
-      try {
-        const rects: TextRect[] = searchText(handle, this.searchQuery, p);
-        if (rects.length > 0) {
-          this.searchHits = rects;
-          this.searchHitPage = p;
-          this.currentPage = p;
-          this.onPageChanged(p);
-          console.info(`[Reader] Next hit on page ${p + 1}: ${rects.length}`);
-          return;
-        }
-      } catch (e) {
-        /* continue */
+    if (handle === undefined) return;
+    try {
+      const q: string = this.searchQuery.trim();
+      const rects: TextRect[] = searchText(handle, q, pageIdx);
+      const size: TextRect = getPageSize(handle, pageIdx);
+      const pw = (size.x1 - size.x0) > 0 ? (size.x1 - size.x0) : 1;
+      const ph = (size.y1 - size.y0) > 0 ? (size.y1 - size.y0) : 1;
+      const norm: TextRect[] = [];
+      for (let i = 0; i < rects.length; i++) {
+        norm.push({
+          x0: (rects[i].x0 - size.x0) / pw,
+          y0: (rects[i].y0 - size.y0) / ph,
+          x1: (rects[i].x1 - size.x0) / pw,
+          y1: (rects[i].y1 - size.y0) / ph
+        });
       }
+      this.searchHits = norm;
+      this.searchHitPage = pageIdx;
+      this.currentPage = pageIdx;
+      this.onPageChanged(pageIdx);
+    } catch (e) {
+      console.error('[Reader] highlightPageHits failed');
     }
-    console.info('[Reader] No more hits');
   }
+
+  /** Sprint O2: navigate to next hit page. */
+  private nextHitPage(): void {
+    if (this.searchResults.length === 0 || this.searchCurrentIdx < 0) return;
+    const next = this.searchCurrentIdx + 1;
+    if (next >= this.searchResults.length) return;
+    this.searchCurrentIdx = next;
+    this.highlightPageHits(this.searchResults[next][0]);
+    console.info(`[Reader] Next hit: page ${this.searchResults[next][0] + 1} (${next + 1}/${this.searchResults.length})`);
+  }
+
+  /** Sprint O2: navigate to previous hit page. */
+  private prevHitPage(): void {
+    if (this.searchResults.length === 0 || this.searchCurrentIdx < 0) return;
+    const prev = this.searchCurrentIdx - 1;
+    if (prev < 0) return;
+    this.searchCurrentIdx = prev;
+    this.highlightPageHits(this.searchResults[prev][0]);
+    console.info(`[Reader] Prev hit: page ${this.searchResults[prev][0] + 1} (${prev + 1}/${this.searchResults.length})`);
+  }
+
+
 
   // ---- Bookmarks (C4) ----
   private async toggleBookmark(): Promise<void> {
@@ -1305,6 +1345,41 @@ struct Reader {
     });
   }
 
+  /** Sprint M2: export current page text to sandbox .txt file. */
+  private async exportTtsText(): Promise<void> {
+    try {
+      const h: ESObject | undefined = this.dataSource.getDocHandle();
+      if (h === undefined) return;
+      const raw: string = getText(h, this.currentPage);
+      const ctx = getContext(this);
+      const path: string = ctx.cacheDir + '/tts_export.txt';
+      let f = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      /* Convert string to UTF-8 bytes for file write */
+      const bytes: Uint8Array = new Uint8Array(new ArrayBuffer(raw.length * 3));
+      let offset = 0;
+      for (let ci = 0; ci < raw.length; ci++) {
+        const code = raw.charCodeAt(ci);
+        if (code < 0x80) {
+          bytes[offset++] = code;
+        } else if (code < 0x800) {
+          bytes[offset++] = 0xC0 | (code >> 6);
+          bytes[offset++] = 0x80 | (code & 0x3F);
+        } else {
+          bytes[offset++] = 0xE0 | (code >> 12);
+          bytes[offset++] = 0x80 | ((code >> 6) & 0x3F);
+          bytes[offset++] = 0x80 | (code & 0x3F);
+        }
+      }
+      const trimmed: Uint8Array = bytes.subarray(0, offset);
+      fs.writeSync(f.fd, trimmed.buffer);
+      fs.closeSync(f);
+      this.ttsStatus = `\u5DF2\u5BFC\u51FA: tts_export.txt (${raw.length} \u5B57)`;
+      console.info(`[Reader] TTS text exported: ${path}`);
+    } catch (e) {
+      this.ttsStatus = '\u5BFC\u51FA\u5931\u8D25';
+    }
+  }
+
   private setTtsRate(v: number): void {
     this.ttsRate = Math.round(v * 10) / 10;
     console.info(`[Reader] TTS rate: ${this.ttsRate.toFixed(1)}x`);
@@ -1475,29 +1550,43 @@ struct Reader {
   }
 
   /** Apply typography settings to reflowable documents (sprint H4/H5). */
+  /** Sprint L: unified CSS builder (replaces divergent inline strings). */
+  private buildCss(): string {
+    const m = Math.round(this.pageMargin);
+    const alignNames: string[] = ['left', 'center', 'right', 'justify'];
+    const fontFamilies: string[] = ['inherit', 'serif', 'sans-serif', 'monospace'];
+    let css = `body { margin: ${m}pt;`;
+    css += ` line-height: ${this.lineHeight.toFixed(2)};`;
+    css += ` text-align: ${alignNames[this.textAlign]};`;
+    css += ` font-family: ${fontFamilies[this.fontFamilyIdx]};`;
+    if (this.hyphenationEnabled) {
+      css += ` hyphens: auto;`;
+    }
+    css += ' }';
+    css += ` p { margin-top: 0; margin-bottom: ${this.paragraphSpacing}px; text-indent: ${this.textIndent}em; }`;
+    if (this.dropCapEnabled) {
+      css += ` .dropcap::first-letter, p:first-of-type::first-letter { font-size: 2.5em; float: left; line-height: 0.8; margin-right: 4px; }`;
+    }
+    return css;
+  }
+
   private applyTypography(): void {
     try {
       const h: ESObject | undefined = this.dataSource.getDocHandle();
       if (h === undefined) return;
-      if (!this.isReflow) return; /* only for reflowable docs */
+      if (!this.isReflow) return;
 
-      /* Build CSS with alignment + paragraph spacing + hyphenation */
-      const m = Math.round(this.pageMargin);
-      let css = `body { margin: ${m}pt;`;
-      css += ` line-height: ${this.lineHeight.toFixed(1)};`;
-      /* H4: text alignment */
-      const alignNames: string[] = ['left', 'center', 'right', 'justify'];
-      css += ` text-align: ${alignNames[this.textAlign]};`;
-      /* H5: hyphenation (applies to body, inherited by paragraphs) */
-      if (this.hyphenationEnabled) {
-        css += ` hyphens: auto;`;
+      const css = this.buildCss();
+      console.info(`[Reader] Typography applied: align=${this.textAlign} para=${this.paragraphSpacing} indent=${this.textIndent} dropcap=${this.dropCapEnabled} font=${this.fontFamilyIdx}`);
+      layoutDocument(h, REFLOW_W, REFLOW_H, this.fontSize, css);
+      /* L2: refresh page count after re-layout */
+      const newTotal: number = pageCount(h);
+      this.pageList = [];
+      for (let i = 0; i < newTotal; i++) {
+        this.pageList.push(i);
       }
-      css += ' }';
-      /* H4: paragraph spacing as separate rule */
-      css += ` p { margin-top: 0; margin-bottom: ${this.paragraphSpacing}px; }`;
-
-      console.info(`[Reader] Typography applied: align=${this.textAlign} para=${this.paragraphSpacing} hyphens=${this.hyphenationEnabled}`);
-      layoutDocument(h, 595, 842, this.fontSize, css);
+      this.totalPages = newTotal;
+      this.currentPage = Math.min(this.currentPage, newTotal - 1);
       this.reflowVersion++;
     } catch (e) {
       console.error('[Reader] applyTypography failed');
@@ -2398,6 +2487,12 @@ struct Reader {
                   console.info(`[Reader] Text replace: '${this.replaceFrom}' -> '${this.replaceTo}'`);
                   this.showTextReplace = false;
                 })
+              Row() {
+                Button('\uD83D\uDCE5 \u5BFC\u51FA\u6587\u672C')
+                  .fontSize(12).height(30)
+                  .onClick(() => { this.exportTtsText(); })
+              }.width('90%').margin({ top: 8 })
+
               Button('\u5173\u95ED')
                 .fontSize(12).height(32).layoutWeight(1)
                 .backgroundColor('#e0e0e0').fontColor('#333')
@@ -2483,6 +2578,52 @@ struct Reader {
                   .fontSize(10).fontColor('#999')
               }
 
+
+                /* Sprint L: text indent slider */
+                Row() {
+                  Text('\u7F29\u8FDB').fontSize(12).fontColor('#555').width(50)
+                  Slider({ value: this.textIndent, min: 0, max: 4, step: 0.5 })
+                    .layoutWeight(1)
+                    .onChange((v: number) => { this.textIndent = v; })
+                }.width('90%').margin({ top: 8 })
+
+                /* Sprint L: drop cap toggle */
+                Row() {
+                  Text('\u9996\u5B57\u4E0B\u6C89').fontSize(12).fontColor('#555')
+                  Button(this.dropCapEnabled ? '\u5F00' : '\u5173')
+                    .fontSize(12).height(30)
+                    .backgroundColor(this.dropCapEnabled ? '#2a7' : '#e0e0e0')
+                    .fontColor(this.dropCapEnabled ? Color.White : '#333')
+                    .onClick(() => {
+                      this.dropCapEnabled = !this.dropCapEnabled;
+                      this.applyTypography();
+                    })
+                }.width('90%').margin({ top: 8 })
+
+                /* Sprint L: font family selector */
+                Row() {
+                  Text('\u5B57\u4F53').fontSize(12).fontColor('#555').width(50)
+                  Button('\u9ED8\u8BA4')
+                    .height(28).fontSize(11).layoutWeight(1)
+                    .backgroundColor(this.fontFamilyIdx === 0 ? '#2a7' : '#e0e0e0')
+                    .fontColor(this.fontFamilyIdx === 0 ? Color.White : '#333')
+                    .onClick(() => { this.fontFamilyIdx = 0; this.applyTypography(); })
+                  Button('\u886C\u7EBF')
+                    .height(28).fontSize(11).layoutWeight(1).margin({ left: 4 })
+                    .backgroundColor(this.fontFamilyIdx === 1 ? '#2a7' : '#e0e0e0')
+                    .fontColor(this.fontFamilyIdx === 1 ? Color.White : '#333')
+                    .onClick(() => { this.fontFamilyIdx = 1; this.applyTypography(); })
+                  Button('\u65E0\u886C')
+                    .height(28).fontSize(11).layoutWeight(1).margin({ left: 4 })
+                    .backgroundColor(this.fontFamilyIdx === 2 ? '#2a7' : '#e0e0e0')
+                    .fontColor(this.fontFamilyIdx === 2 ? Color.White : '#333')
+                    .onClick(() => { this.fontFamilyIdx = 2; this.applyTypography(); })
+                  Button('\u7B49\u5BBD')
+                    .height(28).fontSize(11).layoutWeight(1).margin({ left: 4 })
+                    .backgroundColor(this.fontFamilyIdx === 3 ? '#2a7' : '#e0e0e0')
+                    .fontColor(this.fontFamilyIdx === 3 ? Color.White : '#333')
+                    .onClick(() => { this.fontFamilyIdx = 3; this.applyTypography(); })
+                }.width('90%').margin({ top: 8 })
               Button('\u5B8C\u6210')
                 .fontSize(13).height(34)
                 .backgroundColor('#e0e0e0').fontColor('#333')

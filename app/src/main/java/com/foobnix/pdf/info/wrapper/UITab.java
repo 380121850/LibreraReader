@@ -4,6 +4,7 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.model.AppState;
 import com.foobnix.ui2.fragment.BookmarksFragment2;
 import com.foobnix.ui2.fragment.BrowseFragment2;
+import com.foobnix.ui2.fragment.DashboardFragment2;
 import com.foobnix.ui2.fragment.FavoritesFragment2;
 import com.foobnix.ui2.fragment.GoogleDriveFragment2;
 import com.foobnix.ui2.fragment.OpdsFragment2;
@@ -25,7 +26,9 @@ public enum UITab {
     OpdsFragment(5, OpdsFragment2.PAIR.first, OpdsFragment2.PAIR.second, OpdsFragment2.class, true), //
     PrefFragment(6, PrefFragment2.PAIR.first, PrefFragment2.PAIR.second, PrefFragment2.class, true), //
     //CloudsFragment(7, CloudsFragment2.PAIR.first, CloudsFragment2.PAIR.second, CloudsFragment2.class, true), //
-    GoogleDrive2Fragment(7, GoogleDriveFragment2.PAIR.first, GoogleDriveFragment2.PAIR.second, GoogleDriveFragment2.class, true); //
+    GoogleDrive2Fragment(7, GoogleDriveFragment2.PAIR.first, GoogleDriveFragment2.PAIR.second, GoogleDriveFragment2.class, true), //
+    // index 9: 8 is reserved by the WebDAV-merge migration in AppState.loadInit
+    DashboardFragment(9, DashboardFragment2.PAIR.first, DashboardFragment2.PAIR.second, DashboardFragment2.class, true); //
 
     public int index;
     private int name;

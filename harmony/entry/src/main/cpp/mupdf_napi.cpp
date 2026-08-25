@@ -52,7 +52,8 @@ struct DocumentHandle {
     fz_document *doc;         /* nullptr once closed */
     std::atomic<int> refs;    /* 1 (napi_external) + N in-flight render jobs */
     std::atomic<bool> closed; /* set by closeDocument / finalizer */
-    char customFontPath[512]; /* sprint H3: loaded font path (empty = none) */
+    char customFontPath[512];
+    char userCss[4096]; /* Sprint L: accumulated CSS (font-face + user rules) */ /* sprint H3: loaded font path (empty = none) */
 };
 
 static void AcquireHandle(DocumentHandle *h)
@@ -807,6 +808,90 @@ napi_value SearchText(napi_env env, napi_callback_info info)
     return arr;
 }
 
+/* ---- searchDocument (sprint O1: whole-book search) ---- */
+napi_value SearchDocument(napi_env env, napi_callback_info info)
+{
+    size_t argc = 2;
+    napi_value args[2];
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (argc < 2) {
+        napi_throw_type_error(env, nullptr, "searchDocument(handle, text) required");
+        return nullptr;
+    }
+    auto *h = GetHandle(env, args[0]);
+    if (h == nullptr) {
+        return nullptr;
+    }
+
+    char pattern[1024] = {0};
+    size_t patLen = 0;
+    napi_get_value_string_utf8(env, args[1], pattern, sizeof(pattern), &patLen);
+    if (patLen == 0 || patLen >= sizeof(pattern)) {
+        napi_throw_type_error(env, nullptr, "text (string) required");
+        return nullptr;
+    }
+
+    const int maxTotal = 500;
+    int totalHits = 0;
+    int pageCount_ = fz_count_pages(h->ctx, h->doc);
+
+    /* Collect per-page hit counts */
+    struct PageHit { int page; int count; };
+    std::vector<PageHit> hits;
+
+    pthread_mutex_lock(&g_mu);
+    for (int p = 0; p < pageCount_ && totalHits < maxTotal; p++) {
+        fz_quad *bbox = nullptr;
+        fz_var(bbox);
+        int count = 0;
+        if (!fz_setjmp(*fz_push_try(h->ctx))) do {
+            bbox = static_cast<fz_quad *>(fz_calloc(h->ctx, sizeof(fz_quad) * 64, 1));
+            fz_page *page = fz_load_page(h->ctx, h->doc, p);
+            fz_try(h->ctx) {
+                count = fz_search_page(h->ctx, page, pattern, nullptr, bbox, 64);
+            }
+            fz_always(h->ctx) {
+                fz_drop_page(h->ctx, page);
+            }
+            fz_catch(h->ctx) {
+                count = 0;
+            }
+        } while (0);
+        if (fz_do_always(h->ctx)) do {
+            if (bbox != nullptr) fz_free(h->ctx, bbox);
+        } while (0);
+        if (fz_do_catch(h->ctx)) {
+            pthread_mutex_unlock(&g_mu);
+            napi_throw_error(env, "SEARCH_FAILED", "search error");
+            return nullptr;
+        }
+        if (count > 0) {
+            hits.push_back({p, count});
+            totalHits += count;
+        }
+    }
+    pthread_mutex_unlock(&g_mu);
+
+    /* Build JSON result */
+    std::string json;
+    json += "{";
+    json += "\"pages\":[";
+    for (size_t i = 0; i < hits.size(); i++) {
+        if (i > 0) json += ",";
+        json += "{\"page\":";
+        json += std::to_string(hits[i].page);
+        json += ",\"count\":";
+        json += std::to_string(hits[i].count);
+        json += "}";
+    }
+    json += "],\"totalHits\":";
+    json += std::to_string(totalHits);
+    json += "}";
+    napi_value result;
+    napi_create_string_utf8(env, json.c_str(), NAPI_AUTO_LENGTH, &result);
+    return result;
+}
+
 /* ---- getDocumentInfo ---- */
 napi_value GetDocumentInfo(napi_env env, napi_callback_info info)
 {
@@ -1051,7 +1136,27 @@ napi_value LayoutDocument(napi_env env, napi_callback_info info)
     pthread_mutex_lock(&g_mu);
     if (!fz_setjmp(*fz_push_try(h->ctx))) do {
         if (!css.empty()) {
-            fz_set_user_css(h->ctx, css.c_str());
+            /* Sprint L3: preserve @font-face from previous loadFont */
+            if (h->userCss[0] != '\0') {
+                const char *face = strstr(h->userCss, "@font-face");
+                if (face) {
+                    const char *end = strchr(face, '}');
+                    if (end) {
+                        size_t faceLen = (size_t)(end - face) + 1;
+                        std::string combined(css);
+                        combined += " ";
+                        combined.append(face, faceLen);
+                        fz_set_user_css(h->ctx, combined.c_str());
+                        snprintf(h->userCss, sizeof h->userCss, "%s", combined.c_str());
+                    } else {
+                        fz_set_user_css(h->ctx, css.c_str());
+                    }
+                } else {
+                    fz_set_user_css(h->ctx, css.c_str());
+                }
+            } else {
+                fz_set_user_css(h->ctx, css.c_str());
+            }
         }
         /* no-op for fixed-layout docs; reflows HTML/EPUB/TXT docs */
         fz_layout_document(h->ctx, h->doc, static_cast<float>(w), static_cast<float>(ht), static_cast<float>(em));
@@ -1667,9 +1772,22 @@ napi_value LoadFont(napi_env env, napi_callback_info info)
         if (fz_is_document_reflowable(h->ctx, h->doc)) {
             char cssBuf[1024];
             snprintf(cssBuf, sizeof(cssBuf),
-                "@font-face {{ font-family: 'custom'; src: url('%s'); }} "
-                "body {{ font-family: 'custom', serif; }}", pathBuf);
-            fz_set_user_css(h->ctx, cssBuf);
+                "@font-face { font-family: 'custom'; src: url('%s'); } "
+                "body { font-family: 'custom', serif; }", pathBuf);
+            /* Sprint L3: accumulate into userCss buffer */
+            if (h->userCss[0] != '\0') {
+                char *oldFace = strstr(h->userCss, "@font-face");
+                if (oldFace) {
+                    size_t keepLen = (size_t)(oldFace - h->userCss);
+                    memcpy(h->userCss + keepLen, cssBuf, strlen(cssBuf) + 1);
+                } else {
+                    strncat(h->userCss, " ", sizeof(h->userCss) - strlen(h->userCss) - 1);
+                    strncat(h->userCss, cssBuf, sizeof(h->userCss) - strlen(h->userCss) - 1);
+                }
+            } else {
+                strncpy(h->userCss, cssBuf, sizeof(h->userCss) - 1);
+            }
+            fz_set_user_css(h->ctx, h->userCss);
             ok = true;
         } else {
             /* PDF: store for potential future use (MuPDF doesn't support
@@ -1713,6 +1831,7 @@ napi_value Init(napi_env env, napi_value exports)
     {"getTextRects", nullptr, GetTextRects, nullptr, nullptr, nullptr, napi_default, nullptr},
     {"loadFont", nullptr, LoadFont, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"searchText", nullptr, SearchText, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"searchDocument", nullptr, SearchDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getDocumentInfo", nullptr, GetDocumentInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"closeDocument", nullptr, CloseDocument, nullptr, nullptr, nullptr, napi_default, nullptr},
     };

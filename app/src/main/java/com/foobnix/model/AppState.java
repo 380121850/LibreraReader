@@ -117,13 +117,12 @@ public class AppState {
     public final static String READ_COLORS_DEAFAUL =
             // (name),(bg),(text),(0-day 1-nigth)
             "" + //
-                    "1,#ffffff,#000000,0;" + //
-                    "2,#f2f0e9,#383226,0;" + //
-                    "3,#f9f5e8,#333333,0;" + //
+                    "1,#f5efe0,#3a3a3a,0;" + //
+                    "2,#ffffff,#000000,0;" + //
+                    "3,#f5e6c8,#5b4636,0;" + //
                     //
-                    "A,#3a3a3a,#c8c8c8,1;" + //
-                    "B,#000000,#8cffb5,1;" + //
-                    "C,#000000,#ffffff,1;"; //
+                    "A,#1e1e1e,#c8c8c8,1;" + //
+                    "B,#000000,#8cffb5,1;"; //
     public static final String TTS_REPLACEMENTS =
 
             "{'*[()\"«»*”“/\\\\[\\\\]]':' ' , " +//
@@ -132,7 +131,10 @@ public class AppState {
                     "'#bla':'bla disabled' , " +//
                     "'*(L|l)ibre.':'$1ibréra'}";//
     public static final String TTS_PUNCUATIONS = ".;:!?";
-    public final static String DEFAULTS_TABS_ORDER = "0#1,1#1,2#1,3#1,4#1,5#1,6#0,7#0";
+    // 9 (dashboard home) first: Moon+ style dashboard is the landing page.
+    // Index 8 must stay unused: AppState.loadInit strips stale "8#" entries
+    // left by the old standalone WebDAV tab.
+    public final static String DEFAULTS_TABS_ORDER = "9#1,0#1,1#1,5#1,6#1,2#0,3#0,4#0,7#0";
     final public static List<Integer> WIDGET_SIZE = Arrays.asList(0, 70, 100, 150, 200, 250);
     public final static int MAX_SPEED = 149;
     public final static int MODE_GRID = 1;
@@ -160,6 +162,7 @@ public class AppState {
     public final static int DOUBLE_CLICK_CLOSE_HIDE_APP = 7;
     public final static int DOUBLE_CLICK_START_STOP_TTS = 8;
     public final static int DOUBLE_CLICK_SHARE_PAGE = 9;
+    public final static int DOUBLE_CLICK_SHOW_HIDE_UI = 10;
     public final static int BR_SORT_BY_PATH = 0;
     public final static int BR_SORT_BY_DATE = 1;
     public final static int BR_SORT_BY_SIZE = 2;
@@ -231,6 +234,10 @@ public class AppState {
     public static int TAP_NEXT_PAGE = 0;
     public static int TAP_PREV_PAGE = 1;
     public static int TAP_DO_NOTHING = 2;
+    public static int TAP_SHOW_HIDE_UI = 3;
+    public static int TAP_TOC = 4;
+    public static int TAP_BOOKMARKS = 5;
+    public static int TAP_NIGHT_MODE = 6;
     public static int STATUSBAR_POSITION_TOP = 1;
     public static int STATUSBAR_POSITION_BOTTOM = 2;
     public static int BLUE_FILTER_DEFAULT_COLOR = Color.BLACK;
@@ -321,7 +328,7 @@ public class AppState {
     // Color.parseColor(STYLE_COLORS.get(STYLE_COLORS.size() - 2));
     public int userColor = Color.MAGENTA;
     public int helpHash = 0;
-    @IgnoreHashCode public int doubleClickAction1 = DOUBLE_CLICK_ADJUST_PAGE;
+    @IgnoreHashCode public int doubleClickAction1 = DOUBLE_CLICK_SHOW_HIDE_UI;
     @IgnoreHashCode public int inactivityTime = 5;
     @IgnoreHashCode public int remindRestTime = -1;
     public int flippingInterval = 10;
@@ -338,7 +345,7 @@ public class AppState {
     public boolean isShowFooterNotesInText = false;
     public boolean isCharacterEncoding = false;
     public String characterEncoding = "UTF-8";
-    @IgnoreHashCode public boolean isEditMode = true;
+    @IgnoreHashCode public boolean isEditMode = false;
     public int fullScreenMode = FULL_SCREEN_NORMAL;
     public int fullScreenMainMode = FULL_SCREEN_NORMAL;
     public boolean isShowImages = true;
@@ -348,7 +355,7 @@ public class AppState {
     public String playlistDefault = L_PLAYLIST_RECENT;
     public boolean isConvertToMp3 = true;
     public boolean isShowPanelBookNameScrollMode = true;
-    public boolean isShowPanelBookNameBookMode = false;
+    public boolean isShowPanelBookNameBookMode = true;
     public boolean isShowReadingProgress = true;
     public boolean isShowChaptersOnProgress = true;
     public boolean isShowSubChaptersOnProgress = true;
@@ -373,7 +380,7 @@ public class AppState {
     public boolean sortByReverse = false;
     public int sortByFavorite = BR_SORT_BY_STAR_TIME;
     public boolean sortByFavoriteReverse = false;
-    @IgnoreHashCode public boolean isBrightnessEnable = false;
+    @IgnoreHashCode public boolean isBrightnessEnable = true;
     @IgnoreHashCode public boolean isAllowMinBrigthness = false;
     public boolean isShowRateUsOnExit = true;
     @IgnoreHashCode public boolean isRewindEnable = true;

@@ -33,6 +33,7 @@ import android.os.Looper;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.text.Html;
 import android.text.format.DateFormat;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -130,6 +131,7 @@ import com.foobnix.pdf.info.presentation.PageThumbnailAdapter;
 import com.foobnix.pdf.info.widget.ChooserDialogFragment;
 import com.foobnix.pdf.info.widget.ColorsDialog;
 import com.foobnix.pdf.info.widget.ColorsDialog.ColorsDialogResult;
+import com.foobnix.pdf.info.widget.ControlOptionsDialog;
 import com.foobnix.pdf.info.widget.DialogTranslateFromTo;
 import com.foobnix.pdf.info.widget.FontDialog;
 import com.foobnix.pdf.info.widget.TapZoneDialog;
@@ -1760,6 +1762,7 @@ public class DragingDialogs {
                 underLine.setColorFilter(Color.parseColor(AppState.get().annotationTextColor));
                 strike.setColorFilter(Color.parseColor(AppState.get().annotationTextColor));
                 selection.setColorFilter(Color.parseColor(AppState.get().annotationTextColor));
+                ((ImageView) view.findViewById(R.id.onAddNote)).setColorFilter(Color.parseColor(AppState.get().annotationTextColor));
 
                 for (final String colorName : colors) {
                     final View inflate =
@@ -1782,6 +1785,7 @@ public class DragingDialogs {
                             underLine.setColorFilter(Color.parseColor(colorName));
                             strike.setColorFilter(Color.parseColor(colorName));
                             selection.setColorFilter(Color.parseColor(colorName));
+                            ((ImageView) view.findViewById(R.id.onAddNote)).setColorFilter(Color.parseColor(colorName));
                         }
                     });
                 }
@@ -2223,6 +2227,36 @@ public class DragingDialogs {
                     }
                 });
 
+                final ImageView onAddNote = view.findViewById(R.id.onAddNote);
+                onAddNote.setColorFilter(Color.parseColor(AppState.get().annotationTextColor));
+                onAddNote.setOnClickListener(new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        final EditText noteEdit = new EditText(controller.getActivity());
+                        noteEdit.setHint(R.string.moon_note_hint);
+                        noteEdit.setText(editText.getText()
+                                         .toString()
+                                         .trim());
+                        new AlertDialog.Builder(controller.getActivity())
+                                .setTitle(R.string.add_text_note)
+                                .setView(noteEdit)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override public void onClick(DialogInterface dialog, int which) {
+                                        String note = noteEdit.getText()
+                                                             .toString()
+                                                             .trim();
+                                        if (TxtUtils.isEmpty(note)) {
+                                            return;
+                                        }
+                                        controller.addTextNote(note, Color.parseColor(AppState.get().annotationTextColor));
+                                        closeDialog();
+                                        controller.saveAnnotationsToFile();
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show();
+                    }
+                });
+
                 if (!BookType.PDF.is(controller.getCurrentBook().
 
                         getPath()) || !withAnnotation || controller.getActivity() instanceof HorizontalViewActivity ||
@@ -2231,6 +2265,7 @@ public class DragingDialogs {
                     view.findViewById(R.id.onUnderline).setVisibility(View.GONE);
                     view.findViewById(R.id.onStrike).setVisibility(View.GONE);
                     view.findViewById(R.id.onSelection).setVisibility(View.GONE);
+                    onAddNote.setVisibility(View.GONE);
                     onAddCustom.setVisibility(View.GONE);
                     customsLayout.setVisibility(View.GONE);
                 }
@@ -2967,13 +3002,195 @@ public class DragingDialogs {
                 };
         DragingPopup dragingPopup = new DragingPopup(anchor.getContext().getString(R.string.content_of_book),
                                                      anchor,
-                                                     300,
+                                                     280,
                                                      400) {
             @Override public View getContentView(LayoutInflater inflater) {
                 View view = inflater.inflate(R.layout.dialog_recent_books, null, false);
                 if (controller == null) {
                     return view;
                 }
+
+                LinearLayout tabRow = new LinearLayout(anchor.getContext());
+                tabRow.setOrientation(LinearLayout.HORIZONTAL);
+                tabRow.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+
+                TextView tabContent = new TextView(anchor.getContext());
+                tabContent.setText(R.string.content_of_book);
+                tabContent.setTextColor(TintUtil.color);
+                tabContent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                tabContent.setPadding(Dips.dpToPx(8), Dips.dpToPx(6), Dips.dpToPx(8), Dips.dpToPx(6));
+                TextView tabBookmarks = new TextView(anchor.getContext());
+                tabBookmarks.setText(R.string.bookmarks);
+                tabBookmarks.setTextColor(Color.GRAY);
+                tabBookmarks.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                tabBookmarks.setPadding(Dips.dpToPx(8), Dips.dpToPx(6), Dips.dpToPx(8), Dips.dpToPx(6));
+
+                LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                View tabDivider = new View(anchor.getContext());
+                tabDivider.setBackgroundColor(TintUtil.color);
+                tabDivider.setLayoutParams(new LinearLayout.LayoutParams(Dips.dpToPx(2), ViewGroup.LayoutParams.MATCH_PARENT));
+
+                tabRow.addView(tabContent, tabParams);
+                tabRow.addView(tabDivider);
+                tabRow.addView(tabBookmarks, tabParams);
+
+                final ListView bookmarksList = view.findViewById(R.id.contentList);
+                LinearLayout outerContainer = (LinearLayout) view;
+                outerContainer.addView(tabRow, 0);
+
+                final boolean[] bookmarkTabLoaded = {false};
+                final Runnable[] outlineHolder = new Runnable[1];
+
+                tabContent.setOnClickListener(new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        if (bookmarkTabLoaded[0]) {
+                            for (int i = outerContainer.getChildCount() - 1; i >= 0; i--) {
+                                View child = outerContainer.getChildAt(i);
+                                if (child != bookmarksList && child != tabRow) {
+                                    outerContainer.removeViewAt(i);
+                                }
+                            }
+                        }
+
+                        tabContent.setTextColor(TintUtil.color);
+                        tabBookmarks.setTextColor(Color.GRAY);
+                        bookmarksList.setVisibility(View.VISIBLE);
+                        if (outlineHolder[0] != null) {
+                            outlineHolder[0].run();
+                        }
+                    }
+                });
+
+                tabBookmarks.setOnClickListener(new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        if (bookmarkTabLoaded[0]) {
+                            tabContent.setTextColor(Color.GRAY);
+                            tabBookmarks.setTextColor(TintUtil.color);
+                            bookmarksList.setVisibility(View.GONE);
+                            return;
+                        }
+
+                        bookmarkTabLoaded[0] = true;
+                        tabContent.setTextColor(Color.GRAY);
+                        tabBookmarks.setTextColor(TintUtil.color);
+                        bookmarksList.setVisibility(View.GONE);
+                        View bmView = inflater.inflate(R.layout.dialog_bookmarks, outerContainer, true);
+
+                        ListView bmList = bmView.findViewById(R.id.contentList);
+                        final List<AppBookmark> objects = new ArrayList<AppBookmark>();
+                        final List<AppBookmark> allData = new ArrayList<AppBookmark>();
+                        final BookmarksAdapter bookmarksAdapter = new BookmarksAdapter(anchor.getContext(),
+                                                                                       objects,
+                                                                                       allData,
+                                                                                       true,
+                                                                                       controller,
+                                                                                       null);
+
+                        bmList.setDivider(new ColorDrawable(Color.TRANSPARENT));
+                        bmList.setVerticalScrollBarEnabled(false);
+                        bmList.setAdapter(bookmarksAdapter);
+
+                        bmList.setOnItemClickListener(new OnItemClickListener() {
+                            @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                final AppBookmark appBookmark = objects.get(position);
+                                if (appBookmark.isF) {
+                                    controller.floatingBookmark = appBookmark;
+                                } else {
+                                    controller.floatingBookmark = null;
+                                }
+
+                                int page = appBookmark.getPage(controller.getPageCount());
+                                controller.onGoToPage(page);
+                                closeDialog();
+                            }
+                        });
+
+                        bmList.setOnItemLongClickListener(new OnItemLongClickListener() {
+                            @Override public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                                ListBoxHelper.showEditDeleteDialog(objects.get(position),
+                                                                   controller,
+                                                                   bookmarksAdapter,
+                                                                   objects,
+                                                                   allData,
+                                                                   null);
+                                return true;
+                            }
+                        });
+
+                        bmView.findViewById(R.id.addBookmarkNormal).setOnClickListener(new OnClickListener() {
+                            @Override public void onClick(View v) {
+                                ListBoxHelper.showAddDialog(controller, objects, allData, bookmarksAdapter, "", null);
+                            }
+                        });
+
+                        final View.OnClickListener onQuickBookmark = new View.OnClickListener() {
+                            @Override public void onClick(View v) {
+                                TTSEngine.fastTTSBookmakr(controller);
+                                closeDialog();
+                            }
+                        };
+                        bmView.findViewById(R.id.addPageBookmarkQuick).setOnClickListener(onQuickBookmark);
+
+                        EditText searchBookmark = bmView.findViewById(R.id.searchBookmark);
+                        ImageView cleanBookmarkSearch = bmView.findViewById(R.id.cleanBookmarkSearch);
+                        cleanBookmarkSearch.setOnClickListener(new OnClickListener() {
+                            @Override public void onClick(View v) {
+                                cleanBookmarkSearch.setVisibility(View.GONE);
+                                searchBookmark.setText("");
+                                objects.clear();
+                                objects.addAll(allData);
+                                bookmarksAdapter.notifyDataSetChanged();
+                            }
+                        });
+                        cleanBookmarkSearch.setVisibility(View.GONE);
+                        searchBookmark.addTextChangedListener(new SmallTextWatcher() {
+                            @Override public void onTextChanged(String textInput) {
+                                String text = textInput.toLowerCase();
+                                if (text.isEmpty()) {
+                                    cleanBookmarkSearch.setVisibility(View.GONE);
+                                    objects.clear();
+                                    objects.addAll(allData);
+                                } else {
+                                    cleanBookmarkSearch.setVisibility(View.VISIBLE);
+                                    List<AppBookmark> res = new ArrayList<AppBookmark>();
+                                    String quick = controller.getString(R.string.fast_bookmark).toLowerCase();
+
+                                    allData.forEach(appBookmark -> {
+                                        String content = appBookmark.getText().toLowerCase();
+                                        if (!content.equals(quick) && content.toLowerCase().contains(text)) {
+                                            res.add(appBookmark);
+                                        }
+                                    });
+                                    objects.clear();
+                                    objects.addAll(res);
+                                }
+
+                                bookmarksAdapter.notifyDataSetChanged();
+                            }
+                        });
+
+                        List<AppBookmark> bookmarksByBook = BookmarksData.get().getBookmarksByBook(controller.getCurrentBook());
+
+                        final Comparator<AppBookmark> cmp = new Comparator<AppBookmark>() {
+                            @Override public int compare(AppBookmark o1, AppBookmark o2) {
+                                switch (AppState.get().sortBookmarksOrder) {
+                                    case AppState.BOOKMARK_SORT_PAGE_ASC:
+                                        return Float.compare(o1.getPercent(), o2.getPercent());
+                                    case AppState.BOOKMARK_SORT_PAGE_DESC:
+                                        return Float.compare(o2.getPercent(), o1.getPercent());
+                                    default:
+                                        return 0;
+                                }
+                            }
+                        };
+
+                        Collections.sort(bookmarksByBook, cmp);
+                        allData.addAll(bookmarksByBook);
+                        objects.clear();
+                        objects.addAll(allData);
+                        bookmarksAdapter.notifyDataSetChanged();
+                    }
+                });
 
                 LinearLayout attachemnts = view.findViewById(R.id.mediaAttachments);
                 List<String> mediaAttachments = controller.getMediaAttachments();
@@ -3048,26 +3265,24 @@ public class DragingDialogs {
                     view.findViewById(R.id.mediaAttachmentsScroll).setVisibility(View.GONE);
                 }
 
-                final ListView contentList = view.findViewById(R.id.contentList);
-                contentList.setSelector(android.R.color.transparent);
-                contentList.setVerticalScrollBarEnabled(false);
+                final ListView tocListView = bookmarksList;
 
-                final Runnable showOutline = new Runnable() {
+                outlineHolder[0] = new Runnable() {
                     @Override public void run() {
                         controller.getOutline(outline -> {
-                            contentList.post(new Runnable() {
+                            tocListView.post(new Runnable() {
                                 @Override public void run() {
                                     if (outline != null && outline.size() > 0) {
-                                        contentList.clearChoices();
+                                        tocListView.clearChoices();
                                         OutlineLinkWrapper currentByPageNumber = OutlineHelper.getCurrentChapter(
                                                 controller);
                                         final OutlineAdapter adapter = new OutlineAdapter(controller.getActivity(),
                                                                                           outline,
                                                                                           currentByPageNumber,
                                                                                           controller.getPageCount());
-                                        contentList.setAdapter(adapter);
-                                        contentList.setOnItemClickListener(onClickContent);
-                                        contentList.setSelection(adapter.getItemPosition(currentByPageNumber) - 3);
+                                        tocListView.setAdapter(adapter);
+                                        tocListView.setOnItemClickListener(onClickContent);
+                                        tocListView.setSelection(adapter.getItemPosition(currentByPageNumber) - 3);
                                     }
                                 }
                             });
@@ -3075,7 +3290,7 @@ public class DragingDialogs {
                         }, true);
                     }
                 };
-                contentList.postDelayed(showOutline, 50);
+                tocListView.postDelayed(outlineHolder[0], 50);
 
                 if (false) {
                     setTitlePopupIcon(AppState.get().outlineMode == AppState.OUTLINE_ONLY_HEADERS ?
@@ -3098,7 +3313,9 @@ public class DragingDialogs {
                                           @Override public boolean onMenuItemClick(MenuItem item) {
                                               AppState.get().outlineMode = actions.get(index);
                                               setTitlePopupIcon(icons.get(index));
-                                              showOutline.run();
+                                              if (outlineHolder[0] != null) {
+                                                  outlineHolder[0].run();
+                                              }
                                               return false;
                                           }
                                       });
@@ -4348,7 +4565,9 @@ public class DragingDialogs {
                                                                   //
                                                                   controller.getString(R.string.read_out_loud_with_tts),
                                                                   //
-                                                                  controller.getString(R.string.share_as_image)
+                                                                  controller.getString(R.string.share_as_image),
+                                                                  //
+                                                                  controller.getString(R.string.moon_tap_show_hide_ui)
                                                                   //
 
                 );
@@ -4363,7 +4582,8 @@ public class DragingDialogs {
                                                                  AppState.DOUBLE_CLICK_CLOSE_HIDE_APP, //
                                                                  AppState.DOUBLE_CLICK_NOTHING, //
                                                                  AppState.DOUBLE_CLICK_START_STOP_TTS, //
-                                                                 AppState.DOUBLE_CLICK_SHARE_PAGE //
+                                                                 AppState.DOUBLE_CLICK_SHARE_PAGE, //
+                                                                 AppState.DOUBLE_CLICK_SHOW_HIDE_UI //
                 );//
                 final TextView doubleClickAction1 = inflate.findViewById(R.id.doubleTapValue);
                 doubleClickAction1.setText(doubleTapNames.get(doubleTapIDS.indexOf(AppState.get().doubleClickAction1)));
@@ -4872,6 +5092,15 @@ public class DragingDialogs {
                     }
                 });
 
+                final CustomSeek letterSpacing = inflate.findViewById(R.id.letterSpacing);
+                letterSpacing.init(0, 30, BookCSS.get().letterSpacing);
+                letterSpacing.setOnSeekChanged(new IntegerResponse() {
+                    @Override public boolean onResultRecive(int result) {
+                        BookCSS.get().letterSpacing = result;
+                        return false;
+                    }
+                });
+
                 final CustomSeek paragraphHeight = inflate.findViewById(R.id.paragraphHeight);
                 paragraphHeight.init(0, 20, BookCSS.get().paragraphHeight);
                 paragraphHeight.setOnSeekChanged(new IntegerResponse() {
@@ -5081,6 +5310,7 @@ public class DragingDialogs {
                                                                           "" + BookCSS.get().fontWeight);
 
                                                                   lineHeight.reset(BookCSS.get().lineHeight12);
+                                                                  letterSpacing.reset(BookCSS.get().letterSpacing);
                                                                   paragraphHeight.reset(BookCSS.get().paragraphHeight);
 
                                                                   fontParagraph.reset(BookCSS.get().textIndent);
@@ -5369,6 +5599,15 @@ public class DragingDialogs {
                 statusBarSettings.setOnClickListener(new OnClickListener() {
                     @Override public void onClick(View v) {
                         dialogStatusBarSettings(anchor, controller, onRefresh, updateUIRefresh);
+                    }
+                });
+
+                TextView controlOptionsSettings =
+                        TxtUtils.underlineTextView(inflate.findViewById(R.id.controlOptionsSettings));
+                controlOptionsSettings.setOnClickListener(new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        closeDialog();
+                        ControlOptionsDialog.show(controller.getActivity());
                     }
                 });
 

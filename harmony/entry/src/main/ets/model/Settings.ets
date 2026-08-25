@@ -33,6 +33,11 @@ export interface ReaderSettings {
   ttsRate: number;
   /** TTS pitch 0.5..2.0 */
   ttsPitch: number;
+  /* Sprint M1: voice + language */
+  /** Selected TTS voice index (0 = auto/default) */
+  ttsVoiceIndex: number;
+  /** TTS language code ('' = auto, 'zh-CN', 'en-US', etc.) */
+  ttsLang: string;
   /** RSVP speed in wpm 100..800 */
   rsvpWpm: number;
   /** base font size (em) for reflowable docs, points */
@@ -41,6 +46,13 @@ export interface ReaderSettings {
   lineHeight: number;
   /** body margin for reflowable docs, points */
   margin: number;
+  /* ---- Sprint L: Full CSS typography ---- */
+  /** First-line indent in em units (0-4), default 2 */
+  textIndent: number;
+  /** Drop cap on first paragraph letter */
+  dropCapEnabled: boolean;
+  /** Font family: 'default', 'serif', 'sans-serif', 'monospace' */
+  fontFamily: string;
 
   /* ---- Sprint K: System integration ---- */
   /** App lock enabled (biometric/password) */
@@ -81,10 +93,15 @@ export function defaultSettings(): ReaderSettings {
     brightness: 128,
     ttsRate: 1.0,
     ttsPitch: 1.0,
+    ttsVoiceIndex: 0,
+    ttsLang: '',
     rsvpWpm: 300,
     fontSize: 16,
     lineHeight: 1.6,
     margin: 20,
+    textIndent: 2,
+    dropCapEnabled: false,
+    fontFamily: 'default',
     appLockEnabled: false,
     proxyHost: '',
     proxyPort: 8080,
@@ -116,10 +133,15 @@ export async function loadSettings(ctx: Context): Promise<ReaderSettings> {
       brightness: typeof r.brightness === 'number' ? r.brightness : d.brightness,
       ttsRate: typeof r.ttsRate === 'number' ? r.ttsRate : d.ttsRate,
       ttsPitch: typeof r.ttsPitch === 'number' ? r.ttsPitch : d.ttsPitch,
+      ttsVoiceIndex: typeof r.ttsVoiceIndex === 'number' ? r.ttsVoiceIndex : d.ttsVoiceIndex,
+      ttsLang: typeof r.ttsLang === 'string' ? r.ttsLang : d.ttsLang,
       rsvpWpm: typeof r.rsvpWpm === 'number' ? r.rsvpWpm : d.rsvpWpm,
       fontSize: typeof r.fontSize === 'number' ? r.fontSize : d.fontSize,
       lineHeight: typeof r.lineHeight === 'number' ? r.lineHeight : d.lineHeight,
       margin: typeof r.margin === 'number' ? r.margin : d.margin,
+      textIndent: typeof r.textIndent === 'number' ? r.textIndent : d.textIndent,
+      dropCapEnabled: r.dropCapEnabled === true,
+      fontFamily: typeof r.fontFamily === 'string' ? r.fontFamily : d.fontFamily,
       appLockEnabled: r.appLockEnabled === true,
       proxyHost: typeof r.proxyHost === 'string' ? r.proxyHost : d.proxyHost,
       proxyPort: typeof r.proxyPort === 'number' ? r.proxyPort : d.proxyPort,

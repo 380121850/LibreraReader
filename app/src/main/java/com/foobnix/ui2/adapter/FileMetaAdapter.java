@@ -743,6 +743,21 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
             holder.browserExt.setVisibility(View.VISIBLE);
         }
 
+        if (adapterType == ADAPTER_GRID && holder.gridProgressLayout != null) {
+            if (recentProgress > 0f) {
+                holder.gridProgressLayout.setVisibility(View.VISIBLE);
+                holder.gridProgressFill.setBackgroundColor(TintUtil.color);
+                LinearLayout.LayoutParams fillParams = (LinearLayout.LayoutParams) holder.gridProgressFill.getLayoutParams();
+                fillParams.weight = (float) (recentProgress * 100.0);
+                holder.gridProgressFill.setLayoutParams(fillParams);
+                LinearLayout.LayoutParams restParams = (LinearLayout.LayoutParams) holder.gridProgressRest.getLayoutParams();
+                restParams.weight = (float) (100.0 - recentProgress * 100.0);
+                holder.gridProgressRest.setLayoutParams(restParams);
+            } else {
+                holder.gridProgressLayout.setVisibility(View.GONE);
+            }
+        }
+
 
         if (fileMeta.getIsStar() == null || fileMeta.getIsStar() == false) {
             holder.star.setImageResource(R.drawable.glyphicons_50_star_empty);
@@ -1047,6 +1062,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         public LinearLayout tags;
         public ImageView image, star, signIcon, menu, cloudImage;
         public View authorParent, progresLayout, parent, remove, layoutBootom, infoLayout, idProgressColor, idProgressBg, imageParent;
+        public View gridProgressLayout, gridProgressFill, gridProgressRest;
 
         public FileMetaViewHolder(View view) {
             super(view);
@@ -1072,6 +1088,10 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
 
             progresLayout = view.findViewById(R.id.progresLayout);
             layoutBootom = view.findViewById(R.id.layoutBootom);
+
+            gridProgressLayout = view.findViewById(R.id.gridProgressLayout);
+            gridProgressFill = view.findViewById(R.id.gridProgressFill);
+            gridProgressRest = view.findViewById(R.id.gridProgressRest);
 
             menu = (ImageView) view.findViewById(R.id.itemMenu);
             remove = view.findViewById(R.id.delete);

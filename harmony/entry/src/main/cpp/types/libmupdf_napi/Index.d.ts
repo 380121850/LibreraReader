@@ -112,6 +112,9 @@ export function saveDocument(handle: ESObject, path: string): void;
 export function getText(handle: ESObject, pageNumber: number, zoom: number): string;
 /** Search text and return bounding rectangles */
 export function searchText(handle: ESObject, text: string, pageNumber: number): TextRect[];
+
+/** Sprint O1: search entire document. Returns JSON string: {"pages":[{"page":N,"count":M}],"totalHits":T} */
+export function searchDocument(handle: ESObject, text: string): string;
 /** Get document metadata */
 export function getDocumentInfo(handle: ESObject): DocumentInfo;
 /** Get individual text span rectangles on a page (normalized 0..1). Returns JSON string array. */

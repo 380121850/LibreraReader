@@ -99,6 +99,62 @@ function ttsStop() {
   }
   return 0;
 }
+
+/* Sprint M1: list available voices as JSON [{name, lang}] */
+function ttsListVoices() {
+  if (!window.speechSynthesis) {
+    return '[]';
+  }
+  var voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) {
+    return '[]';
+  }
+  var arr = [];
+  for (var i = 0; i < voices.length && i < 50; i++) {
+    arr.push({name: voices[i].name, lang: voices[i].lang});
+  }
+  return JSON.stringify(arr);
+}
+
+/* Sprint M1: speak with specific voice index and language */
+function ttsSpeakWithVoice(text, rate, pitch, voiceIndex, lang) {
+  if (!window.speechSynthesis || !('SpeechSynthesisUtterance' in window)) {
+    return -1;
+  }
+  var voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) {
+    return -2;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = rate;
+    u.pitch = pitch;
+    if (lang && lang.length > 0) {
+      u.lang = lang;
+    } else if (voiceIndex >= 0 && voiceIndex < voices.length) {
+      u.voice = voices[voiceIndex];
+      u.lang = voices[voiceIndex].lang;
+    }
+    __current = u;
+    __active = true;
+    var endFn = function () {
+      if (__current === u) {
+        __active = false;
+        __current = null;
+      }
+    };
+    u.onend = endFn;
+    u.onerror = endFn;
+    window.speechSynthesis.speak(u);
+    return 0;
+  } catch (e) {
+    __active = false;
+    __current = null;
+    return -3;
+  }
+}
 </script>
 </body>
 </html>

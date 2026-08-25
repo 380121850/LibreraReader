@@ -288,6 +288,19 @@ public class DecodeServiceBase implements DecodeService {
 
     }
 
+    @Override
+    public void textNote(final int page, final PointF[] points, final String text, final int color, final ResultResponse<List<Annotation>> callback) {
+        executor.addAny(new Task(0) {
+
+            @Override
+            public void run() {
+                getPage(page).addTextNote(points, text, Colors.toMupdfColor(color));
+                pages.clear();
+                callback.onResultRecive(getPage(page).getAnnotations());
+            }
+        });
+    }
+
     void performDecode(final DecodeTask task) {
         if (executor.isTaskDead(task)) {
             return;

@@ -164,6 +164,22 @@
             android:src="@drawable/my_glyphicons_114_paragraph_justify" />
     </LinearLayout>
 
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/quickDirChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="6dip"
+            android:paddingRight="6dip"
+            android:paddingTop="2dip"
+            android:paddingBottom="2dip" />
+    </HorizontalScrollView>
+
     <LinearLayout
         android:id="@+id/layoutOnGrant"
         android:background="@color/green_msg"

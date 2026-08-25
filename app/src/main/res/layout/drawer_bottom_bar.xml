@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dip"
+    android:paddingBottom="8dip">
+
+    <LinearLayout
+        android:id="@+id/drawerBtnSettings"
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="52dip"
+            android:layout_height="52dip"
+            android:background="@drawable/drawer_circle_bg">
+
+            <ImageView
+                android:id="@+id/drawerBtnSettingsIcon"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="center"
+                android:src="@drawable/glyphicons_137_cogwheel" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/drawerBtnSettingsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dip"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/drawerBtnAbout"
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="52dip"
+            android:layout_height="52dip"
+            android:background="@drawable/drawer_circle_bg">
+
+            <ImageView
+                android:id="@+id/drawerBtnAboutIcon"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="center"
+                android:src="@drawable/glyphicons_636_circle_info" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/drawerBtnAboutLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dip"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/drawerBtnNight"
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="52dip"
+            android:layout_height="52dip"
+            android:background="@drawable/drawer_circle_bg">
+
+            <ImageView
+                android:id="@+id/drawerBtnNightIcon"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="center"
+                android:src="@drawable/glyphicons_231_moon" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/drawerBtnNightLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dip"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/drawerBtnExit"
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="52dip"
+            android:layout_height="52dip"
+            android:background="@drawable/drawer_circle_bg">
+
+            <ImageView
+                android:id="@+id/drawerBtnExitIcon"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="center"
+                android:src="@drawable/glyphicons_power" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/drawerBtnExitLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dip"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

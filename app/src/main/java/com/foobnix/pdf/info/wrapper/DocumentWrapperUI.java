@@ -1494,6 +1494,8 @@ public class DocumentWrapperUI {
                     }
                 });
                 dc.closeActivity();
+            } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_SHOW_HIDE_UI) {
+                doShowHideWrapperControlls();
             }
         }
     }

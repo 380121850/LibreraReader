@@ -23,6 +23,13 @@ export interface RecentBook {
   coverPath: string;
   /** author from metadata, if any */
   author: string;
+  /* Sprint N: tags + series/genre metadata */
+  /** user-assigned tags */
+  tags: string[];
+  /** book series name (e.g. "Harry Potter") */
+  series: string;
+  /** genre/category (e.g. "Fantasy", "Sci-Fi") */
+  genre: string;
 }
 
 const PREF_NAME = 'librera_reader';
@@ -84,7 +91,10 @@ export async function getRecentBooks(ctx: Context): Promise<RecentBook[]> {
           lastRead: typeof b.lastRead === 'string' ? b.lastRead : '',
           star: b.star === true,
           coverPath: typeof b.coverPath === 'string' ? b.coverPath : '',
-          author: typeof b.author === 'string' ? b.author : ''
+          author: typeof b.author === 'string' ? b.author : '',
+          tags: Array.isArray(b.tags) ? b.tags as string[] : [],
+          series: typeof b.series === 'string' ? b.series : '',
+          genre: typeof b.genre === 'string' ? b.genre : ''
         };
         list.push(clean);
       }

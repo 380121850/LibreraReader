@@ -11,6 +11,11 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:main_pages",
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
+      }
+    ],
     "abilities": [
       {
         "name": "EntryAbility",
@@ -61,6 +66,16 @@
               {
                 "scheme": "file",
                 "utd": "general.ebook",
+                "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.xps",
+                "maxFileSupported": 1
+              },
+              {
+                "scheme": "file",
+                "utd": "general.tiff",
                 "maxFileSupported": 1
               }
             ]

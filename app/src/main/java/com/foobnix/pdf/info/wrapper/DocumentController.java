@@ -497,6 +497,8 @@ public abstract class DocumentController {
 
     public abstract void underlineText(int color, float width, AnnotationType type);
 
+    public abstract void addTextNote(String text, int color);
+
     public abstract void getOutline(ResultResponse<List<OutlineLinkWrapper>> outline, boolean forse);
 
     public abstract String getFootNote(String text, String chapter);
@@ -750,46 +752,45 @@ public abstract class DocumentController {
     }
 
     public void onLeftPress() {
-        if (AppState.get().tapZoneLeft == AppState.TAP_DO_NOTHING) {
-            return;
-        }
-        if (AppState.get().tapZoneLeft == AppState.TAP_PREV_PAGE) {
-            ui.prevChose(false);
-        } else {
-            ui.nextChose(false);
-        }
+        performTapAction(AppState.get().tapZoneLeft);
     }
 
     public void onTopPress() {
-        if (AppState.get().tapZoneTop == AppState.TAP_DO_NOTHING) {
-            return;
-        }
-        if (AppState.get().tapZoneTop == AppState.TAP_PREV_PAGE) {
-            ui.prevChose(false);
-        } else {
-            ui.nextChose(false);
-        }
+        performTapAction(AppState.get().tapZoneTop);
     }
 
     public void onBottomPress() {
-        if (AppState.get().tapZoneBottom == AppState.TAP_DO_NOTHING) {
-            return;
-        }
-        if (AppState.get().tapZoneBottom == AppState.TAP_NEXT_PAGE) {
-            ui.nextChose(false);
-        } else {
-            ui.prevChose(false);
-        }
+        performTapAction(AppState.get().tapZoneBottom);
     }
 
     public void onRightPress() {
-        if (AppState.get().tapZoneRight == AppState.TAP_DO_NOTHING) {
+        performTapAction(AppState.get().tapZoneRight);
+    }
+
+    private void performTapAction(int action) {
+        if (action == AppState.TAP_DO_NOTHING) {
             return;
         }
-        if (AppState.get().tapZoneRight == AppState.TAP_NEXT_PAGE) {
+        if (action == AppState.TAP_NEXT_PAGE) {
             ui.nextChose(false);
-        } else {
+        } else if (action == AppState.TAP_PREV_PAGE) {
             ui.prevChose(false);
+        } else if (action == AppState.TAP_SHOW_HIDE_UI) {
+            ui.onSingleTap();
+        } else if (action == AppState.TAP_TOC) {
+            try {
+                com.foobnix.pdf.info.view.DragingDialogs.dialogShowContent(anchor, this);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        } else if (action == AppState.TAP_BOOKMARKS) {
+            try {
+                com.foobnix.pdf.info.view.DragingDialogs.dialogShowBookmarks(anchor, this, null);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        } else if (action == AppState.TAP_NIGHT_MODE) {
+            onNightMode();
         }
     }
 

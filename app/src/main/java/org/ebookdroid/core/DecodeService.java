@@ -72,6 +72,8 @@ public interface DecodeService {
 
 	void underlineText(int page, PointF[] points, int color, AnnotationType type, ResultResponse<List<Annotation>> resultResponse);
 
+	void textNote(int page, PointF[] points, String text, int color, ResultResponse<List<Annotation>> resultResponse);
+
 	void processTextForPages(Page[] pages);
 
 	void searchText(String text, Page[] pages, ResultResponse<Integer> response, Runnable finish, int firstPage, int lastPage);

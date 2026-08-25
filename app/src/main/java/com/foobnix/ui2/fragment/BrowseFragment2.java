@@ -352,6 +352,15 @@ import java.util.Map;
         onHome.setOnClickListener(new OnClickListener() {
 
             @Override public void onClick(View v) {
+                displayAnyPath(Environment.getExternalStorageDirectory().getPath());
+            }
+        });
+        if (TYPE_DEFAULT == fragmentType) {
+            buildQuickDirChips(view);
+        }
+        onHome.setOnLongClickListener(new OnLongClickListener() {
+
+            @Override public boolean onLongClick(View v) {
                 List<String> extFolders = ExtUtils.getAllExternalStorages(getActivity());
 
                 MyPopupMenu menu = new MyPopupMenu(getActivity(), onHome);
@@ -598,7 +607,7 @@ import java.util.Map;
                 }
 
                 menu.show();
-
+                return true;
             }
         });
         onBack.setOnClickListener(new OnClickListener() {
@@ -1069,6 +1078,57 @@ import java.util.Map;
             displayAnyPath(path);
             isRestorePos = true;
             return true;
+        }
+    }
+
+    private TextView makeQuickDirChip(String text) {
+        TextView chip = new TextView(getActivity());
+        chip.setText(text);
+        chip.setTextSize(14);
+        chip.setSingleLine(true);
+        chip.setAllCaps(false);
+        chip.setPadding(Dips.dpToPx(14), Dips.dpToPx(6), Dips.dpToPx(14), Dips.dpToPx(6));
+        chip.setBackgroundResource(R.drawable.bg_search_edit);
+        chip.setTextColor(getResources().getColor(R.color.tint_gray));
+        return chip;
+    }
+
+    private void buildQuickDirChips(View view) {
+        LinearLayout chips = view.findViewById(R.id.quickDirChips);
+        if (chips == null) {
+            return;
+        }
+        List<String[]> entries = new ArrayList<>();
+        entries.add(new String[]{getString(R.string.memory), Environment.getExternalStorageDirectory().getPath()});
+        String pathDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+        if (new File(pathDownloads).isDirectory()) {
+            entries.add(new String[]{ExtUtils.getFileName(pathDownloads), pathDownloads});
+        }
+        for (String info : ExtUtils.getAllExternalStorages(getActivity())) {
+            String name = ExtUtils.isExteralSD(info) ? ExtUtils.getExtSDDisplayName(getContext(), info) : new File(info).getName();
+            entries.add(new String[]{name, info});
+        }
+        if (new File(BookCSS.get().downlodsPath).isDirectory()) {
+            entries.add(new String[]{"Librera/" + getString(R.string.downloads), BookCSS.get().downlodsPath});
+        }
+        List<FileMeta> starFolders = AppData.get().getAllFavoriteFolders();
+        List<String> names = new ArrayList<>();
+        for (FileMeta f : starFolders) {
+            names.add(f.getPath());
+        }
+        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+        for (final String info : names) {
+            String name = ExtUtils.isExteralSD(info) ? ExtUtils.getExtSDDisplayName(getContext(), info) : new File(info).getName();
+            entries.add(new String[]{name, info});
+        }
+        for (final String[] e : entries) {
+            TextView chip = makeQuickDirChip(e[0]);
+            chip.setOnClickListener(new OnClickListener() {
+                @Override public void onClick(View v) {
+                    displayAnyPath(e[1]);
+                }
+            });
+            chips.addView(chip);
         }
     }
 

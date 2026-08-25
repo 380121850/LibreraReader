@@ -33,6 +33,8 @@ public class AppSP {
     public int readingMode = AppState.READING_MODE_BOOK;
     public long syncTime;
     public int syncTimeStatus;
+    // Cumulative time (ms) spent in the reader, shown on the dashboard stats.
+    public long readTimeMs = 0;
     public String hypenLang = null;
     public boolean isCut = false;
     public boolean isDouble = false;

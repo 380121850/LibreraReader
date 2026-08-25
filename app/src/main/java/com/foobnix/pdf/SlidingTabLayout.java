@@ -248,7 +248,10 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
         final View.OnClickListener tabClickListener = new TabClickListener();
 
-        for (int i = 0; i < adapter.getCount(); i++) {
+        // With looping enabled the pager has N+2 pages (ghost clones at both
+        // ends), but the strip still shows exactly one tab per real page, so
+        // iterate and address fragments by REAL index here.
+        for (int i = 0; i < adapter.getRealCount(); i++) {
             final int j = i;
             View tabView = null;
             TextView tabTitleView = null;
@@ -272,7 +275,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
             }
 
             if (tabTitleView != null) {
-                CharSequence pageTitle = adapter.getPageTitle(i);
+                CharSequence pageTitle = adapter.getRealPageTitle(i);
                 if (AppState.get().tabWithNames) {
                     tabTitleView.setText(pageTitle);
                 } else {
@@ -282,7 +285,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
                 // TintUtil.addTextView(tabTitleView);
                 Drawable drawable = null;
                 try {
-                    drawable = getContext().getResources().getDrawable(adapter.getIconResId(i));
+                    drawable = getContext().getResources().getDrawable(adapter.getRealIconResId(i));
                     //drawable = new ScaleDrawable(drawable.getCurrent(),0,Dips.DP_10,Dips.DP_10);
                     int size = Dips.dpToPx(28);
                     drawable.setBounds(0,0,size,size);
@@ -337,8 +340,9 @@ public class SlidingTabLayout extends HorizontalScrollView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        if (mViewPager != null) {
-            scrollToTab(mViewPager.getCurrentItem(), 0);
+        if (mViewPager != null && mViewPager.getAdapter() instanceof TabsAdapter2) {
+            // Looping mode: the pager position is virtual, the strip index is real.
+            scrollToTab(((TabsAdapter2) mViewPager.getAdapter()).toReal(mViewPager.getCurrentItem()), 0);
         }
     }
 
@@ -417,6 +421,12 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            if (mViewPager.getAdapter() instanceof TabsAdapter2) {
+                // Looping mode: the pager reports virtual positions (0 and N+1
+                // are ghost clones); translate to the real tab index first so
+                // the strip and MainTabs2 always see 0..N-1.
+                position = ((TabsAdapter2) mViewPager.getAdapter()).toReal(position);
+            }
             int tabStripChildCount = getmTabStrip().getChildCount();
             if ((tabStripChildCount == 0) || (position < 0) || (position >= tabStripChildCount)) {
                 return;
@@ -450,6 +460,10 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
         @Override
         public void onPageSelected(int position) {
+            if (mViewPager.getAdapter() instanceof TabsAdapter2) {
+                position = ((TabsAdapter2) mViewPager.getAdapter()).toReal(position);
+            }
+
             if (mScrollState == ViewPager.SCROLL_STATE_IDLE) {
 
                 getmTabStrip().onViewPagerPageChanged(position, 0f);
@@ -466,17 +480,19 @@ public class SlidingTabLayout extends HorizontalScrollView {
     private class TabClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            for (int i = 0; i < getmTabStrip().getChildCount(); i++) {
-                if (v == getmTabStrip().getChildAt(i)) {
-                    if (i == mViewPager.getCurrentItem() && onTabReselect != null) {
-                        // Tapping the already-active tab is a no-op for the
-                        // ViewPager, so route it to a reselect hook that lets
-                        // the page reset to its home (e.g. Network -> root).
-                        onTabReselect.onResultRecive(i);
-                    } else {
-                        mViewPager.setCurrentItem(i, AppState.get().appTheme != AppState.THEME_INK);
-                    }
-                    return;
+        for (int i = 0; i < getmTabStrip().getChildCount(); i++) {
+            if (v == getmTabStrip().getChildAt(i)) {
+                TabsAdapter2 adapter = mViewPager.getAdapter() instanceof TabsAdapter2 ? (TabsAdapter2) mViewPager.getAdapter() : null;
+                int currentReal = adapter != null ? adapter.toReal(mViewPager.getCurrentItem()) : mViewPager.getCurrentItem();
+                if (i == currentReal && onTabReselect != null) {
+                    // Tapping the already-active tab is a no-op for the
+                    // ViewPager, so route it to a reselect hook that lets
+                    // the page reset to its home (e.g. Network -> root).
+                    onTabReselect.onResultRecive(i);
+                } else {
+                    mViewPager.setCurrentItem(adapter != null ? adapter.toVirtual(i) : i, AppState.get().appTheme != AppState.THEME_INK);
+                }
+                return;
                 }
             }
         }

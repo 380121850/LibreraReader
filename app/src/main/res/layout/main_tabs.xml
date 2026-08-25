@@ -44,7 +44,7 @@
                     <LinearLayout
                         android:id="@+id/imageParent1"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dip"
                         android:background="#0000ff"
                         android:orientation="horizontal">
 
@@ -52,7 +52,7 @@
                             android:id="@+id/imageMenu1"
 
                             android:layout_width="40dip"
-                            android:visibility="gone"
+                            android:visibility="visible"
                             android:layout_height="match_parent"
                             android:layout_marginLeft="10dip"
                             android:background="?android:attr/selectableItemBackground"
@@ -60,6 +60,31 @@
                             android:gravity="center"
                             android:padding="4dip"
                             android:src="@drawable/glyphicons_600_menu"
+                            android:tint="@color/white" />
+
+                        <TextView
+                            android:id="@+id/topBarTitle"
+                            android:layout_width="0dip"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:gravity="center_vertical"
+                            android:paddingLeft="6dip"
+                            android:singleLine="true"
+                            android:text="@string/library"
+                            android:textColor="@color/white"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/onImportBooks"
+                            android:layout_width="44dip"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:contentDescription="@string/cd_import"
+                            android:gravity="center"
+                            android:padding="10dip"
+                            android:src="@drawable/glyphicons_371_plus"
                             android:tint="@color/white" />
 
                         <com.foobnix.pdf.SlidingTabLayout
@@ -102,12 +127,44 @@
                 </LinearLayout>
 
 
-                <FrameLayout
+                <LinearLayout
                     android:id="@+id/left_drawer"
-                    android:layout_width="wrap_content"
+                    android:layout_width="280dip"
                     android:layout_height="match_parent"
                     android:layout_gravity="start"
-                    android:background="#ffffff" />
+                    android:background="#ffffff"
+                    android:orientation="vertical">
+
+                    <!-- Moon+ style banner header -->
+                    <ImageView
+                        android:id="@+id/drawerBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="170dip"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/drawer_banner" />
+
+                    <LinearLayout
+                        android:id="@+id/drawerNavHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- spacer pushes the bottom action bar to the drawer base -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="0dip"
+                        android:layout_weight="1" />
+
+                    <View
+                        android:id="@+id/drawerNavDivider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dip"
+                        android:background="#33999999" />
+
+                    <include
+                        android:id="@+id/drawerBottomBar"
+                        layout="@layout/drawer_bottom_bar" />
+                </LinearLayout>
             </androidx.drawerlayout.widget.DrawerLayout>
 
 

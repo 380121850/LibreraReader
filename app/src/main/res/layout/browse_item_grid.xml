@@ -76,6 +76,31 @@
                 android:textSize="12sp" />
 
             <LinearLayout
+                android:id="@+id/gridProgressLayout"
+                android:layout_width="match_parent"
+                android:layout_height="2dip"
+                android:layout_marginLeft="2dip"
+                android:layout_marginRight="2dip"
+                android:layout_marginTop="2dip"
+                android:orientation="horizontal"
+                android:visibility="gone" >
+
+                <View
+                    android:id="@+id/gridProgressFill"
+                    android:layout_width="0dip"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:background="#3949ab" />
+
+                <View
+                    android:id="@+id/gridProgressRest"
+                    android:layout_width="0dip"
+                    android:layout_height="match_parent"
+                    android:layout_weight="100"
+                    android:background="#33999999" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/infoLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

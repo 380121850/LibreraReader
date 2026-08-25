@@ -163,6 +163,52 @@
         </LinearLayout>
     </LinearLayout>
 
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/shelfTypeChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="6dip"
+            android:paddingRight="6dip"
+            android:paddingTop="2dip"
+            android:paddingBottom="2dip" />
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/formatChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="6dip"
+            android:paddingRight="6dip"
+            android:paddingBottom="2dip" />
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/readingStatusChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="6dip"
+            android:paddingRight="6dip"
+            android:paddingBottom="2dip" />
+    </HorizontalScrollView>
+
     <LinearLayout
         android:id="@+id/layoutOnGrant"
         android:background="@color/green_msg"
@@ -234,6 +280,19 @@
             app:hideScrollbar="true"
             app:showTrack="false"
             app:trackColor="#bbbbbb"></com.foobnix.ui2.fast.FastScrollRecyclerView>
+
+        <TextView
+            android:id="@+id/emptyLibraryHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="8dip"
+            android:gravity="center"
+            android:padding="16dip"
+            android:text="@string/moon_empty_library_hint"
+            android:textColor="@color/tint_gray"
+            android:textSize="16sp"
+            android:visibility="gone" />
     </FrameLayout>
 
 </LinearLayout>

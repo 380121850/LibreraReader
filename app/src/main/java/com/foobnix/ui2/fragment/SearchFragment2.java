@@ -30,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -123,6 +124,137 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     Handler handler;
     ImageView sortOrder, myAutoCompleteImage, cleanFilter, menu2;
     View onRefresh, secondTopPanel, layoutError;
+    View emptyLibraryHint;
+    public String selectedExt = "";
+    public String selectedReadState = "";
+
+    public void performImportClick() {
+        if (onRefresh != null) {
+            onRefresh.performClick();
+        }
+    }
+
+    private TextView makeShelfChip(int textRes, boolean selected) {
+        TextView chip = new TextView(getActivity());
+        if (textRes != 0) {
+            chip.setText(textRes);
+        }
+        chip.setTextSize(14);
+        chip.setSingleLine(true);
+        chip.setAllCaps(false);
+        chip.setPadding(Dips.dpToPx(14), Dips.dpToPx(6), Dips.dpToPx(14), Dips.dpToPx(6));
+        styleShelfChip(chip, selected);
+        return chip;
+    }
+
+    private void styleShelfChip(TextView chip, boolean selected) {
+        if (selected) {
+            chip.setBackgroundColor(TintUtil.color);
+            chip.setTextColor(Color.WHITE);
+        } else {
+            chip.setBackgroundResource(R.drawable.bg_search_edit);
+            chip.setTextColor(getResources().getColor(R.color.tint_gray));
+        }
+    }
+
+    private void refreshChipGroup(LinearLayout group, Object selectedTag) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView) {
+                styleShelfChip((TextView) child, selectedTag != null && selectedTag.equals(child.getTag()));
+            }
+        }
+    }
+
+    private void buildShelfChips(View view) {
+        final LinearLayout shelfTypes = view.findViewById(R.id.shelfTypeChips);
+        LinearLayout formats = view.findViewById(R.id.formatChips);
+        LinearLayout readStates = view.findViewById(R.id.readingStatusChips);
+        if (shelfTypes == null || formats == null) {
+            return;
+        }
+
+        final int[][] shelfModes = {
+                {R.string.moon_all_books, AppState.MODE_GRID},
+                {R.string.author, AppState.MODE_AUTHORS},
+                {R.string.serie, AppState.MODE_SERIES},
+                {R.string.my_tags, AppState.MODE_USER_TAGS}};
+        for (int i = 0; i < shelfModes.length; i++) {
+            final int mode = shelfModes[i][1];
+            TextView chip = makeShelfChip(shelfModes[i][0], AppState.get().libraryMode == mode);
+            chip.setTag(mode);
+            chip.setOnClickListener(new OnClickListener() {
+                @Override public void onClick(View v) {
+                    if (AppState.get().libraryMode != mode) {
+                        AppState.get().libraryMode = mode;
+                        if (mode != AppState.MODE_GRID) {
+                            searchEditText.setText("");
+                        }
+                        onGridList();
+                        searchAndOrderAsync();
+                    }
+                    refreshChipGroup(shelfTypes, mode);
+                }
+            });
+            shelfTypes.addView(chip);
+        }
+
+        TextView allChip = makeShelfChip(R.string.moon_all_books, TxtUtils.isEmpty(selectedExt));
+        allChip.setTag("");
+        allChip.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                selectedExt = "";
+                searchAndOrderAsync();
+                refreshChipGroup((LinearLayout) v.getParent(), "");
+            }
+        });
+        formats.addView(allChip);
+
+        String[] exts = {"epub", "pdf", "txt", "mobi", "azw3", "fb2", "djvu", "cbz", "docx", "html"};
+        for (final String ext : exts) {
+            TextView chip = makeShelfChip(0, false);
+            chip.setText(ext.toUpperCase());
+            chip.setTag(ext);
+            chip.setOnClickListener(new OnClickListener() {
+                @Override public void onClick(View v) {
+                    selectedExt = ext;
+                    searchAndOrderAsync();
+                    refreshChipGroup((LinearLayout) v.getParent(), ext);
+                }
+            });
+            formats.addView(chip);
+        }
+
+        if (readStates != null) {
+            final int[][] readStateChips = {
+                    {R.string.moon_all_books, 0},
+                    {R.string.moon_filter_unread, 1},
+                    {R.string.moon_filter_reading, 2},
+                    {R.string.moon_filter_read, 3}};
+            for (int i = 0; i < readStateChips.length; i++) {
+                final int state = readStateChips[i][1];
+                TextView chip = makeShelfChip(readStateChips[i][0], selectedReadState.equals(stateToString(state)));
+                chip.setTag(stateToString(state));
+                chip.setOnClickListener(new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        selectedReadState = stateToString(state);
+                        searchAndOrderAsync();
+                        refreshChipGroup(readStates, stateToString(state));
+                    }
+                });
+                readStates.addView(chip);
+            }
+        }
+    }
+
+    private static String stateToString(int state) {
+        switch (state) {
+            case 1: return "unread";
+            case 2: return "reading";
+            case 3: return "read";
+            default: return "";
+        }
+    }
     AutoCompleteTextView searchEditText;
     int countTitles = 0;
     Runnable hideKeyboard = new Runnable() {
@@ -366,6 +498,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         secondTopPanel = view.findViewById(R.id.secondTopPanel);
         countBooks = (TextView) view.findViewById(R.id.countBooks);
         onRefresh = view.findViewById(R.id.onRefresh);
+        emptyLibraryHint = view.findViewById(R.id.emptyLibraryHint);
         onRefresh.setActivated(true);
         cleanFilter = (ImageView) view.findViewById(R.id.cleanFilter);
         sortBy = (TextView) view.findViewById(R.id.sortBy);
@@ -479,8 +612,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         });
 
         cleanFilter.setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 searchEditText.setText("");
                 recyclerView.scrollToPosition(0);
                 searchAndOrderAsync();
@@ -521,6 +654,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         sortOrder.setVisibility(TxtUtils.visibleIf(AppState.get().isVisibleSorting));
 
         bindAdapter(searchAdapter);
+
+        buildShelfChips(view);
 
         searchAdapter.setOnAuthorClickListener(onAuthorClick);
         searchAdapter.setOnSeriesClickListener(onSeriesClick);
@@ -787,6 +922,33 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             ExtUtils.removeReadBooks(searchBy);
             ExtUtils.removeNotFound(searchBy);
 
+            if (TxtUtils.isNotEmpty(selectedExt)) {
+                Iterator<FileMeta> extIterator = searchBy.iterator();
+                while (extIterator.hasNext()) {
+                    FileMeta meta = extIterator.next();
+                    String metaExt = meta.getExt() == null ? "" : meta.getExt().toLowerCase();
+                    if (!metaExt.equals(selectedExt.toLowerCase())) {
+                        extIterator.remove();
+                    }
+                }
+            }
+
+            if (TxtUtils.isNotEmpty(selectedReadState)) {
+                Iterator<FileMeta> readIterator = searchBy.iterator();
+                while (readIterator.hasNext()) {
+                    FileMeta meta = readIterator.next();
+                    Float progress = meta.getIsRecentProgress();
+                    boolean isUnread = progress == null || progress <= 0f;
+                    boolean isRead = progress != null && progress >= 1.0f;
+                    boolean isReading = !isUnread && !isRead;
+                    if ("unread".equals(selectedReadState) && !isUnread
+                            || "reading".equals(selectedReadState) && !isReading
+                            || "read".equals(selectedReadState) && !isRead) {
+                        readIterator.remove();
+                    }
+                }
+            }
+
             List<String> result = new ArrayList<String>();
             boolean byGenre = txt.startsWith(SEARCH_IN.GENRE.getDotPrefix());
             boolean byAuthor = txt.startsWith(SEARCH_IN.AUTHOR.getDotPrefix());
@@ -905,6 +1067,12 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     @Override public void populateDataInUI(List<FileMeta> items) {
         cacheItems = items;
         handler.removeCallbacks(sortAndSeach);
+
+        if (emptyLibraryHint != null) {
+            boolean noQuery = TxtUtils.isEmpty(searchEditText.getText().toString().trim());
+            emptyLibraryHint.setVisibility(TxtUtils.visibleIf(items.isEmpty() && noQuery && TxtUtils.isEmpty(selectedExt)
+                    && TxtUtils.isEmpty(selectedReadState)));
+        }
 
         String txt = searchEditText.getText()
                                    .toString()

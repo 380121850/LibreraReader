@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
+import android.os.SystemClock;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -121,6 +122,8 @@ import java.util.concurrent.TimeUnit;
 
 public class HorizontalViewActivity extends AdsFragmentActivity {
 
+    // Dashboard "reading hours" stat: wall time between onResume/onPause.
+    long readingResumeAt = 0;
     public boolean prev = true;
     VerticalViewPager viewPager;
     SeekBar seekBar;
@@ -1540,6 +1543,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        readingResumeAt = SystemClock.elapsedRealtime();
 
         DocumentController.chooseFullScreen(this, AppState.get().fullScreenMode);
         DocumentController.doRotation(this);
@@ -1574,6 +1578,10 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (readingResumeAt > 0) {
+            AppSP.get().readTimeMs += SystemClock.elapsedRealtime() - readingResumeAt;
+            readingResumeAt = 0;
+        }
         AppProfile.save(this);
         TempHolder.isSeaching = false;
         TempHolder.isActiveSpeedRead.set(false);
@@ -1652,32 +1660,14 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             int x = (int) ev.getX();
             int y = (int) ev.getY();
-            if (clickUtils.isClickRight(x, y) && AppState.get().tapZoneRight != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneRight == AppState.TAP_NEXT_PAGE) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
-            } else if (clickUtils.isClickLeft(x, y) && AppState.get().tapZoneLeft != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneLeft == AppState.TAP_PREV_PAGE) {
-                    prevPage();
-                } else {
-                    nextPage();
-                }
-            } else if (clickUtils.isClickTop(x, y) && AppState.get().tapZoneTop != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneTop == AppState.TAP_PREV_PAGE) {
-                    prevPage();
-                } else {
-                    nextPage();
-                }
-
-            } else if (clickUtils.isClickBottom(x, y) && AppState.get().tapZoneBottom != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneBottom == AppState.TAP_NEXT_PAGE) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
-
+            if (clickUtils.isClickRight(x, y)) {
+                performHvaTapAction(AppState.get().tapZoneRight);
+            } else if (clickUtils.isClickLeft(x, y)) {
+                performHvaTapAction(AppState.get().tapZoneLeft);
+            } else if (clickUtils.isClickTop(x, y)) {
+                performHvaTapAction(AppState.get().tapZoneTop);
+            } else if (clickUtils.isClickBottom(x, y)) {
+                performHvaTapAction(AppState.get().tapZoneBottom);
             } else {
                 LOG.d("Click-center!", x, y);
                 handler.removeCallbacks(doShowHideWrapperControllsRunnable);
@@ -1687,6 +1677,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         } else if (ev.getMessage().equals(MessageEvent.MESSAGE_DOUBLE_TAP)) {
             handler.removeCallbacks(doShowHideWrapperControllsRunnable);
             updateLockMode();
+            if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_SHOW_HIDE_UI) {
+                doShowHideWrapperControlls();
+            }
             // Toast.makeText(this, "DB", Toast.LENGTH_SHORT).show();
         } else if (ev.getMessage().equals(MessageEvent.MESSAGE_PLAY_PAUSE)) {
             TTSService.playPause(HorizontalViewActivity.this, dc);
@@ -1740,6 +1733,33 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     private void doShowHideWrapperControlls() {
         AppState.get().isEditMode = !AppState.get().isEditMode;
         hideShow();
+    }
+
+    private void performHvaTapAction(int action) {
+        if (action == AppState.TAP_DO_NOTHING) {
+            return;
+        }
+        if (action == AppState.TAP_NEXT_PAGE) {
+            nextPage();
+        } else if (action == AppState.TAP_PREV_PAGE) {
+            prevPage();
+        } else if (action == AppState.TAP_SHOW_HIDE_UI) {
+            doShowHideWrapperControlls();
+        } else if (action == AppState.TAP_TOC) {
+            try {
+                DragingDialogs.dialogShowContent(anchor, dc);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        } else if (action == AppState.TAP_BOOKMARKS) {
+            try {
+                DragingDialogs.dialogShowBookmarks(anchor, dc, null);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        } else if (action == AppState.TAP_NIGHT_MODE) {
+            dc.onNightMode();
+        }
     }
 
     public void initAsync(int w, int h) {

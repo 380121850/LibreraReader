@@ -468,6 +468,57 @@ public class VerticalModeController extends DocumentController {
         }
     }
 
+    @Override
+    public void addTextNote(String text, int color) {
+        if (ctr == null || ctr.getDocumentController() == null || ctr.getDocumentModel() == null) {
+            LOG.d("Can't addTextNote");
+            return;
+        }
+        final int first = ctr.getDocumentController().getFirstVisiblePage();
+        final int last = ctr.getDocumentController().getLastVisiblePage();
+        for (int i = first; i < last + 1; i++) {
+            final Page page = ctr.getDocumentModel().getPageByDocIndex(i);
+            if (page == null || page.selectedText == null) {
+                continue;
+            }
+            List<TextWord> texts = page.selectedText;
+
+            ArrayList<RectF> rects = new ArrayList<RectF>();
+            RectF prevRect = null;
+            for (TextWord tw : texts) {
+                RectF rect = tw.getOriginal();
+                if (prevRect != null && prevRect.top == rect.top && prevRect.bottom == rect.bottom) {
+                    prevRect.union(rect);
+                    continue;
+                }
+                prevRect = new RectF(rect);
+                rects.add(prevRect);
+            }
+            if (rects.isEmpty()) {
+                continue;
+            }
+
+            // Anchor the sticky-note icon at the top-left corner of the first selected rect.
+            RectF rect = rects.get(0);
+            PointF[] quadPoints = new PointF[]{
+                    new PointF(rect.left, rect.bottom),
+                    new PointF(rect.right, rect.bottom),
+                    new PointF(rect.right, rect.top),
+                    new PointF(rect.left, rect.top)};
+
+            ctr.getDecodeService().textNote(i, quadPoints, text, color, new ResultResponse<List<Annotation>>() {
+
+                @Override
+                public boolean onResultRecive(List<Annotation> arg0) {
+                    page.annotations = arg0;
+                    page.selectedText = new ArrayList<TextWord>();
+                    ctr.getDocumentController().toggleRenderingEffects();
+                    return false;
+                }
+            });
+        }
+    }
+
 
     @Override
     public void onAutoScroll() {

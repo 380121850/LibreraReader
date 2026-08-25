@@ -20,7 +20,8 @@ public class TapZoneDialog {
 	public static void show(final Context c) {
 		final View inflate = LayoutInflater.from(c).inflate(R.layout.dialog_tap_zone, null, false);
 
-        final List<String> items = Arrays.asList(c.getString(R.string.next_page), c.getString(R.string.previous_page), c.getString(R.string.db_do_nothing));
+		final List<String> items = Arrays.asList(c.getString(R.string.next_page), c.getString(R.string.previous_page), c.getString(R.string.db_do_nothing),
+				c.getString(R.string.moon_tap_show_hide_ui), c.getString(R.string.moon_tap_toc), c.getString(R.string.moon_tap_bookmarks), c.getString(R.string.moon_tap_night_mode));
 
 		final BaseItemLayoutAdapter<String> adapter = new BaseItemLayoutAdapter<String>(c,
 				android.R.layout.simple_spinner_dropdown_item, items) {

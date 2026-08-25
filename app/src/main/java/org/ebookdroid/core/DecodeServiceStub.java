@@ -99,6 +99,12 @@ public class DecodeServiceStub implements DecodeService {
 	}
 
 	@Override
+	public void textNote(int page, PointF[] points, String text, int color, ResultResponse<List<Annotation>> resultResponse) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void saveAnnotations(String path, Runnable runnable) {
 	}
 

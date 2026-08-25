@@ -530,6 +530,11 @@ public abstract class HorizontalModeController extends DocumentController {
 
     }
 
+    @Override public void addTextNote(String text, int color) {
+        // TODO Auto-generated method stub
+
+    }
+
     @Override
     public void getOutline(final com.foobnix.android.utils.ResultResponse<List<OutlineLinkWrapper>> outlineResonse,
                            boolean forse) {

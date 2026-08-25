@@ -4,7 +4,7 @@ import router from '@ohos.router';
 import picker from '@ohos.file.picker';
 import {
   version, openDocument, pageCount, renderPage, renderPageAsync,
-  getText, searchText, getDocumentInfo, getToc, getPageSize, layoutDocument, closeDocument,
+  getText, searchText, searchDocument, getDocumentInfo, getToc, getPageSize, layoutDocument, closeDocument,
   getAnnotations, addHighlight, deleteAnnotation, saveDocument, isReflowable,
   RenderResult, TextRect, DocumentInfo, TocEntry, RenderOptions, CropRect, AnnotationInfo
 } from 'libmupdf_napi.so';
@@ -18,6 +18,8 @@ import {
   loadSettings, saveSettings, defaultSettings, THEME_NAMES, ReaderSettings
 } from '../model/Settings';
 import { importUriToSandbox } from '../model/FileImport';
+import { getTagList, addTagToBook, removeTagFromBook, getSeriesList } from '../model/Tags';
+import http from '@ohos.net.http';
 import { KEY_PENDING_URI } from '../entryability/EntryAbility';
 
 /** Backup payload shape (sprint E). */
@@ -70,6 +72,19 @@ struct Index {
   @State layoutText: string = '';
   @State fmtText: string = '';
   @State currentPage: number = 0;
+  /* Sprint J6: WebDAV cloud drive */
+  @State webdavUrl: string = '';
+  @State webdavFiles: string[] = [];
+  @State webdavStatus: string = 'Enter server URL and tap Connect';
+  @State webdavConnecting: boolean = false;
+  /* Sprint N: tags + author browsing */
+  @State allTags: string[] = [];
+  @State activeTagFilter: string = '';
+  @State recentSortMode: number = 0; /* 0=recent, 1=title A-Z, 2=author */
+  @State recentViewMode: number = 0; /* 0=list, 1=by author, 2=by series */
+  @State showTagDialog: boolean = false;
+  @State tagEditTarget: string = '';
+  @State newTagInput: string = '';
 
   aboutToAppear(): void {
     this.runApiTest();
@@ -159,7 +174,7 @@ struct Index {
     try {
       const entries: string[] = fs.listFileSync(this.browseCurrentDir);
       /* filter to known book extensions */
-      const exts: string[] = ['.pdf', '.epub', '.txt', '.html', '.cbz', '.mobi', '.xps'];
+      const exts: string[] = ['.pdf', '.epub', '.txt', '.html', '.cbz', '.mobi', '.xps', '.tif', '.tiff'];
       const result: string[] = [];
       for (let i = 0; i < entries.length; i++) {
         const lower = entries[i].toLowerCase();
@@ -188,7 +203,10 @@ struct Index {
       lastRead: new Date().toISOString(),
       star: false,
       coverPath: '',
-      author: ''
+      author: '',
+          tags: [],
+          series: '',
+          genre: ''
     };
     const ctx = getContext(this);
     saveRecentBook(ctx, book).then(() => {
@@ -290,7 +308,10 @@ struct Index {
           lastRead: new Date().toISOString(),
           star: false,
           coverPath: '',
-          author: ''
+          author: '',
+          tags: [],
+          series: '',
+          genre: ''
         };
         await saveRecentBook(ctx, book);
         console.info('[Index] Demo book seeded');
@@ -321,7 +342,10 @@ struct Index {
           lastRead: new Date().toISOString(),
           star: false,
           coverPath: '',
-          author: 'Lewis Carroll'
+          author: 'Lewis Carroll',
+          tags: [],
+          series: '',
+          genre: ''
         };
         await saveRecentBook(ctx, epubBook);
         console.info('[Index] Demo EPUB seeded');
@@ -334,6 +358,10 @@ struct Index {
       await this.seedFormatDemo(ctx, 'demo.txt', 'demo.txt (TXT)', '');
       await this.seedFormatDemo(ctx, 'demo.html', 'demo.html (HTML)', '');
       await this.seedFormatDemo(ctx, 'demo.cbz', 'demo.cbz (CBZ)', '');
+      /* Sprint J: MOBI / XPS / TIFF format demos */
+      await this.seedFormatDemo(ctx, 'demo.mobi', 'demo.mobi (MOBI)', '');
+      await this.seedFormatDemo(ctx, 'demo.xps', 'demo.xps (XPS)', '');
+      await this.seedFormatDemo(ctx, 'demo.tiff', 'demo.tiff (TIFF)', '');
       await this.loadLibrary();
     } catch (e) {
       console.error('[Index] ensureDemoBook failed');
@@ -365,7 +393,10 @@ struct Index {
           lastRead: new Date().toISOString(),
           star: false,
           coverPath: '',
-          author: author
+          author: author,
+          tags: [],
+          series: '',
+          genre: ''
         };
         await saveRecentBook(ctx, book);
         console.info(`[Index] Demo seeded: ${title}`);
@@ -383,6 +414,8 @@ struct Index {
       const ctx = getContext(this);
       this.recentBooks = await getRecentBooks(ctx);
       this.starredBooks = await getRecentBooksStarred(ctx);
+      /* Sprint N: load tag list */
+      this.allTags = await getTagList(ctx);
       console.info(`[Index] Library loaded: ${this.recentBooks.length} recent, ${this.starredBooks.length} starred`);
     } catch (e) {
       console.error('[Index] loadLibrary failed');
@@ -413,7 +446,10 @@ struct Index {
         lastRead: new Date().toISOString(),
         star: false,
         coverPath: '',
-        author: ''
+        author: '',
+          tags: [],
+          series: '',
+          genre: ''
       };
       saveRecentBook(ctx, book);
       this.generateCover(ctx, book);
@@ -494,7 +530,7 @@ struct Index {
       const ctx = getContext(this);
       let documentPicker = new picker.DocumentViewPicker(ctx);
       let options: picker.DocumentSelectOptions = {
-        fileSuffixFilters: ['PDF|pdf', 'EPUB|epub', 'TXT|txt', 'HTML|html', 'CBZ|cbz', 'MOBI|mobi', 'XPS|xps'],
+        fileSuffixFilters: ['PDF|pdf', 'EPUB|epub', 'TXT|txt', 'HTML|html', 'CBZ|cbz', 'MOBI|mobi', 'XPS|xps', 'TIFF|tiff|tif'],
         maxSelectNumber: 20,
       };
 
@@ -520,7 +556,10 @@ struct Index {
           lastRead: new Date().toISOString(),
           star: false,
           coverPath: '',
-          author: ''
+          author: '',
+          tags: [],
+          series: '',
+          genre: ''
         };
         await saveRecentBook(ctx, book);
         this.generateCover(ctx, book);
@@ -686,6 +725,11 @@ struct Index {
           this.buildSettingsTab()
         }
         .tabBar(this.buildTabLabel('⚙', '设置'))
+
+        TabContent() {
+          this.buildWebdavTab()
+        }
+        .tabBar(this.buildTabLabel('☁', '云盘'))
       }
       .width('100%')
       .layoutWeight(1)
@@ -699,16 +743,118 @@ struct Index {
     .height('100%')
   }
 
+  /* Sprint O3: cross-library full-text search */
+  @State libSearchQuery: string = '';
+  @State libSearchResults: [string, number][] = []; /* [bookTitle, hitCount] */
+  @State libSearching: boolean = false;
+
+  private async doLibrarySearch(): Promise<void> {
+    const q: string = this.libSearchQuery.trim();
+    if (q.length === 0 || this.recentBooks.length === 0) return;
+    this.libSearching = true;
+    this.libSearchResults = [];
+    console.info(`[Index] Library search '${q}' across ${this.recentBooks.length} books...`);
+    const maxBooks: number = Math.min(this.recentBooks.length, 20);
+    for (let i = 0; i < maxBooks; i++) {
+      try {
+        const h: ESObject = openDocument(this.recentBooks[i].path);
+        const jsonStr: string = searchDocument(h, q);
+        closeDocument(h);
+        const parsed: object = JSON.parse(jsonStr) as object;
+        const totalHits: number = parsed['totalHits'] !== undefined ? parsed['totalHits'] as number : 0;
+        if (totalHits > 0) {
+          this.libSearchResults.push([this.recentBooks[i].title, totalHits]);
+        }
+      } catch (e) {
+        /* skip unreadable docs */
+      }
+    }
+    this.libSearching = false;
+    console.info(`[Index] Library search '${q}': ${this.libSearchResults.length} books with hits`);
+  }
+
+  /** Sprint N: return recent books filtered by active tag + sorted. */
+  private getFilteredRecent(): RecentBook[] {
+    let list: RecentBook[] = [];
+    for (let i = 0; i < this.recentBooks.length; i++) {
+      if (this.activeTagFilter.length === 0 ||
+          this.recentBooks[i].tags.includes(this.activeTagFilter)) {
+        list.push(this.recentBooks[i]);
+      }
+    }
+    if (this.recentSortMode === 1) {
+      list = list.sort((a: RecentBook, b: RecentBook) => a.title.localeCompare(b.title));
+    } else if (this.recentSortMode === 2) {
+      list = list.sort((a: RecentBook, b: RecentBook) => a.author.localeCompare(b.author));
+    }
+    return list;
+  }
+
+  /** Sprint N: group books by author or series. */
+  private getGroupedBooks(): [string, RecentBook[]][] {
+    const groups: Map<string, RecentBook[]> = new Map();
+    const filtered = this.getFilteredRecent();
+    for (let i = 0; i < filtered.length; i++) {
+      const book = filtered[i];
+      const key = this.recentViewMode === 2 ? book.series : book.author;
+      const label = key.length > 0 ? key : '\u672A\u5206\u7C7B';
+      if (groups.has(label)) {
+        groups.get(label)!.push(book);
+      } else {
+        groups.set(label, [book]);
+      }
+    }
+    const result: [string, RecentBook[]][] = [];
+    groups.forEach((val: RecentBook[], keyStr: string) => {
+      result.push([keyStr, val]);
+    });
+    return result;
+  }
+
   @Builder
   buildRecentTab() {
     Scroll() {
       Column({ space: 8 }) {
-        if (this.recentBooks.length === 0) {
-          Text('还没有阅读记录，点上方"打开文件"导入书籍')
+        /* Sprint N: sort + filter bar */
+        Row() {
+          Button(this.recentSortMode === 0 ? '\u6700\u8FD1' : this.recentSortMode === 1 ? 'A-Z' : '\u4F5C\u8005')
+            .fontSize(11).height(26)
+            .onClick(() => { this.recentSortMode = (this.recentSortMode + 1) % 3; })
+          Button(this.recentViewMode === 0 ? '\u5217\u8868' : this.recentViewMode === 1 ? '\u4F5C\u8005' : '\u7CFB\u5217')
+            .fontSize(11).height(26).margin({ left: 6 })
+            .onClick(() => { this.recentViewMode = (this.recentViewMode + 1) % 3; })
+          if (this.allTags.length > 0) {
+            Text(this.activeTagFilter ? '\u7B5B:' + this.activeTagFilter : '\u6807\u7B7E')
+              .fontSize(11).fontColor('#2a7').height(26)
+              .margin({ left: 6 })
+              .onClick(() => {
+                const idx = this.allTags.indexOf(this.activeTagFilter);
+                this.activeTagFilter = idx < 0 ? (this.allTags.length > 0 ? this.allTags[0] : '') : (idx + 1 >= this.allTags.length ? '' : this.allTags[idx + 1]);
+              })
+          }
+        }.width('94%').margin({ bottom: 8 })
+
+        if (this.getFilteredRecent().length === 0) {
+          Text('\u8FD8\u6CA1\u6709\u9605\u8BFB\u8BB0\u5F55')
             .fontSize(13).fontColor('#999')
             .margin({ top: 40 })
+        } else if (this.recentViewMode > 0) {
+          /* Sprint N: grouped view */
+          ForEach(this.getGroupedBooks(), (group: [string, RecentBook[]]) => {
+            Column() {
+              Text(group[0] + ' (' + group[1].length + ')')
+                .fontSize(13).fontWeight(FontWeight.Bold)
+                .width('94%').margin({ top: 8, bottom: 4 })
+              ForEach(group[1], (book: RecentBook) => {
+                Column() {
+                  this.BookRow(book)
+                  Divider().color('#eee')
+                }
+              }, (item: RecentBook) => item.path)
+            }
+          }, (g: [string, RecentBook[]]) => g[0])
         } else {
-          ForEach(this.recentBooks, (book: RecentBook) => {
+          ForEach(this.getFilteredRecent(), (book: RecentBook) => {
             Column() {
               this.BookRow(book)
               Divider().color('#eee')
@@ -745,6 +891,138 @@ struct Index {
     }
     .width('100%')
     .height('100%')
+  }
+
+  /* ── Sprint J6: WebDAV cloud drive ─────────────────────────────── */
+  private async webdavConnect(): Promise<void> {
+    if (this.webdavUrl.length === 0) {
+      this.webdavStatus = 'Please enter a WebDAV URL';
+      return;
+    }
+    this.webdavConnecting = true;
+    this.webdavStatus = 'Connecting...';
+    try {
+      const url: string = this.webdavUrl.endsWith('/') ? this.webdavUrl : this.webdavUrl + '/';
+      /* WebDAV PROPFIND (using GET as fallback since RequestMethod lacks PROPFIND) */
+      let req = http.createHttp();
+      let resp = await req.request(url, {
+        method: http.RequestMethod.GET,
+        header: { 'Depth': '1' },
+        connectTimeout: 10000,
+        readTimeout: 15000
+      });
+      if (resp.responseCode === 207 || resp.responseCode === 200) {
+        /* Parse multistatus XML response - extract hrefs */
+        const xml: string = String(resp.result);
+        this.webdavFiles = [];
+        let pos: number = 0;
+        while (true) {
+          const start: number = xml.indexOf('<href>', pos);
+          if (start < 0) break;
+          const close: number = xml.indexOf('</href>', start);
+          if (close < 0) break;
+          let href: string = xml.substring(start + 6, close);
+          /* Skip the root URL itself */
+          if (href !== url && href !== '/' && !href.endsWith('/')) {
+            const name: number = href.lastIndexOf('/');
+            this.webdavFiles.push(href.substring(name + 1));
+          }
+          pos = close + 6;
+        }
+        this.webdavStatus = `Connected! ${this.webdavFiles.length} files found`;
+      } else {
+        this.webdavStatus = `Server responded: ${resp.responseCode}`;
+      }
+      req.destroy();
+    } catch (e) {
+      this.webdavStatus = 'Connection failed: ' + String(e);
+    }
+    this.webdavConnecting = false;
+  }
+
+  private async webdavDownload(fileName: string): Promise<void> {
+    if (this.webdavUrl.length === 0 || fileName.length === 0) return;
+    try {
+      const url: string = this.webdavUrl.endsWith('/') ? this.webdavUrl + fileName : this.webdavUrl + '/' + fileName;
+      let req = http.createHttp();
+      let resp = await req.request(url, {
+        method: http.RequestMethod.GET,
+        connectTimeout: 10000,
+        readTimeout: 30000
+      });
+      if (resp.responseCode === 200) {
+        const data: ArrayBuffer = resp.result as ArrayBuffer;
+        /* Save to sandbox cache */
+        const ctx = getContext(this);
+        const path: string = ctx.cacheDir + '/' + fileName;
+        let f = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+        fs.writeSync(f.fd, new Uint8Array(data).buffer);
+        fs.closeSync(f);
+        this.webdavStatus = `Downloaded: ${fileName} (${data.byteLength} bytes)`;
+        /* Add to library */
+        const book: RecentBook = {
+          path: path,
+          title: fileName,
+          page: 0,
+          totalPages: 0,
+          lastRead: new Date().toISOString(),
+          star: false,
+          coverPath: '',
+          author: '',
+          tags: [],
+          series: '',
+          genre: ''
+        };
+        await saveRecentBook(ctx, book);
+        await this.loadLibrary();
+      } else {
+        this.webdavStatus = `Download failed: ${resp.responseCode}`;
+      }
+      req.destroy();
+    } catch (e) {
+      this.webdavStatus = 'Download error: ' + String(e);
+    }
+  }
+
+  @Builder
+  buildWebdavTab() {
+    Column() {
+      Text('☁ WebDAV Cloud Drive')
+        .fontSize(16).fontWeight(FontWeight.Bold)
+        .margin({ top: 12, bottom: 8 })
+
+      TextInput({ placeholder: 'https://example.com/webdav/', text: this.webdavUrl })
+        .width('90%').height(36)
+        .onChange((v: string) => { this.webdavUrl = v; })
+
+      Button(this.webdavConnecting ? 'Connecting...' : 'Connect')
+        .width('90%').height(36).margin({ top: 8 })
+        .onClick(() => { this.webdavConnect(); })
+
+      Text(this.webdavStatus)
+        .fontSize(12).fontColor('#666')
+        .width('90%').margin({ top: 8 }).textAlign(TextAlign.Center)
+
+      if (this.webdavFiles.length > 0) {
+        List() {
+          ForEach(this.webdavFiles, (file: string) => {
+            ListItem() {
+              Row() {
+                Text('📄').fontSize(14).margin({ right: 8 })
+                Text(file).fontSize(13).layoutWeight(1)
+                Button('⬇')
+                  .width(32).height(28).fontSize(12)
+                  .onClick(() => { this.webdavDownload(file); })
+              }
+              .width('90%').padding({ top: 6, bottom: 6 })
+            }
+          }, (file: string) => file)
+        }
+        .width('100%')
+        .layoutWeight(1)
+      }
+    }
+    .width('100%').height('100%').alignItems(HorizontalAlign.Center)
   }
 
   /** Tab bar label with icon + text (sprint G). */
@@ -1461,7 +1739,7 @@ struct Index {
 
       // 15. Format sweep (sprint F): TXT / HTML / CBZ
       try {
-        const formats: string[] = ['demo.txt', 'demo.html', 'demo.cbz'];
+        const formats: string[] = ['demo.txt', 'demo.html', 'demo.cbz', 'demo.mobi', 'demo.xps', 'demo.tiff'];
         let sweep = '';
         for (let i = 0; i < formats.length; i++) {
           try {

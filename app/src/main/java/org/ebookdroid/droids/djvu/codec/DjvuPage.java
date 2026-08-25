@@ -192,6 +192,10 @@ public class DjvuPage extends AbstractCodecPage {
     }
 
     @Override
+    public void addTextNote(PointF[] quadPoints, String text, float[] color) {
+    }
+
+    @Override
     public Bitmap renderThumbnail(int width) {
         return renderThumbnail(width, getWidth(), getHeight());
     }
