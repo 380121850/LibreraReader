@@ -35,7 +35,8 @@ public class TabsAdapter2 extends FragmentStatePagerAdapter {
     }
 
     public void setLooping(boolean looping) {
-        this.looping = looping;
+        // a single tab has nothing to wrap to; guard here too, not only at call sites
+        this.looping = looping && tabFragments.size() >= 2;
     }
 
     public boolean isLooping() {
@@ -99,6 +100,9 @@ public class TabsAdapter2 extends FragmentStatePagerAdapter {
         return getRealIconResId(toReal(position));
     }
 
+    // Deliberate: no per-page view state survives recreation. Fragments are
+    // re-attached by the FragmentManager, but offscreen-page state (scroll,
+    // query) resets — accepted cost of the finish()+restart theme switch.
     @Override
     public Parcelable saveState() {
         return null;
@@ -113,7 +117,9 @@ public class TabsAdapter2 extends FragmentStatePagerAdapter {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View v = new View(inflater.getContext());
-            if (AppState.get().appTheme == AppState.THEME_DARK_OLED) {
+            // match the pager background so the ghost never flashes in the wrong
+            // color (the OLED pager is painted black in MainTabs2)
+            if (AppState.get().appTheme == AppState.THEME_DARK_OLED || AppState.get().appTheme == AppState.THEME_DARK) {
                 v.setBackgroundColor(android.graphics.Color.BLACK);
             }
             return v;

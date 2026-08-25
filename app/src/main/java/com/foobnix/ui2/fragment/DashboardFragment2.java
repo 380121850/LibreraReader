@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.cardview.widget.CardView;
 import androidx.core.util.Pair;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -149,6 +150,13 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         }
         TextView value = card.findViewById(R.id.statValue);
         TextView label = card.findViewById(R.id.statLabel);
+        // framework themes do not define cardViewStyle, so the CardView would
+        // keep its bright light default on the dark dashboard — theme it here
+        boolean dark = AppState.get().appTheme == AppState.THEME_DARK || AppState.get().appTheme == AppState.THEME_DARK_OLED;
+        if (card instanceof CardView) {
+            ((CardView) card).setCardBackgroundColor(dark ? 0xFF232326 : 0xFFFFFFFF);
+        }
+        label.setTextColor(dark ? 0xFF9E9E9E : 0xFF757575);
         value.setTextColor(TintUtil.color);
         label.setText(labelRes);
         if (cardId == R.id.statTotal) {
@@ -268,6 +276,9 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         opdsCatalogs = parseOpdsLinks();
 
         // Reading stats: library size, finished books, cumulative reading time.
+        // prepareDataInBackground re-runs on every populate; reset the counters
+        // first or the totals double on each refresh.
+        totalBooks = 0;
         try {
             for (FileMeta m : AppDB.get().getAll()) {
                 if (!AppDB.get().isFolder(m)) {

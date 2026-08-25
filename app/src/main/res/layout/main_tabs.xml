@@ -132,8 +132,8 @@
                     android:layout_width="280dip"
                     android:layout_height="match_parent"
                     android:layout_gravity="start"
-                    android:background="#ffffff"
                     android:orientation="vertical">
+                    <!-- background is set in code per theme (light/dark/OLED/ink) -->
 
                     <!-- Moon+ style banner header -->
                     <ImageView
@@ -143,17 +143,21 @@
                         android:scaleType="centerCrop"
                         android:src="@drawable/drawer_banner" />
 
-                    <LinearLayout
-                        android:id="@+id/drawerNavHeader"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                    <!-- spacer pushes the bottom action bar to the drawer base -->
-                    <View
+                    <!-- scrollable nav area: keeps the bottom action bar reachable
+                         on short/landscape screens -->
+                    <ScrollView
                         android:layout_width="match_parent"
                         android:layout_height="0dip"
-                        android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:fillViewport="true"
+                        android:overScrollMode="never">
+
+                        <LinearLayout
+                            android:id="@+id/drawerNavHeader"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </ScrollView>
 
                     <View
                         android:id="@+id/drawerNavDivider"

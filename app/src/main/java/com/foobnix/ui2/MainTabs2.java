@@ -296,7 +296,7 @@ public class MainTabs2 extends AdsFragmentActivity {
 
             LOG.d("REQUEST_CODE_ADD_RESOURCE", pathSAF, BookCSS.get().pathSAF);
 
-            UIFragment uiFragment = tabFragments.get(pager.getCurrentItem());
+            UIFragment uiFragment = tabFragments.get(getCurrentRealIndex());
             if (uiFragment instanceof BrowseFragment2) {
                 BrowseFragment2 fr = (BrowseFragment2) uiFragment;
                 fr.displayAnyPath(pathSAF);
@@ -485,6 +485,10 @@ public class MainTabs2 extends AdsFragmentActivity {
         if (adapter.isLooping()) {
             // Real tabs live at virtual positions 1..N; start on the first one.
             pager.setCurrentItem(1, false);
+            // onPageSelected never fires for this initial (no-animation) set,
+            // and TempHolder is a process-wide static that would otherwise keep
+            // the previous session's tab — pin the real start index here.
+            TempHolder.get().currentTab = 0;
             // A raw-position listener (SlidingTabLayout's is already mapped to
             // real indices): when the swipe settles on an edge ghost clone,
             // teleport to the matching real page without animation so the wrap
@@ -559,7 +563,7 @@ public class MainTabs2 extends AdsFragmentActivity {
             public void onDrawerClosed(View arg0) {
                 LOG.d("drawerLayout-onDrawerClosed");
                 try {
-                    tabFragments.get(pager.getCurrentItem()).onSelectFragment();
+                    tabFragments.get(getCurrentRealIndex()).onSelectFragment();
 
                     if (isPullToRefreshEnable(MainTabs2.this, swipeRefreshLayout)) {
                         swipeRefreshLayout.setEnabled(true);
@@ -656,7 +660,14 @@ public class MainTabs2 extends AdsFragmentActivity {
                         pager.postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                ((SearchFragment2) tabFragments.get(0)).searchAndOrderExteral(text);
+                                // tab order is user-configurable and tab 0 is the
+                                // dashboard; resolve the library tab by class instead
+                                for (UIFragment uiFragment : tabFragments) {
+                                    if (uiFragment instanceof SearchFragment2) {
+                                        ((SearchFragment2) uiFragment).searchAndOrderExteral(text);
+                                        break;
+                                    }
+                                }
                             }
                         }, 250);
                         break;
@@ -668,6 +679,9 @@ public class MainTabs2 extends AdsFragmentActivity {
 
 
         EventBus.getDefault().register(this);
+        // early-return paths in onCreate (not task root / password gate /
+        // EXTRA_EXIT) skip this, so onDestroy must not unregister blindly
+        eventBusRegistered = true;
 
         boolean showTabs = getIntent().getBooleanExtra(EXTRA_SHOW_TABS, false);
 
@@ -811,20 +825,40 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     @Subscribe
     public void goToPageMsg(SearchMetaMsg msg){
-            int index = UITab.getCurrentTabIndex(UITab.SearchFragment);
-            if(index>=0) {
-                pager.setCurrentItem(adapter.toVirtual(index));
-            }
+        // resolve by class: UITab.getCurrentTabIndex returns a wrong index when
+        // the target tab itself is hidden
+        navigateToTab(UITab.SearchFragment);
     }
 
     // Moon+ style drawer: banner on top (XML), five nav rows here, then the
     // fixed bottom bar with 设置选项/软件说明/晚上模式/退出.
     private static final int DRAWER_ICON_GRAY = Color.parseColor("#737373");
 
+    // per-theme drawer colors, resolved in buildDrawerNavHeader
+    private int drawerTextColor = Color.parseColor("#212121");
+    private int drawerIconColor = DRAWER_ICON_GRAY;
+    private boolean drawerDarkTheme = false;
+
     private void buildDrawerNavHeader(LinearLayout parent) {
         if (parent == null) {
             return;
         }
+
+        // the drawer layout itself is theme-agnostic; resolve colors here so the
+        // panel, labels and icons stay readable in dark/OLED/ink modes
+        drawerDarkTheme = AppState.get().appTheme == AppState.THEME_DARK || AppState.get().appTheme == AppState.THEME_DARK_OLED;
+        View drawer = findViewById(R.id.left_drawer);
+        if (drawer != null) {
+            int bg = Color.WHITE;
+            if (AppState.get().appTheme == AppState.THEME_DARK_OLED) {
+                bg = Color.BLACK;
+            } else if (drawerDarkTheme) {
+                bg = Color.parseColor("#1e1e1e");
+            }
+            drawer.setBackgroundColor(bg);
+        }
+        drawerIconColor = drawerDarkTheme ? Color.parseColor("#9e9e9e") : DRAWER_ICON_GRAY;
+        drawerTextColor = drawerDarkTheme ? Color.parseColor("#e0e0e0") : Color.parseColor("#212121");
 
         addDrawerNavRow(parent, R.string.moon_home_recent, R.drawable.glyphicons_55_clock, UITab.RecentFragment);
         addDrawerNavRow(parent, R.string.moon_drawer_library, R.drawable.glyphicons_589_book_open, UITab.SearchFragment);
@@ -845,7 +879,7 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         ImageView icon = new ImageView(this);
         icon.setImageResource(iconRes);
-        TintUtil.setTintImageWithAlpha(icon, DRAWER_ICON_GRAY);
+        TintUtil.setTintImageWithAlpha(icon, drawerIconColor);
         LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(Dips.dpToPx(24), Dips.dpToPx(24));
         iconParams.rightMargin = Dips.dpToPx(18);
         row.addView(icon, iconParams);
@@ -853,6 +887,7 @@ public class MainTabs2 extends AdsFragmentActivity {
         TextView label = new TextView(this);
         label.setText(labelRes);
         label.setTextSize(16);
+        label.setTextColor(drawerTextColor);
         row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         row.setOnClickListener(new OnClickListener() {
@@ -910,8 +945,14 @@ public class MainTabs2 extends AdsFragmentActivity {
         }
         ImageView icon = (ImageView) button.findViewById(iconId);
         TextView label = (TextView) button.findViewById(labelId);
-        TintUtil.setTintImageWithAlpha(icon, DRAWER_ICON_GRAY);
+        TintUtil.setTintImageWithAlpha(icon, drawerIconColor);
         label.setText(labelRes);
+        label.setTextColor(drawerTextColor);
+        // first child of the button is the circular icon background
+        if (button instanceof ViewGroup && ((ViewGroup) button).getChildCount() > 0) {
+            ((ViewGroup) button).getChildAt(0)
+                    .setBackgroundResource(drawerDarkTheme ? R.drawable.drawer_circle_bg_dark : R.drawable.drawer_circle_bg);
+        }
         button.setOnClickListener(listener);
     }
 
@@ -937,9 +978,12 @@ public class MainTabs2 extends AdsFragmentActivity {
             String version = packageInfo.versionName + " (" + AppsConfig.MUPDF_FZ_VERSION + "-" + LibreraBuildConfig.FLAVOR + ")";
             ((TextView) root.findViewById(R.id.pVersion)).setText(
                     String.format("%s: %s", getString(R.string.version), version));
-            ((TextView) root.findViewById(R.id.section6)).setText(
+            TextView section6 = root.findViewById(R.id.section6);
+            section6.setText(
                     String.format("%s: %s %s %s", Apps.getApplicationName(this), version,
                             "SDK: " + Build.VERSION.SDK_INT, Build.MANUFACTURER));
+            // match the prefs page, which recolors the header pill with the accent
+            TintUtil.setBackgroundFillColor(section6, TintUtil.color);
         } catch (PackageManager.NameNotFoundException e) {
             LOG.e(e);
         }
@@ -983,7 +1027,13 @@ public class MainTabs2 extends AdsFragmentActivity {
         });
         alert.setView(wv);
         alert.setNegativeButton(R.string.close, (dialog, id) -> dialog.dismiss());
-        alert.show();
+        AlertDialog dialog = alert.create();
+        // release the WebView instead of leaking it on every open
+        dialog.setOnDismissListener(d -> {
+            wv.loadUrl("about:blank");
+            wv.destroy();
+        });
+        dialog.show();
     }
 
     private void onEmailSupport() {
@@ -1003,6 +1053,8 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     CharSequence appNameCache;
 
+    private boolean eventBusRegistered = false;
+
     private CharSequence getAppName() {
         if (appNameCache == null) {
             try {
@@ -1016,7 +1068,7 @@ public class MainTabs2 extends AdsFragmentActivity {
     }
 
     /**
-     * Drawer header switch: flip the whole-app day/night theme and restart,
+     * Drawer bottom-bar toggle: flip the whole-app day/night theme and restart,
      * the same way the settings page does (PrefFragment2.onTheme). Keeping the
      * reader flag isDayNotInvert in sync so books open in the matching mode.
      */
@@ -1027,15 +1079,25 @@ public class MainTabs2 extends AdsFragmentActivity {
             AppState.get().appTheme = AppState.get().appTheme == AppState.THEME_DARK_OLED ? AppState.THEME_DARK_OLED : AppState.THEME_DARK;
             AppState.get().isDayNotInvert = false;
         } else {
-            AppState.get().appTheme = AppState.THEME_LIGHT;
+            // mirror the OLED handling: an e-ink user stays on the paper theme
+            AppState.get().appTheme = AppState.get().appTheme == AppState.THEME_INK ? AppState.THEME_INK : AppState.THEME_LIGHT;
             AppState.get().isDayNotInvert = true;
+        }
+        if (AppState.get().appTheme != AppState.THEME_INK) {
+            // same image-adjustment reset the settings page performs on theme change
+            AppState.get().contrastImage = 0;
+            AppState.get().brigtnessImage = 0;
+            AppState.get().bolderTextOnImage = false;
+            AppState.get().isEnableBCOptional1 = false;
         }
         IMG.clearDiscCache();
         IMG.clearMemoryCache();
         AppProfile.save(this);
         AppProfile.clear();
         finish();
-        MainTabs2.startActivity(this, TempHolder.get().currentTab);
+        // getCurrentRealIndex, not TempHolder.currentTab: on a fresh session
+        // before the first swipe the holder still carries a stale static value
+        MainTabs2.startActivity(this, getCurrentRealIndex());
     }
 
     private void navigateToTab(UITab tab) {
@@ -1105,7 +1167,7 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         try {
             if (pager != null) {
-                final UIFragment uiFragment = tabFragments.get(pager.getCurrentItem());
+                final UIFragment uiFragment = tabFragments.get(getCurrentRealIndex());
                 uiFragment.onSelectFragment();
             }
         } catch (Exception e) {
@@ -1122,7 +1184,21 @@ public class MainTabs2 extends AdsFragmentActivity {
     }
 
     public void updateCurrentFragment() {
-        tabFragments.get(pager.getCurrentItem()).onSelectFragment();
+        tabFragments.get(getCurrentRealIndex()).onSelectFragment();
+    }
+
+    /**
+     * Real (non-looping) index of the selected tab. With looping enabled the
+     * ViewPager position is virtual (real+1); every tabFragments lookup must
+     * go through this helper or it is off by one — and out of bounds on the
+     * last tab.
+     */
+    private int getCurrentRealIndex() {
+        int pos = pager != null ? pager.getCurrentItem() : 0;
+        if (adapter != null && adapter.isLooping()) {
+            pos = adapter.toReal(pos);
+        }
+        return Math.max(0, Math.min(pos, tabFragments.size() - 1));
     }
 
     @Override
@@ -1136,7 +1212,7 @@ public class MainTabs2 extends AdsFragmentActivity {
             keyCode = event.getScanCode();
         }
         isMyKey = false;
-        if (tabFragments.get(pager.getCurrentItem()).onKeyDown(keyCode)) {
+        if (tabFragments.get(getCurrentRealIndex()).onKeyDown(keyCode)) {
             isMyKey = true;
             return true;
         }
@@ -1186,7 +1262,10 @@ public class MainTabs2 extends AdsFragmentActivity {
         // ImageExtractor.clearErrors();
         // ImageExtractor.clearCodeDocument();
 
-        EventBus.getDefault().unregister(this);
+        if (eventBusRegistered) {
+            EventBus.getDefault().unregister(this);
+            eventBusRegistered = false;
+        }
         //IMG.clearMemoryCache();
         super.onDestroy();
     }
@@ -1230,10 +1309,11 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     @Override
     public void onBackPressedImpl() {
-//        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
-//            return;
-//        }
+        // close the drawer first instead of popping the review/exit dialog over it
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
+            return;
+        }
 
         if (tabFragments != null) {
             int realPos = adapter.toReal(pager.getCurrentItem());
