@@ -1,5 +1,12 @@
 package com.foobnix.webdav;
 
+import com.burgstaller.okhttp.AuthenticationCacheInterceptor;
+import com.burgstaller.okhttp.CachingAuthenticatorDecorator;
+import com.burgstaller.okhttp.DispatchingAuthenticator;
+import com.burgstaller.okhttp.basic.BasicAuthenticator;
+import com.burgstaller.okhttp.digest.CachingAuthenticator;
+import com.burgstaller.okhttp.digest.Credentials;
+import com.burgstaller.okhttp.digest.DigestAuthenticator;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.thegrizzlylabs.sardineandroid.DavResource;
@@ -9,44 +16,113 @@ import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.UnknownHostException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Thin wrapper around the Sardine-Android WebDAV client (com.thegrizzlylabs:
  * sardine-android 0.9). Listings and downloads only - the module is read-only.
  * No OPDS classes are used here.
+ *
+ * Connection hardening (home NAS servers): sardine 0.9 ships only a Basic
+ * authenticator, so credentials are wired through okhttp-digest's
+ * DispatchingAuthenticator (Basic + Digest, chosen by the server's
+ * WWW-Authenticate challenge). Self-signed HTTPS servers can be accepted per
+ * server with the trustAll flag.
  */
 public class WebDavClient {
 
+    /** Error kind of the last failed request: "", "auth", "ssl", "network", "other". */
+    public static volatile String lastError = "";
+
     /**
-     * Hint set by {@link #list} when the most recent failure looked like an
-     * authentication rejection (HTTP 401/403). Callers read it right after a
-     * {@code null} return to choose between "auth failed" and generic
-     * "network error" messaging. Safe because WebDAV requests are serialized
-     * by the fragment's in-progress guard.
+     * Kept for existing callers: true when the last failure looked like an
+     * HTTP 401/403 auth rejection.
      */
     public static volatile boolean lastErrorWasAuth = false;
 
     public static Sardine sardine(String login, String password) {
-        OkHttpSardine s = new OkHttpSardine();
-        if (TxtUtils.isNotEmpty(login)) {
-            s.setCredentials(login, password);
+        return sardine(login, password, false);
+    }
+
+    public static Sardine sardine(String login, String password, boolean trustAll) {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS);
+
+        if (trustAll) {
+            applyTrustAll(builder);
         }
-        return s;
+
+        if (TxtUtils.isNotEmpty(login)) {
+            // sardine 0.9 only adds a Basic header via setCredentials; a
+            // Digest-only server answers 401 forever. Route auth through
+            // okhttp-digest which speaks both, selected by the challenge.
+            Credentials credentials = new Credentials(login, password);
+            DispatchingAuthenticator authenticator = new DispatchingAuthenticator.Builder()
+                    .with("digest", new DigestAuthenticator(credentials))
+                    .with("basic", new BasicAuthenticator(credentials))
+                    .build();
+            Map<String, CachingAuthenticator> authCache = new ConcurrentHashMap<String, CachingAuthenticator>();
+            builder.authenticator(new CachingAuthenticatorDecorator(authenticator, authCache));
+            builder.addInterceptor(new AuthenticationCacheInterceptor(authCache));
+        }
+
+        return new OkHttpSardine(builder.build());
+    }
+
+    /** Accept any certificate / hostname (opt-in per server, LAN self-signed). */
+    private static void applyTrustAll(OkHttpClient.Builder builder) {
+        try {
+            final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            }};
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustAllCerts, new SecureRandom());
+            builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
+            builder.hostnameVerifier((hostname, session) -> true);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
     }
 
     /**
      * PROPFIND depth 1 listing of {@code url}.
      *
      * @return items (directories first, then files, alphabetical), or
-     *         {@code null} when the request failed (network / 401 auth).
+     * {@code null} when the request failed (network / auth). Check
+     * {@link #lastError} for the failure kind right after a null return.
      */
-    public static List<WebDavItem> list(String url, String login, String password) {
+    public static List<WebDavItem> list(String url, String login, String password, boolean trustAll) {
         try {
-            List<DavResource> resources = sardine(login, password).list(url);
+            List<DavResource> resources = sardine(login, password, trustAll).list(url);
             List<WebDavItem> items = new ArrayList<WebDavItem>();
             for (DavResource r : resources) {
                 URI href = r.getHref();
@@ -69,36 +145,43 @@ public class WebDavClient {
                 items.add(item);
             }
             sort(items);
+            lastError = "";
             lastErrorWasAuth = false;
             return items;
         } catch (Exception e) {
             LOG.e(e);
-            lastErrorWasAuth = isAuthError(e);
+            lastError = classifyError(e);
+            lastErrorWasAuth = "auth".equals(lastError);
             return null;
         }
     }
 
-    /**
-     * Heuristic: does this failure look like an HTTP 401/403 auth rejection?
-     * Sardine wraps non-2xx responses in an IOException whose message carries
-     * the status code, so we walk the cause chain looking for it.
-     */
-    private static boolean isAuthError(Throwable e) {
+    /** Categorize a failure so the UI can suggest the right remedy. */
+    private static String classifyError(Throwable e) {
         for (Throwable c = e; c != null; c = c.getCause()) {
+            if (c instanceof SSLException) {
+                return "ssl";
+            }
+            if (c instanceof UnknownHostException) {
+                return "network";
+            }
             String msg = c.getMessage();
             if (msg != null && (msg.contains("401") || msg.contains("403"))) {
-                return true;
+                return "auth";
             }
             String simple = c.getClass().getSimpleName();
             if (simple.contains("Unauthorized") || simple.contains("Forbidden")) {
-                return true;
+                return "auth";
+            }
+            if (simple.contains("Timeout") || simple.contains("Connect") || simple.contains("Socket")) {
+                return "network";
             }
         }
-        return false;
+        return "other";
     }
 
-    public static InputStream openStream(String url, String login, String password) throws IOException {
-        return sardine(login, password).get(url);
+    public static InputStream openStream(String url, String login, String password, boolean trustAll) throws IOException {
+        return sardine(login, password, trustAll).get(url);
     }
 
     static String resolve(String base, String href) {

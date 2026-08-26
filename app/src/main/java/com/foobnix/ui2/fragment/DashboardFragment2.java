@@ -25,6 +25,7 @@ import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.BookStateStore;
 import com.foobnix.opds.Entry;
 import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.Clouds;
@@ -268,9 +269,11 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         if (a == null) {
             return;
         }
-        Intent intent = new Intent(UIFragment.INTENT_TINT_CHANGE)
-                .putExtra(MainTabs2.EXTRA_PAGE_NUMBER, UITab.getCurrentTabIndex(tab));
-        LocalBroadcastManager.getInstance(a).sendBroadcast(intent);
+        // direct call handles both visible tabs and (via the temporary
+        // overlay) pages disabled in the tab bar
+        if (a instanceof MainTabs2) {
+            ((MainTabs2) a).navigateToTab(tab);
+        }
     }
 
     // ------------------------------------------------------------------ data
@@ -298,17 +301,20 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         // prepareDataInBackground re-runs on every populate; reset the counters
         // first or the totals double on each refresh.
         totalBooks = 0;
+        readBooks = 0;
         try {
+            // The DB column IsRecentProgress is only written back for the 3
+            // most-recent books, so counting "read" from the DB misses books
+            // that just hit 100%. Count from the live progress store instead.
+            BookStateStore.invalidate();
             for (FileMeta m : AppDB.get().getAll()) {
                 if (!AppDB.get().isFolder(m)) {
                     totalBooks++;
+                    if (BookStateStore.effective(m.getPath()) == BookStateStore.READ) {
+                        readBooks++;
+                    }
                 }
             }
-        } catch (Exception e) {
-            LOG.e(e);
-        }
-        try {
-            readBooks = AppDB.get().getAllWithProgress().size();
         } catch (Exception e) {
             LOG.e(e);
         }

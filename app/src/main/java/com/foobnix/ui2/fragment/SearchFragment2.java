@@ -59,6 +59,7 @@ import com.foobnix.dao2.FileMeta;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
+import com.foobnix.model.BookStateStore;
 import com.foobnix.pdf.info.Android6;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
@@ -99,6 +100,7 @@ import java.util.Collections;
 import java.util.EmptyStackException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -125,7 +127,6 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     ImageView sortOrder, myAutoCompleteImage, cleanFilter, menu2;
     View onRefresh, secondTopPanel, layoutError;
     View emptyLibraryHint;
-    public String selectedExt = "";
     public String selectedReadState = "";
 
     public void performImportClick() {
@@ -167,83 +168,28 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     }
 
     private void buildShelfChips(View view) {
-        final LinearLayout shelfTypes = view.findViewById(R.id.shelfTypeChips);
-        LinearLayout formats = view.findViewById(R.id.formatChips);
         LinearLayout readStates = view.findViewById(R.id.readingStatusChips);
-        if (shelfTypes == null || formats == null) {
+        if (readStates == null) {
             return;
         }
 
-        final int[][] shelfModes = {
-                {R.string.moon_all_books, AppState.MODE_GRID},
-                {R.string.author, AppState.MODE_AUTHORS},
-                {R.string.serie, AppState.MODE_SERIES},
-                {R.string.my_tags, AppState.MODE_USER_TAGS}};
-        for (int i = 0; i < shelfModes.length; i++) {
-            final int mode = shelfModes[i][1];
-            TextView chip = makeShelfChip(shelfModes[i][0], AppState.get().libraryMode == mode);
-            chip.setTag(mode);
+        final int[][] readStateChips = {
+                {R.string.moon_all_books, 0},
+                {R.string.moon_filter_unread, 1},
+                {R.string.moon_filter_reading, 2},
+                {R.string.moon_filter_read, 3}};
+        for (int i = 0; i < readStateChips.length; i++) {
+            final int state = readStateChips[i][1];
+            TextView chip = makeShelfChip(readStateChips[i][0], selectedReadState.equals(stateToString(state)));
+            chip.setTag(stateToString(state));
             chip.setOnClickListener(new OnClickListener() {
                 @Override public void onClick(View v) {
-                    if (AppState.get().libraryMode != mode) {
-                        AppState.get().libraryMode = mode;
-                        if (mode != AppState.MODE_GRID) {
-                            searchEditText.setText("");
-                        }
-                        onGridList();
-                        searchAndOrderAsync();
-                    }
-                    refreshChipGroup(shelfTypes, mode);
-                }
-            });
-            shelfTypes.addView(chip);
-        }
-
-        TextView allChip = makeShelfChip(R.string.moon_all_books, TxtUtils.isEmpty(selectedExt));
-        allChip.setTag("");
-        allChip.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-                selectedExt = "";
-                searchAndOrderAsync();
-                refreshChipGroup((LinearLayout) v.getParent(), "");
-            }
-        });
-        formats.addView(allChip);
-
-        String[] exts = {"epub", "pdf", "txt", "mobi", "azw3", "fb2", "djvu", "cbz", "docx", "html"};
-        for (final String ext : exts) {
-            TextView chip = makeShelfChip(0, false);
-            chip.setText(ext.toUpperCase());
-            chip.setTag(ext);
-            chip.setOnClickListener(new OnClickListener() {
-                @Override public void onClick(View v) {
-                    selectedExt = ext;
+                    selectedReadState = stateToString(state);
                     searchAndOrderAsync();
-                    refreshChipGroup((LinearLayout) v.getParent(), ext);
+                    refreshChipGroup(readStates, stateToString(state));
                 }
             });
-            formats.addView(chip);
-        }
-
-        if (readStates != null) {
-            final int[][] readStateChips = {
-                    {R.string.moon_all_books, 0},
-                    {R.string.moon_filter_unread, 1},
-                    {R.string.moon_filter_reading, 2},
-                    {R.string.moon_filter_read, 3}};
-            for (int i = 0; i < readStateChips.length; i++) {
-                final int state = readStateChips[i][1];
-                TextView chip = makeShelfChip(readStateChips[i][0], selectedReadState.equals(stateToString(state)));
-                chip.setTag(stateToString(state));
-                chip.setOnClickListener(new OnClickListener() {
-                    @Override public void onClick(View v) {
-                        selectedReadState = stateToString(state);
-                        searchAndOrderAsync();
-                        refreshChipGroup(readStates, stateToString(state));
-                    }
-                });
-                readStates.addView(chip);
-            }
+            readStates.addView(chip);
         }
     }
 
@@ -255,6 +201,160 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             default: return "";
         }
     }
+
+    // ------------------------------------------------------------------ batch selection
+
+    boolean selectionMode = false;
+    final Set<String> selectedPaths = new LinkedHashSet<String>();
+    LinearLayout selectionBar;
+    TextView selectionCount;
+
+    private void setupSelectionBar(View view) {
+        selectionBar = view.findViewById(R.id.selectionBar);
+        selectionCount = view.findViewById(R.id.selectionCount);
+        if (selectionBar == null) {
+            return;
+        }
+        boolean dark = AppState.get().appTheme == AppState.THEME_DARK
+                || AppState.get().appTheme == AppState.THEME_DARK_OLED;
+        selectionBar.setBackgroundColor(dark ? 0xFF26262A : 0xFFF0F0F2);
+
+        LinearLayout actions = view.findViewById(R.id.selectionActions);
+        LinearLayout topRow = view.findViewById(R.id.selectionTopRow);
+        if (actions == null || topRow == null) {
+            return;
+        }
+
+        addSelectionAction(actions, R.string.moon_mark_read, BookStateStore.READ);
+        addSelectionAction(actions, R.string.moon_mark_unread, BookStateStore.UNREAD);
+        addSelectionAction(actions, R.string.moon_mark_reading, BookStateStore.READING);
+
+        TextView selectAll = makeShelfChip(R.string.moon_select_all, false);
+        selectAll.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                for (FileMeta m : searchAdapter.getItemsList()) {
+                    if (m != null && m.getPath() != null && !AppDB.get().isFolder(m)) {
+                        selectedPaths.add(m.getPath());
+                    }
+                }
+                updateSelectionCount();
+                searchAdapter.notifyDataSetChanged();
+            }
+        });
+        actions.addView(selectAll);
+
+        TextView cancel = makeShelfChip(R.string.cancel, false);
+        cancel.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                exitSelection();
+            }
+        });
+        topRow.addView(cancel, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private void addSelectionAction(LinearLayout bar, int textRes, final int state) {
+        TextView chip = makeShelfChip(textRes, false);
+        chip.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                applySelection(state);
+            }
+        });
+        bar.addView(chip, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    /**
+     * In selection mode a tap toggles the book's selection instead of opening
+     * it; otherwise the default listener (open book) runs unchanged.
+     */
+    private void wrapItemClickListenerForSelection() {
+        if (searchAdapter == null) {
+            return;
+        }
+        final ResultResponse<FileMeta> defaultClick = searchAdapter.getOnItemClickListener();
+        searchAdapter.setOnItemClickListener(new ResultResponse<FileMeta>() {
+            @Override public boolean onResultRecive(FileMeta meta) {
+                if (selectionMode && meta != null && meta.getPath() != null) {
+                    toggleSelection(meta.getPath());
+                    return true;
+                }
+                return defaultClick != null && defaultClick.onResultRecive(meta);
+            }
+        });
+    }
+
+    public void startSelection(String path) {
+        selectionMode = true;
+        selectedPaths.clear();
+        if (path != null) {
+            selectedPaths.add(path);
+        }
+        searchAdapter.selectionPaths = selectedPaths;
+        if (selectionBar != null) {
+            selectionBar.setVisibility(View.VISIBLE);
+        }
+        updateSelectionCount();
+        searchAdapter.notifyDataSetChanged();
+    }
+
+    private void toggleSelection(String path) {
+        if (selectedPaths.contains(path)) {
+            selectedPaths.remove(path);
+        } else {
+            selectedPaths.add(path);
+        }
+        updateSelectionCount();
+        searchAdapter.notifyDataSetChanged();
+    }
+
+    private void updateSelectionCount() {
+        if (selectionCount != null && getActivity() != null) {
+            selectionCount.setText(getString(R.string.moon_selected_count, selectedPaths.size()));
+        }
+    }
+
+    public void exitSelection() {
+        selectionMode = false;
+        selectedPaths.clear();
+        if (searchAdapter != null) {
+            searchAdapter.selectionPaths = null;
+            searchAdapter.notifyDataSetChanged();
+        }
+        if (selectionBar != null) {
+            selectionBar.setVisibility(View.GONE);
+        }
+    }
+
+    private void applySelection(final int state) {
+        if (selectedPaths.isEmpty()) {
+            exitSelection();
+            return;
+        }
+        final List<String> paths = new ArrayList<String>(selectedPaths);
+        exitSelection();
+        AppsConfig.executorService.execute(new Runnable() {
+            @Override public void run() {
+                try {
+                    BookStateStore.markAll(paths, state);
+                } catch (Exception e) {
+                    LOG.e(e);
+                }
+                Runnable done = new Runnable() {
+                    @Override public void run() {
+                        if (getActivity() != null) {
+                            Toast.makeText(getActivity(), getString(R.string.moon_state_applied_count, paths.size()), Toast.LENGTH_SHORT).show();
+                            searchAndOrderAsync();
+                        }
+                    }
+                };
+                if (handler != null) {
+                    handler.post(done);
+                } else {
+                    new Handler(Looper.getMainLooper()).post(done);
+                }
+            }
+        });
+    }
+
     AutoCompleteTextView searchEditText;
     int countTitles = 0;
     Runnable hideKeyboard = new Runnable() {
@@ -654,8 +754,9 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         sortOrder.setVisibility(TxtUtils.visibleIf(AppState.get().isVisibleSorting));
 
         bindAdapter(searchAdapter);
-
         buildShelfChips(view);
+        setupSelectionBar(view);
+        wrapItemClickListenerForSelection();
 
         searchAdapter.setOnAuthorClickListener(onAuthorClick);
         searchAdapter.setOnSeriesClickListener(onSeriesClick);
@@ -664,6 +765,15 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
         if (AppState.get().isRestoreSearchQuery && !TxtUtils.isEmpty(AppState.get().searchQuery)) {
             searchEditText.setText(AppState.get().searchQuery);
+        }
+
+        // grouping shelf modes (authors/series/tags) were removed from this
+        // page; fall back to the plain list so a stale persisted mode does
+        // not leave the shelf stuck in a removed view
+        if (AppState.get().libraryMode == AppState.MODE_AUTHORS
+                || AppState.get().libraryMode == AppState.MODE_SERIES
+                || AppState.get().libraryMode == AppState.MODE_USER_TAGS) {
+            AppState.get().libraryMode = AppState.MODE_LIST;
         }
 
         onGridList();
@@ -919,31 +1029,25 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                                            .searchBy(txt, SORT_BY.getByID(AppState.get().sortBy),
                                                    AppState.get().isSortAsc);
 
-            ExtUtils.removeReadBooks(searchBy);
+            if (TxtUtils.isEmpty(selectedReadState)) {
+                // "All" keeps the original hide-finished-books behavior;
+                // a read-state chip must see every book, including finished
+                // ones, otherwise 已读/未读/在读 filters would be empty
+                ExtUtils.removeReadBooks(searchBy);
+            }
             ExtUtils.removeNotFound(searchBy);
 
-            if (TxtUtils.isNotEmpty(selectedExt)) {
-                Iterator<FileMeta> extIterator = searchBy.iterator();
-                while (extIterator.hasNext()) {
-                    FileMeta meta = extIterator.next();
-                    String metaExt = meta.getExt() == null ? "" : meta.getExt().toLowerCase();
-                    if (!metaExt.equals(selectedExt.toLowerCase())) {
-                        extIterator.remove();
-                    }
-                }
-            }
-
             if (TxtUtils.isNotEmpty(selectedReadState)) {
+                int wanted = "unread".equals(selectedReadState) ? BookStateStore.UNREAD
+                        : "reading".equals(selectedReadState) ? BookStateStore.READING
+                        : BookStateStore.READ;
+                // derive from the live progress store (same rule as the
+                // dashboard), not the stale DB column
+                BookStateStore.invalidate();
                 Iterator<FileMeta> readIterator = searchBy.iterator();
                 while (readIterator.hasNext()) {
                     FileMeta meta = readIterator.next();
-                    Float progress = meta.getIsRecentProgress();
-                    boolean isUnread = progress == null || progress <= 0f;
-                    boolean isRead = progress != null && progress >= 1.0f;
-                    boolean isReading = !isUnread && !isRead;
-                    if ("unread".equals(selectedReadState) && !isUnread
-                            || "reading".equals(selectedReadState) && !isReading
-                            || "read".equals(selectedReadState) && !isRead) {
+                    if (BookStateStore.effective(meta.getPath()) != wanted) {
                         readIterator.remove();
                     }
                 }
@@ -1070,7 +1174,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
         if (emptyLibraryHint != null) {
             boolean noQuery = TxtUtils.isEmpty(searchEditText.getText().toString().trim());
-            emptyLibraryHint.setVisibility(TxtUtils.visibleIf(items.isEmpty() && noQuery && TxtUtils.isEmpty(selectedExt)
+            emptyLibraryHint.setVisibility(TxtUtils.visibleIf(items.isEmpty() && noQuery
                     && TxtUtils.isEmpty(selectedReadState)));
         }
 

@@ -148,6 +148,8 @@ public class MainTabs2 extends AdsFragmentActivity {
             if (adapter != null) {
                 pos = adapter.toReal(pos);
             }
+            // picking any real tab leaves the temporary drawer overlay
+            hideTabOverlay();
             uiFragment = tabFragments.get(pos);
             uiFragment.onSelectFragment();
             TempHolder.get().currentTab = pos;
@@ -1123,7 +1125,7 @@ public class MainTabs2 extends AdsFragmentActivity {
         MainTabs2.startActivity(this, getCurrentRealIndex());
     }
 
-    private void navigateToTab(UITab tab) {
+    public void navigateToTab(UITab tab) {
         boolean found = false;
         for (int i = 0; i < tabFragments.size(); i++) {
             if (tab.getClazz().isInstance(tabFragments.get(i))) {
@@ -1133,10 +1135,103 @@ public class MainTabs2 extends AdsFragmentActivity {
             }
         }
         if (!found) {
-            Toast.makeText(this, R.string.moon_tab_hidden, Toast.LENGTH_SHORT).show();
+            // Drawer navigation is decoupled from the tab bar: a page that is
+            // disabled there opens as a temporary overlay instead of showing
+            // "tab is hidden". The tab bar configuration is not modified.
+            showTabOverlay(tab);
         }
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
+        }
+    }
+
+    /** The fragment currently shown in the pager (first real tab on failure). */
+    public UIFragment getCurrentFragment() {
+        try {
+            return tabFragments.get(getCurrentRealIndex());
+        } catch (Exception e) {
+            LOG.e(e);
+            return tabFragments.isEmpty() ? null : tabFragments.get(0);
+        }
+    }
+
+    private UITab overlayTab = null;
+    private UIFragment overlayFragment = null;
+
+    private void showTabOverlay(UITab tab) {
+        try {
+            ViewGroup container = findViewById(R.id.overlayContainer);
+            if (container == null) {
+                Toast.makeText(this, R.string.moon_tab_hidden, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (overlayTab == tab && container.getVisibility() == View.VISIBLE) {
+                return;
+            }
+            UIFragment fragment = tab.getClazz().newInstance();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.overlayContainer, fragment)
+                    .commitAllowingStateLoss();
+            overlayTab = tab;
+            overlayFragment = fragment;
+
+            int bg = Color.WHITE;
+            if (AppState.get().appTheme == AppState.THEME_DARK_OLED) {
+                bg = Color.BLACK;
+            } else if (AppState.get().appTheme == AppState.THEME_DARK) {
+                bg = Color.parseColor("#1e1e1e");
+            }
+            container.setBackgroundColor(bg);
+            container.setVisibility(View.VISIBLE);
+
+            if (fabLastBook != null) {
+                fabLastBook.setVisibility(View.GONE);
+            }
+            if (topBarTitle != null) {
+                topBarTitle.setText(getString(tab.getName()));
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    public void hideTabOverlay() {
+        try {
+            ViewGroup container = findViewById(R.id.overlayContainer);
+            if (container == null || container.getVisibility() != View.VISIBLE) {
+                return;
+            }
+            if (overlayFragment != null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(overlayFragment)
+                        .commitAllowingStateLoss();
+            }
+            overlayFragment = null;
+            overlayTab = null;
+            container.setVisibility(View.GONE);
+
+            syncTopBarTitle();
+            updateLastBookFabVisibility(getCurrentFragment());
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    private void syncTopBarTitle() {
+        try {
+            if (topBarTitle == null || adapter == null || adapter.getRealCount() <= 0) {
+                return;
+            }
+            int idx = getCurrentRealIndex();
+            CharSequence title = adapter.getRealPageTitle(idx);
+            if (tabFragments.get(idx) instanceof DashboardFragment2) {
+                title = getAppName();
+            }
+            topBarTitle.setText(title.toString());
+        } catch (Exception e) {
+            LOG.e(e);
         }
     }
 
@@ -1411,6 +1506,13 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     @Override
     public void onBackPressedImpl() {
+        // leave the temporary drawer overlay first
+        ViewGroup overlayContainer = findViewById(R.id.overlayContainer);
+        if (overlayContainer != null && overlayContainer.getVisibility() == View.VISIBLE) {
+            hideTabOverlay();
+            return;
+        }
+
         // close the drawer first instead of popping the review/exit dialog over it
         if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);

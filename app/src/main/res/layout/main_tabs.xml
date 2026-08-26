@@ -126,6 +126,15 @@
                             android:padding="15dip"
                             android:src="@drawable/glyphicons_589_book_open"
                             android:visibility="gone" />
+
+                        <!-- temporary host for drawer navigation to pages
+                             that are disabled in the tab bar (decoupled:
+                             the tab bar itself is not modified) -->
+                        <FrameLayout
+                            android:id="@+id/overlayContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:visibility="gone" />
                     </FrameLayout>
 
                     <FrameLayout

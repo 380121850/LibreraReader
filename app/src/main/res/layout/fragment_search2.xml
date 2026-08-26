@@ -163,36 +163,46 @@
         </LinearLayout>
     </LinearLayout>
 
-    <HorizontalScrollView
+    <LinearLayout
+        android:id="@+id/selectionBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none">
+        android:orientation="vertical"
+        android:paddingLeft="8dip"
+        android:paddingRight="8dip"
+        android:paddingTop="4dip"
+        android:paddingBottom="4dip"
+        android:visibility="gone">
 
         <LinearLayout
-            android:id="@+id/shelfTypeChips"
-            android:layout_width="wrap_content"
+            android:id="@+id/selectionTopRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingLeft="6dip"
-            android:paddingRight="6dip"
-            android:paddingTop="2dip"
-            android:paddingBottom="2dip" />
-    </HorizontalScrollView>
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none">
+            <TextView
+                android:id="@+id/selectionCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/tint_gray"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/formatChips"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingLeft="6dip"
-            android:paddingRight="6dip"
-            android:paddingBottom="2dip" />
-    </HorizontalScrollView>
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/selectionActions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
 
     <HorizontalScrollView
         android:layout_width="match_parent"

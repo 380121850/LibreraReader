@@ -54,6 +54,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.ViewHolder> implements FastScroller.SectionIndexer {
 
@@ -81,6 +82,13 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
     public Fragment fragment;
     public int tempValue = TEMP_VALUE_NONE;
     public int tempValue2 = TEMP2_NONE;
+
+    /**
+     * Batch-selection mode of the library shelf (full book paths). Null means
+     * selection is off and rows keep their normal look; when set, rows whose
+     * path is in the set get a translucent accent background.
+     */
+    public Set<String> selectionPaths = null;
 
     private int adapterType = ADAPTER_LIST;
     private ResultResponse<FileMeta> onMenuClickListener;
@@ -955,6 +963,9 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         }
         if (AppState.get().appTheme == AppState.THEME_DARK_OLED && tempValue2 != TEMP2_RECENT_FROM_BOOK) {
             holder.parent.setBackgroundColor(Color.BLACK);
+        }
+        if (selectionPaths != null && fileMeta.getPath() != null && selectionPaths.contains(fileMeta.getPath())) {
+            holder.parent.setBackgroundColor((TintUtil.color & 0x00FFFFFF) | 0x50000000);
         }
 
         if (tempValue == TEMP_VALUE_SERIES) {

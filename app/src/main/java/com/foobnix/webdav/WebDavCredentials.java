@@ -70,6 +70,25 @@ public class WebDavCredentials {
         c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(WebDavStore.trimSlash(serverUrl)).commit();
     }
 
+    /** Per-server opt-in to accept self-signed HTTPS certificates (not secret). */
+    public static void saveTrust(Context c, String serverUrl, boolean trustAll) {
+        if (c == null || TxtUtils.isEmpty(serverUrl)) {
+            return;
+        }
+        c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("trust_" + WebDavStore.trimSlash(serverUrl), trustAll)
+                .commit();
+    }
+
+    public static boolean isTrustAll(Context c, String serverUrl) {
+        if (c == null || TxtUtils.isEmpty(serverUrl)) {
+            return false;
+        }
+        return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean("trust_" + WebDavStore.trimSlash(serverUrl), false);
+    }
+
     private static byte[] encrypt(String plain) throws Exception {
         SecretKey key = getOrCreateKey();
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");

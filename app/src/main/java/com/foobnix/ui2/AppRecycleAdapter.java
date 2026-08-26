@@ -46,6 +46,10 @@ public abstract class AppRecycleAdapter<K, T extends RecyclerView.ViewHolder> ex
         this.onItemClickListener = onItemClickListener;
     }
 
+    public ResultResponse<K> getOnItemClickListener() {
+        return onItemClickListener;
+    }
+
     public void setOnItemLongClickListener(ResultResponse<K> onItemLongClickListener) {
         this.onItemLongClickListener = onItemLongClickListener;
     }

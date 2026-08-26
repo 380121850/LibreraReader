@@ -27,6 +27,7 @@ import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.BookStateStore;
 import com.foobnix.model.MyPath;
 import com.foobnix.model.SimpleMeta;
 import com.foobnix.model.TagData;
@@ -54,6 +55,8 @@ import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.FileMetaCore;
 import com.foobnix.ui2.MainTabs2;
 import com.foobnix.ui2.adapter.TabsAdapter2;
+import com.foobnix.ui2.fragment.SearchFragment2;
+import com.foobnix.ui2.fragment.UIFragment;
 
 import org.ebookdroid.BookType;
 import org.ebookdroid.common.settings.books.SharedBooks;
@@ -350,6 +353,14 @@ public class ShareDialog {
             //items.add(a.getString(R.string.delete_reading_progress));
             items.add(iconText(a, "↶", R.string.delete_reading_progress));
 
+            // explicit reading-status setters (Moon+ style)
+            items.add(iconText(a, "✓", R.string.moon_mark_read));
+            items.add(iconText(a, "◌", R.string.moon_mark_unread));
+            items.add(iconText(a, "◐", R.string.moon_mark_reading));
+            if (getCurrentSearchFragment(a) != null) {
+                items.add(iconText(a, "☑", R.string.moon_multi_select));
+            }
+
         }
 
         if (isShowInfo) {
@@ -547,6 +558,25 @@ public class ShareDialog {
                     EventBus.getDefault()
                             .post(new UpdateAllFragments());
 
+                } else if (isMainTabs && which == i++) {
+                    BookStateStore.markRead(file.getPath());
+                    Toast.makeText(a, R.string.moon_state_applied, Toast.LENGTH_SHORT).show();
+                    EventBus.getDefault()
+                            .post(new UpdateAllFragments());
+                } else if (isMainTabs && which == i++) {
+                    BookStateStore.markUnread(file.getPath());
+                    Toast.makeText(a, R.string.moon_state_applied, Toast.LENGTH_SHORT).show();
+                    EventBus.getDefault()
+                            .post(new UpdateAllFragments());
+                } else if (isMainTabs && which == i++) {
+                    BookStateStore.markReading(file.getPath());
+                    Toast.makeText(a, R.string.moon_state_applied, Toast.LENGTH_SHORT).show();
+                    EventBus.getDefault()
+                            .post(new UpdateAllFragments());
+                } else if (isMainTabs && getCurrentSearchFragment(a) != null && which == i++) {
+                    SearchFragment2 shelf = getCurrentSearchFragment(a);
+                    shelf.startSelection(file.getPath());
+
                 } else if (isShowInfo && which == i++) {
                     FileInformationDialog.showFileInfoDialog(a, file, onDeleteAction);
                 }
@@ -572,6 +602,20 @@ public class ShareDialog {
 //        menu.getMenu(R.drawable.glyphicons_2_book_open, R.string.open_with, () -> ExtUtils.openPDFInTextReflow(a, file, page + 1, dc));
 //
 //        menu.show();
+    }
+
+    /**
+     * The library shelf instance currently shown in MainTabs2, or null when
+     * the user is on any other tab (multi-select only targets the shelf).
+     */
+    private static SearchFragment2 getCurrentSearchFragment(Activity a) {
+        if (a instanceof MainTabs2) {
+            UIFragment current = ((MainTabs2) a).getCurrentFragment();
+            if (current instanceof SearchFragment2) {
+                return (SearchFragment2) current;
+            }
+        }
+        return null;
     }
 
     public static void showAddToCloudDialog(final Activity a, final File file) {

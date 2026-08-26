@@ -835,15 +835,17 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                         try {
                             WebDavServer srv = WebDavStore.findForUrl(currentServerUrl);
                             String login = "", password = "";
+                            boolean trustAll = false;
                             if (srv != null) {
                                 String[] creds = WebDavCredentials.load(getContext(), srv.url);
                                 if (creds != null) {
                                     login = creds[0];
                                     password = creds[1];
                                 }
+                                trustAll = WebDavCredentials.isTrustAll(getContext(), srv.url);
                             }
 
-                            in = WebDavClient.openStream(item.href, login, password);
+                            in = WebDavClient.openStream(item.href, login, password, trustAll);
 
                             String fileName = TxtUtils.fixFileName(item.name);
                             if (TxtUtils.isEmpty(fileName)) {
@@ -966,6 +968,7 @@ public class OpdsFragment2 extends UIFragment<Entry> {
             if (webDavMode) {
                 WebDavServer srv = WebDavStore.findForUrl(url);
                 String login = "", password = "";
+                boolean trustAll = false;
                 if (srv != null) {
                     currentServerUrl = srv.url;
                     String[] creds = WebDavCredentials.load(getContext(), srv.url);
@@ -973,8 +976,9 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                         login = creds[0];
                         password = creds[1];
                     }
+                    trustAll = WebDavCredentials.isTrustAll(getContext(), srv.url);
                 }
-                List<WebDavItem> items = WebDavClient.list(url, login, password);
+                List<WebDavItem> items = WebDavClient.list(url, login, password, trustAll);
                 if (items == null) {
                     authFailed = WebDavClient.lastErrorWasAuth;
                     webDavLoadFailed = true;

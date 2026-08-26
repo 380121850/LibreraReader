@@ -58,6 +58,7 @@ public class AppProfile {
     public static final String APP_FAVORITE_JSON = "app-Favorite.json";
     public static final String APP_BOOKMARKS_JSON = "app-Bookmarks.json";
     public static final String APP_PROGRESS_JSON = "app-Progress.json";
+    public static final String APP_BOOK_STATES_JSON = "app-BookStates.json";
     public static final String APP_TAGS_JSON = "app-Tags.json";
     public static final String APP_TAGS_JSON2 = "app-Tags2.json";
 
@@ -82,6 +83,7 @@ public class AppProfile {
     public static File syncCSS;
     public static File syncPlaylist;
     public static File syncProgress;
+    public static File syncBookStates;
     public static File syncBookmarks;
 
     public static File syncFontFolder;
@@ -171,6 +173,7 @@ public class AppProfile {
         syncPlaylist = new File(SYNC_FOLDER_DEVICE_PROFILE, "playlists");
         syncBookmarks = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOKMARKS_JSON);
         syncProgress = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_PROGRESS_JSON);
+        syncBookStates = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOK_STATES_JSON);
         syncRecent = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_RECENT_JSON);
 
         syncState = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_STATE_JSON);

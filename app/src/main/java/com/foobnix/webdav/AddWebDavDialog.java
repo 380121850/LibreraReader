@@ -35,6 +35,7 @@ public class AddWebDavDialog {
         final EditText login = (EditText) dialog.findViewById(R.id.login);
         final EditText password = (EditText) dialog.findViewById(R.id.password);
         password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        final android.widget.CheckBox trustCerts = (android.widget.CheckBox) dialog.findViewById(R.id.trustCerts);
         final MyProgressBar progress = (MyProgressBar) dialog.findViewById(R.id.MyProgressBarAddWebDav);
 
         final String editAppState = edit == null ? null : edit.appState;
@@ -45,6 +46,9 @@ public class AddWebDavDialog {
             if (creds != null) {
                 login.setText(creds[0]);
                 password.setText(creds[1]);
+            }
+            if (trustCerts != null) {
+                trustCerts.setChecked(WebDavCredentials.isTrustAll(a, edit.url));
             }
         } else {
             url.setText("http://");
@@ -78,12 +82,13 @@ public class AddWebDavDialog {
                 final String title = name.getText().toString().trim();
                 final String loginText = login.getText().toString().trim();
                 final String passwordText = password.getText().toString().trim();
+                final boolean trustAll = trustCerts != null && trustCerts.isChecked();
                 if (TxtUtils.isEmpty(feedUrl)) {
                     Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (force[0]) {
-                    save(a, feedUrl, title, loginText, passwordText, editAppState, onRefresh, infoDialog);
+                    save(a, feedUrl, title, loginText, passwordText, trustAll, editAppState, onRefresh, infoDialog);
                     return;
                 }
                 if (AsyncTasks.isRunning(asyncTask)) {
@@ -94,18 +99,29 @@ public class AddWebDavDialog {
                 asyncTask = new AsyncTask() {
                     @Override
                     protected Object doInBackground(Object... params) {
-                        return WebDavClient.list(feedUrl, loginText, passwordText);
+                        return WebDavClient.list(feedUrl, loginText, passwordText, trustAll);
                     }
 
                     @Override
                     protected void onPostExecute(Object result) {
                         progress.setVisibility(View.GONE);
                         if (result != null) {
-                            save(a, feedUrl, title, loginText, passwordText, editAppState, onRefresh, infoDialog);
+                            save(a, feedUrl, title, loginText, passwordText, trustAll, editAppState, onRefresh, infoDialog);
                         } else {
                             force[0] = true;
                             infoDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText(R.string.add_anyway);
-                            Toast.makeText(a, R.string.webdav_auth_failed, Toast.LENGTH_LONG).show();
+                            String kind = WebDavClient.lastError;
+                            int msg;
+                            if ("auth".equals(kind)) {
+                                msg = R.string.webdav_auth_failed;
+                            } else if ("ssl".equals(kind)) {
+                                msg = R.string.webdav_err_ssl;
+                            } else if ("network".equals(kind)) {
+                                msg = R.string.webdav_err_network;
+                            } else {
+                                msg = R.string.webdav_connect_failed;
+                            }
+                            Toast.makeText(a, msg, Toast.LENGTH_LONG).show();
                         }
                     }
                 }.execute();
@@ -113,7 +129,7 @@ public class AddWebDavDialog {
         });
     }
 
-    private static void save(Activity a, String url, String title, String login, String password,
+    private static void save(Activity a, String url, String title, String login, String password, boolean trustAll,
                              String editAppState, Runnable onRefresh, AlertDialog dialog) {
         if (editAppState != null) {
             AppState.get().allWebDavLinks = AppState.get().allWebDavLinks.replace(editAppState, "");
@@ -122,6 +138,7 @@ public class AddWebDavDialog {
         s.appState = WebDavServer.buildLine(url, s.title);
         WebDavStore.add(s);
         WebDavCredentials.save(a, url, login, password);
+        WebDavCredentials.saveTrust(a, url, trustAll);
         AppProfile.save(a);
         Keyboards.close(a);
         dialog.dismiss();
