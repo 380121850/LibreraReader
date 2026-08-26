@@ -128,6 +128,22 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     View onRefresh, secondTopPanel, layoutError;
     View emptyLibraryHint;
     public String selectedReadState = "";
+    LinearLayout readStates;
+
+    /**
+     * Select a read-state filter chip ("" / "unread" / "reading" / "read").
+     * Safe to call while the fragment is detached (it sits beyond the pager's
+     * offscreen limit): buildShelfChips initializes the chip highlight from
+     * selectedReadState and onCreateView's initial searchAndOrderAsync picks
+     * up the filter when the page is rebuilt.
+     */
+    public void setReadStateFilter(String state) {
+        selectedReadState = TxtUtils.nullToEmpty(state);
+        if (isAdded() && searchEditText != null && readStates != null) {
+            refreshChipGroup(readStates, selectedReadState);
+            searchAndOrderAsync();
+        }
+    }
 
     public void performImportClick() {
         if (onRefresh != null) {
@@ -168,7 +184,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     }
 
     private void buildShelfChips(View view) {
-        LinearLayout readStates = view.findViewById(R.id.readingStatusChips);
+        readStates = view.findViewById(R.id.readingStatusChips);
         if (readStates == null) {
             return;
         }

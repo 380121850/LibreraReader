@@ -1145,6 +1145,32 @@ public class MainTabs2 extends AdsFragmentActivity {
         }
     }
 
+    /**
+     * Opens the library tab with a read-state filter pre-selected ("",
+     * "unread", "reading" or "read"). Falls back to the temporary overlay when
+     * the tab is disabled in the tab bar.
+     */
+    public void openLibraryWithReadState(final String readState) {
+        boolean found = false;
+        for (int i = 0; i < tabFragments.size(); i++) {
+            if (tabFragments.get(i) instanceof SearchFragment2) {
+                ((SearchFragment2) tabFragments.get(i)).setReadStateFilter(readState);
+                pager.setCurrentItem(adapter.toVirtual(i));
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            showTabOverlay(UITab.SearchFragment);
+            if (overlayFragment instanceof SearchFragment2) {
+                ((SearchFragment2) overlayFragment).setReadStateFilter(readState);
+            }
+        }
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
+        }
+    }
+
     /** The fragment currently shown in the pager (first real tab on failure). */
     public UIFragment getCurrentFragment() {
         try {

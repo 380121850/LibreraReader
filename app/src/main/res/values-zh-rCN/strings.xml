@@ -746,8 +746,8 @@
    <string name="moon_file_webdav">[WebDav]</string>
    <string name="moon_file_books">Books</string>
    <string name="moon_home_stats">阅读统计</string>
-   <string name="moon_stat_total">书架书籍总数</string>
-   <string name="moon_stat_read">已读书籍总数</string>
+   <string name="moon_stat_total">书籍总数</string>
+   <string name="moon_stat_read">已读书籍</string>
    <string name="moon_stat_time_total">总阅读时间</string>
    <string name="moon_stat_today">今日阅读</string>
    <string name="moon_stat_speed">阅读速度（页/分）</string>

@@ -41,6 +41,7 @@ import com.foobnix.ui2.MainTabs2;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -100,7 +101,20 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             statsHeader.findViewById(R.id.sectionMore).setVisibility(View.GONE);
         }
         bindStat(view, R.id.statTotal, R.string.moon_stat_total);
-        bindStat(view, R.id.statRead, R.string.moon_stat_read);
+        bindStat(view, R.id.statRead,  R.string.moon_stat_read);
+
+        // count cards deep-link into the library: "total books" shows every
+        // book (clearing any leftover state filter), "read books" pre-selects
+        // the read filter chip
+        View statTotal = view.findViewById(R.id.statTotal);
+        if (statTotal != null) {
+            statTotal.setOnClickListener(v -> openLibraryWithFilter(""));
+        }
+        View statRead = view.findViewById(R.id.statRead);
+        if (statRead != null) {
+            statRead.setOnClickListener(v -> openLibraryWithFilter("read"));
+        }
+
         bindStat(view, R.id.statHours, R.string.moon_stat_time_total);
         bindStat(view, R.id.statToday, R.string.moon_stat_today);
         bindStat(view, R.id.statSpeed, R.string.moon_stat_speed);
@@ -276,6 +290,13 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         }
     }
 
+    private void openLibraryWithFilter(String readState) {
+        Activity a = getActivity();
+        if (a instanceof MainTabs2) {
+            ((MainTabs2) a).openLibraryWithReadState(readState);
+        }
+    }
+
     // ------------------------------------------------------------------ data
 
     @Override
@@ -306,9 +327,12 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             // The DB column IsRecentProgress is only written back for the 3
             // most-recent books, so counting "read" from the DB misses books
             // that just hit 100%. Count from the live progress store instead.
+            // searchBy("") is the library's own base list (IsSearchBook=1,
+            // no text filter), so the card numbers match what the user sees
+            // after tapping into the library.
             BookStateStore.invalidate();
-            for (FileMeta m : AppDB.get().getAll()) {
-                if (!AppDB.get().isFolder(m)) {
+            for (FileMeta m : AppDB.get().searchBy("", AppDB.SORT_BY.DATA, false)) {
+                if (!AppDB.get().isFolder(m) && new File(m.getPath()).exists()) {
                     totalBooks++;
                     if (BookStateStore.effective(m.getPath()) == BookStateStore.READ) {
                         readBooks++;

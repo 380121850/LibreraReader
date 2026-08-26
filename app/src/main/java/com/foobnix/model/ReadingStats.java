@@ -17,6 +17,10 @@ import java.util.Locale;
  *
  * A session spanning midnight books its whole duration into the new day; a
  * process kill loses only the un-flushed tail (same trade-off as readTimeMs).
+ *
+ * Manual state changes (BookStateStore.markRead/markUnread/markReading) never
+ * pass through this class, so these counters only accumulate real reader
+ * sessions — marking a book finished by hand adds no time or pages.
  */
 public final class ReadingStats {
 

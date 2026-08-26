@@ -746,8 +746,8 @@
    <string name="moon_file_webdav">[WebDav]</string>
    <string name="moon_file_books">Books</string>
    <string name="moon_home_stats">Reading stats</string>
-   <string name="moon_stat_total">Books in library</string>
-   <string name="moon_stat_read">Books finished</string>
+   <string name="moon_stat_total">Total books</string>
+   <string name="moon_stat_read">Read books</string>
    <string name="moon_stat_time_total">Total reading time</string>
    <string name="moon_stat_today">Today</string>
    <string name="moon_stat_speed">Speed (pages/min)</string>
