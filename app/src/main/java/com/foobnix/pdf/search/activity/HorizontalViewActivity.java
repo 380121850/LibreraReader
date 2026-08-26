@@ -57,6 +57,7 @@ import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.ReadingStats;
 import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.info.Android6;
 import com.foobnix.pdf.info.AppsConfig;
@@ -122,8 +123,6 @@ import java.util.concurrent.TimeUnit;
 
 public class HorizontalViewActivity extends AdsFragmentActivity {
 
-    // Dashboard "reading hours" stat: wall time between onResume/onPause.
-    long readingResumeAt = 0;
     public boolean prev = true;
     VerticalViewPager viewPager;
     SeekBar seekBar;
@@ -1543,7 +1542,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        readingResumeAt = SystemClock.elapsedRealtime();
+        ReadingStats.onResume();
 
         DocumentController.chooseFullScreen(this, AppState.get().fullScreenMode);
         DocumentController.doRotation(this);
@@ -1578,10 +1577,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (readingResumeAt > 0) {
-            AppSP.get().readTimeMs += SystemClock.elapsedRealtime() - readingResumeAt;
-            readingResumeAt = 0;
-        }
+        ReadingStats.onPause();
         AppProfile.save(this);
         TempHolder.isSeaching = false;
         TempHolder.isActiveSpeedRead.set(false);
@@ -2554,6 +2550,12 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
         @Override
         public void onPageSelected(final int pos) {
+            // reading-speed stat: count user-driven turns only — swipes and
+            // animated jumps settle through DRAGGING/SETTLING, while the initial
+            // restore and non-animated jumps fire with the pager still IDLE
+            if (currentScrollState != ViewPager.SCROLL_STATE_IDLE) {
+                ReadingStats.onFlip();
+            }
             PageImageState.currentPage = pos;
             dc.setCurrentPage(viewPager.getCurrentItem());
             updateUI(pos);

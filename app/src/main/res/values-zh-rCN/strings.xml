@@ -736,7 +736,12 @@
    <string name="moon_home_stats">阅读统计</string>
    <string name="moon_stat_total">书架书籍总数</string>
    <string name="moon_stat_read">已读书籍总数</string>
-   <string name="moon_stat_hours">阅读小时数</string>
+   <string name="moon_stat_time_total">总阅读时间</string>
+   <string name="moon_stat_today">今日阅读</string>
+   <string name="moon_stat_speed">阅读速度（页/分）</string>
+   <string name="moon_stat_hm">%1$d小时%2$d分</string>
+   <string name="moon_stat_min">%1$d分钟</string>
+   <string name="moon_no_recent_book">暂无最近阅读</string>
    <string name="moon_drawer_library">我的书架</string>
    <string name="moon_drawer_settings">设置选项</string>
    <string name="moon_drawer_about">软件说明</string>

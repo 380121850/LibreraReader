@@ -121,6 +121,21 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/statsRow2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dip"
+                android:orientation="horizontal"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip">
+
+                <include layout="@layout/dashboard_stat_item" android:id="@+id/statToday" />
+
+                <include layout="@layout/dashboard_stat_item" android:id="@+id/statSpeed" />
+
+            </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

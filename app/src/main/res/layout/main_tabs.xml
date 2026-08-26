@@ -102,11 +102,31 @@
 
 
 
-                    <androidx.viewpager.widget.ViewPager
-                        android:id="@+id/pager"
+                    <!-- pager wrapped in a FrameLayout so the "continue last
+                         book" floating button can float bottom-right over the
+                         page content, ending exactly above the tab strip -->
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1" />
+                        android:layout_height="0dip"
+                        android:layout_weight="1">
+
+                        <androidx.viewpager.widget.ViewPager
+                            android:id="@+id/pager"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                        <ImageView
+                            android:id="@+id/fabLastBook"
+                            android:layout_width="56dip"
+                            android:layout_height="56dip"
+                            android:layout_gravity="bottom|end"
+                            android:layout_margin="16dip"
+                            android:background="@drawable/fab_book_bg"
+                            android:elevation="6dip"
+                            android:padding="15dip"
+                            android:src="@drawable/glyphicons_589_book_open"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
                     <FrameLayout
                         android:layout_marginTop="2dp"

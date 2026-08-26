@@ -50,9 +50,11 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.Safe;
 import com.foobnix.android.utils.StringDB;
 import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.dao2.FileMeta;
 import com.foobnix.drive.GFile;
 import com.foobnix.ext.CacheZipUtils.CacheDir;
 import com.foobnix.model.AppBook;
+import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
@@ -132,6 +134,7 @@ public class MainTabs2 extends AdsFragmentActivity {
     TextView toastBrightnessText, onSubscribe;
     Handler handler;
     MyProgressBar fab;
+    ImageView fabLastBook;
     SwipeRefreshLayout swipeRefreshLayout;
     boolean isMyKey = false;
     OnPageChangeListener onPageChangeListener = new OnPageChangeListener() {
@@ -159,6 +162,7 @@ public class MainTabs2 extends AdsFragmentActivity {
             if (topBarTitle != null && topBarTitle.getVisibility() == View.VISIBLE) {
                 topBarTitle.setText(title.toString());
             }
+            updateLastBookFabVisibility(uiFragment);
             Apps.accessibilityText(MainTabs2.this, title.toString() + " " + getString(R.string.tab_selected));
         }
 
@@ -403,6 +407,20 @@ public class MainTabs2 extends AdsFragmentActivity {
         fab.setBackgroundResource(R.drawable.bg_circular);
         TintUtil.setDrawableTint(fab.getBackground().getCurrent(), TintUtil.color);
 
+        // "continue last book" floating button: shown on the Home and Library
+        // tabs only; visibility is re-evaluated per tab and per resume
+        fabLastBook = findViewById(R.id.fabLastBook);
+        if (fabLastBook != null) {
+            TintUtil.setTintImageNoAlpha(fabLastBook, Color.WHITE);
+            tintLastBookFab();
+            fabLastBook.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openLastBook();
+                }
+            });
+        }
+
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setColorSchemeColors(TintUtil.color);
 
@@ -534,6 +552,11 @@ public class MainTabs2 extends AdsFragmentActivity {
                 title = getAppName();
             }
             topBarTitle.setText(title.toString());
+        }
+
+        // same for the last-book FAB: it starts on the first (Home) tab
+        if (adapter.getRealCount() > 0) {
+            updateLastBookFabVisibility(tabFragments.get(0));
         }
 
 
@@ -1169,6 +1192,8 @@ public class MainTabs2 extends AdsFragmentActivity {
             if (pager != null) {
                 final UIFragment uiFragment = tabFragments.get(getCurrentRealIndex());
                 uiFragment.onSelectFragment();
+                // the last-read book may have changed while we were away
+                updateLastBookFabVisibility(uiFragment);
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -1199,6 +1224,83 @@ public class MainTabs2 extends AdsFragmentActivity {
             pos = adapter.toReal(pos);
         }
         return Math.max(0, Math.min(pos, tabFragments.size() - 1));
+    }
+
+    // ---------------------------------------------------------------- last-book FAB
+
+    private void tintLastBookFab() {
+        if (fabLastBook != null) {
+            TintUtil.setDrawableTint(fabLastBook.getBackground().getCurrent(), TintUtil.color);
+        }
+    }
+
+    /** Show the floating button only on Home (dashboard) and Library pages. */
+    private void updateLastBookFabVisibility(UIFragment current) {
+        if (fabLastBook == null) {
+            return;
+        }
+        boolean show = current instanceof DashboardFragment2 || current instanceof SearchFragment2;
+        if (show) {
+            String path = AppSP.get().lastBookPath;
+            show = TxtUtils.isNotEmpty(path) && new File(path).isFile();
+        }
+        fabLastBook.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * FAB click: reopen the last-read book at its saved position (restored from
+     * the AppBook percent in DocumentController.onResume). If that book is
+     * finished, fall back to the most recent unfinished one.
+     */
+    private void openLastBook() {
+        String path = AppSP.get().lastBookPath;
+        if (TxtUtils.isNotEmpty(path) && new File(path).isFile()) {
+            try {
+                AppBook book = SharedBooks.load(path);
+                if (book.p > 0.9999) {
+                    path = null; // finished — look for the next unfinished one
+                }
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        } else {
+            path = null;
+        }
+        if (path == null) {
+            path = findRecentUnfinishedPath();
+        }
+        if (path == null) {
+            Toast.makeText(this, R.string.moon_no_recent_book, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final String bookPath = path;
+        boolean isEasyMode = AppSP.get().readingMode == AppState.READING_MODE_BOOK;
+        Safe.run(() -> {
+            Intent intent = new Intent(MainTabs2.this, isEasyMode ? HorizontalViewActivity.class : VerticalViewActivity.class);
+            intent.putExtra(PasswordDialog.EXTRA_APP_PASSWORD, getIntent().getStringExtra(PasswordDialog.EXTRA_APP_PASSWORD));
+            intent.setData(Uri.fromFile(new File(bookPath)));
+            startActivity(intent);
+        });
+    }
+
+    private String findRecentUnfinishedPath() {
+        try {
+            List<FileMeta> recent = AppData.get().getAllRecent(true);
+            if (recent != null) {
+                for (FileMeta m : recent) {
+                    String p = m.getPath();
+                    if (TxtUtils.isNotEmpty(p) && new File(p).isFile()) {
+                        Float progress = m.getIsRecentProgress();
+                        if (progress == null || progress < 0.9999f) {
+                            return p;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        return null;
     }
 
     @Override
@@ -1359,6 +1461,7 @@ public class MainTabs2 extends AdsFragmentActivity {
                     indicator.setBackgroundColor(TintUtil.color);
                     imageMenuParent.setBackgroundColor(TintUtil.color);
                 }
+                tintLastBookFab();
             }
         }
     };

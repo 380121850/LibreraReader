@@ -63,10 +63,14 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
     int totalBooks = 0;
     int readBooks = 0;
     long readTimeMs = 0;
+    long readDayMs = 0;
+    long readPages = 0;
 
     TextView statTotalValue;
     TextView statReadValue;
     TextView statHoursValue;
+    TextView statTodayValue;
+    TextView statSpeedValue;
 
     CoverAdapter recentAdapter;
     CoverAdapter favAdapter;
@@ -96,7 +100,9 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         }
         bindStat(view, R.id.statTotal, R.string.moon_stat_total);
         bindStat(view, R.id.statRead, R.string.moon_stat_read);
-        bindStat(view, R.id.statHours, R.string.moon_stat_hours);
+        bindStat(view, R.id.statHours, R.string.moon_stat_time_total);
+        bindStat(view, R.id.statToday, R.string.moon_stat_today);
+        bindStat(view, R.id.statSpeed, R.string.moon_stat_speed);
 
         recentAdapter = new CoverAdapter();
         favAdapter = new CoverAdapter();
@@ -143,6 +149,15 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
 
     // ------------------------------------------------------------------ stats
 
+    /** "Xh Ym" above an hour, plain minutes below — minute precision. */
+    private CharSequence formatMinutes(long ms) {
+        long minutes = ms / 60000;
+        if (minutes >= 60) {
+            return getString(R.string.moon_stat_hm, minutes / 60, minutes % 60);
+        }
+        return getString(R.string.moon_stat_min, minutes);
+    }
+
     private void bindStat(View view, int cardId, int labelRes) {
         View card = view.findViewById(cardId);
         if (card == null) {
@@ -165,6 +180,10 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             statReadValue = value;
         } else if (cardId == R.id.statHours) {
             statHoursValue = value;
+        } else if (cardId == R.id.statToday) {
+            statTodayValue = value;
+        } else if (cardId == R.id.statSpeed) {
+            statSpeedValue = value;
         }
     }
 
@@ -294,6 +313,8 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             LOG.e(e);
         }
         readTimeMs = AppSP.get().readTimeMs;
+        readDayMs = AppSP.get().readDayMs;
+        readPages = AppSP.get().readPages;
 
         return new ArrayList<FileMeta>();
     }
@@ -362,7 +383,15 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             statReadValue.setText(String.valueOf(readBooks));
         }
         if (statHoursValue != null) {
-            statHoursValue.setText(String.format(Locale.US, "%.1f", readTimeMs / 3600000f));
+            statHoursValue.setText(formatMinutes(readTimeMs));
+        }
+        if (statTodayValue != null) {
+            statTodayValue.setText(formatMinutes(readDayMs));
+        }
+        if (statSpeedValue != null) {
+            long minutes = readTimeMs / 60000;
+            float speed = minutes > 0 ? readPages / (float) minutes : 0f;
+            statSpeedValue.setText(String.format(Locale.US, "%.1f", speed));
         }
     }
 

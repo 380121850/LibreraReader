@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- accent-tinted circle behind the "continue last book" floating button;
+     runtime color is applied via TintUtil.setDrawableTint(TintUtil.color) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#3949ab" />
+</shape>

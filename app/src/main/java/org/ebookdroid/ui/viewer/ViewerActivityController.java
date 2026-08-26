@@ -22,6 +22,7 @@ import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.ReadingStats;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.model.OutlineLinkWrapper;
@@ -315,6 +316,10 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     }
 
     @Override public void currentPageChanged(final int page, int pages) {
+        // reading-speed stat: fires exactly once per page index change in
+        // scroll mode; the initial restore happens before onResume so the
+        // session guard inside onFlip() filters it out
+        ReadingStats.onFlip();
         final int pageCount = documentModel.getPageCount();
         String pageText = "";
         if (pageCount > 0) {

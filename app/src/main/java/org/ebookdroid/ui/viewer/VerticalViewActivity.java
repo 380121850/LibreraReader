@@ -30,6 +30,7 @@ import com.foobnix.model.AppBook;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.model.ReadingStats;
 import com.foobnix.pdf.info.Android6;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.PasswordDialog;
@@ -52,9 +53,6 @@ import org.emdev.ui.AbstractActionActivity;
 
 public class VerticalViewActivity extends AbstractActionActivity<VerticalViewActivity, ViewerActivityController> {
     public static final DisplayMetrics DM = new DisplayMetrics();
-
-    // Dashboard "reading hours" stat: wall time between onResume/onPause.
-    long readingResumeAt = 0;
 
     IView view;
 
@@ -201,7 +199,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     @Override
     protected void onResume() {
         super.onResume();
-        readingResumeAt = SystemClock.elapsedRealtime();
+        ReadingStats.onResume();
         DocumentController.doRotation(this);
 
         if (AppState.get().fullScreenMode == AppState.FULL_SCREEN_FULLSCREEN) {
@@ -247,10 +245,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     protected void onPause() {
         super.onPause();
         LOG.d("onPause", this.getClass());
-        if (readingResumeAt > 0) {
-            AppSP.get().readTimeMs += SystemClock.elapsedRealtime() - readingResumeAt;
-            readingResumeAt = 0;
-        }
+        ReadingStats.onPause();
         getController().onPause();
         needToRestore = AppState.get().isAutoScroll;
         AppState.get().isAutoScroll = false;

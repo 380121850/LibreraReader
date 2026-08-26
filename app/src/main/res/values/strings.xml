@@ -736,7 +736,12 @@
    <string name="moon_home_stats">Reading stats</string>
    <string name="moon_stat_total">Books in library</string>
    <string name="moon_stat_read">Books finished</string>
-   <string name="moon_stat_hours">Hours read</string>
+   <string name="moon_stat_time_total">Total reading time</string>
+   <string name="moon_stat_today">Today</string>
+   <string name="moon_stat_speed">Speed (pages/min)</string>
+   <string name="moon_stat_hm">%1$d h %2$d min</string>
+   <string name="moon_stat_min">%1$d min</string>
+   <string name="moon_no_recent_book">No recent book</string>
    <string name="moon_drawer_library">My library</string>
    <string name="moon_drawer_settings">Settings</string>
    <string name="moon_drawer_about">About</string>

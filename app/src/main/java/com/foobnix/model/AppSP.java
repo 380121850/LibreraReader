@@ -35,6 +35,11 @@ public class AppSP {
     public int syncTimeStatus;
     // Cumulative time (ms) spent in the reader, shown on the dashboard stats.
     public long readTimeMs = 0;
+    // Reading stats: today's reading time ("yyyy-MM-dd" key) and cumulative
+    // page flips, for the daily-time and reading-speed dashboard cards.
+    public String readDayKey = "";
+    public long readDayMs = 0;
+    public long readPages = 0;
     public String hypenLang = null;
     public boolean isCut = false;
     public boolean isDouble = false;
