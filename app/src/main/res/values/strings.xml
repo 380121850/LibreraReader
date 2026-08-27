@@ -758,7 +758,8 @@
   <string name="moon_range_year">Year</string>
   <string name="moon_net_section_opds">Online catalogs (OPDS)</string>
   <string name="moon_net_section_webdav">WebDAV</string>
-  <string name="moon_section_folders">Folders</string>
+  <string name="moon_section_folders">Library folders</string>
+  <string name="moon_remove_folder_hint">Remove this folder from the library list? The folder on disk will not be deleted</string>
    <string name="moon_stat_hm">%1$d h %2$d min</string>
    <string name="moon_stat_min">%1$d min</string>
    <string name="moon_no_recent_book">No recent book</string>

@@ -30,14 +30,17 @@ import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.foobnix.webdav.WebDavCredentials;
 import com.foobnix.webdav.WebDavServer;
 import com.foobnix.webdav.WebDavStore;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
@@ -72,8 +75,10 @@ import com.foobnix.pdf.info.io.SearchCore;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.view.AlertDialogs;
 import com.foobnix.pdf.info.view.Dialogs;
+import com.foobnix.pdf.info.view.MultyDocSearchDialog;
 import com.foobnix.pdf.info.view.MyPopupMenu;
 import com.foobnix.pdf.info.view.MyProgressBar;
+import com.foobnix.pdf.info.wrapper.UITab;
 import com.foobnix.pdf.info.widget.ShareDialog;
 import com.foobnix.pdf.info.widget.AddCatalogDialog;
 import com.foobnix.pdf.info.widget.ChooserDialogFragment;
@@ -81,6 +86,7 @@ import com.foobnix.webdav.AddWebDavDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
 import com.foobnix.pdf.search.view.AsyncProgressResultToastTask;
 import com.foobnix.pdf.search.view.AsyncProgressTask;
+import com.foobnix.work.SearchAllBooksWorker;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.FileMetaCore;
@@ -672,6 +678,22 @@ import java.util.Map;
             @Override public boolean onResultRecive(FileMeta result) {
                 if (result.getCusType() != null && result.getCusType() == FileMetaAdapter.DISPLAY_TYPE_DIRECTORY) {
                     // displayAnyPath(result.getPath());
+                    if (ROOT_PATH.equals(AppState.get().displayPath)) {
+                        // the root list shows the configured library folders:
+                        // long press removes the entry from the list only, the
+                        // folder on disk is never touched
+                        AlertDialogs.showDialog(getActivity(),
+                                getString(R.string.moon_remove_folder_hint) + "\n[" + result.getPath() + "]",
+                                getString(R.string.delete), new Runnable() {
+                                    @Override public void run() {
+                                        BookCSS.get().searchPathsJson =
+                                                JsonDB.remove(BookCSS.get().searchPathsJson, result.getPath());
+                                        AppProfile.save(getActivity());
+                                        populate();
+                                    }
+                                });
+                        return false;
+                    }
                     if (TxtUtils.isNotEmpty(TempHolder.get().copyFromPath)) {
                         ShareDialog.dirLongPress(getActivity(), result.getPath(), new Runnable() {
 
@@ -1093,8 +1115,8 @@ import java.util.Map;
      * Network section of the "My files" root view: three separated blocks
      * (OPDS catalogs, WebDAV servers, library folders), each with its own
      * header + "add" button and a vertical list. Tapping an OPDS/WebDAV entry
-     * opens the Network page directly on that target (page or temporary
-     * overlay when its tab is hidden).
+     * opens a detached network page on that target; every entry can be
+     * removed individually with its own delete icon.
      */
     private void buildNetSections() {
         if (netSection == null) {
@@ -1121,7 +1143,20 @@ import java.util.Map;
         for (final String[] cat : getOpdsCatalogs()) {
             netSection.addView(netListItem(R.drawable.glyphicons_417_globe, cat[1], new OnClickListener() {
                 @Override public void onClick(View v) {
-                    ((MainTabs2) a).openNetworkPage(false, cat[0]);
+                    ((MainTabs2) a).openNetworkPage(false, cat[0], cat[1]);
+                }
+            }, new OnClickListener() {
+                @Override public void onClick(View v) {
+                    AlertDialogs.showDialog(a,
+                            a.getString(R.string.do_you_want_to_delete_) + " " + cat[1],
+                            a.getString(R.string.delete), new Runnable() {
+                                @Override public void run() {
+                                    AppState.get().allOPDSLinks =
+                                            AppState.get().allOPDSLinks.replace(cat[2], "");
+                                    AppProfile.save(a);
+                                    rebuild.run();
+                                }
+                            });
                 }
             }));
         }
@@ -1136,18 +1171,74 @@ import java.util.Map;
         for (final WebDavServer srv : WebDavStore.load()) {
             netSection.addView(netListItem(R.drawable.glyphicons_544_cloud, srv.title, new OnClickListener() {
                 @Override public void onClick(View v) {
-                    ((MainTabs2) a).openNetworkPage(true, srv.url);
+                    ((MainTabs2) a).openNetworkPage(true, srv.url, srv.title);
+                }
+            }, new OnClickListener() {
+                @Override public void onClick(View v) {
+                    AlertDialogs.showDialog(a,
+                            a.getString(R.string.do_you_want_to_delete_) + " " + srv.title,
+                            a.getString(R.string.delete), new Runnable() {
+                                @Override public void run() {
+                                    WebDavStore.remove(srv);
+                                    WebDavCredentials.clear(a, srv.url);
+                                    AppProfile.save(a);
+                                    rebuild.run();
+                                }
+                            });
                 }
             }));
         }
 
-        // --- library folders (list itself lives in the RecyclerView) ---
+        // --- library folders (the list itself lives in the RecyclerView) ---
         netSection.addView(netSectionDivider());
         netSection.addView(netSectionHeader(getString(R.string.moon_section_folders), new OnClickListener() {
             @Override public void onClick(View v) {
-                addLibraryFolder(rebuild);
+                PopupMenu p = new PopupMenu(a, v);
+                p.getMenu()
+                 .add(R.string.add_folder)
+                 .setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                     @Override public boolean onMenuItemClick(MenuItem item) {
+                         addLibraryFolder(rebuild);
+                         return false;
+                     }
+                 });
+                p.getMenu()
+                 .add(R.string.add_file)
+                 .setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                     @Override public boolean onMenuItemClick(MenuItem item) {
+                         addLibraryFile(rebuild);
+                         return false;
+                     }
+                 });
+                p.getMenu()
+                 .add(R.string.search)
+                 .setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                     @Override public boolean onMenuItemClick(MenuItem item) {
+                         scanLibrary();
+                         return false;
+                     }
+                 });
+                p.show();
             }
         }));
+        // tools moved here from the preferences "file search" category
+        netSection.addView(netListItem(R.drawable.glyphicons_144_database_search,
+                getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
+                    }
+                }, null));
+        netSection.addView(netListItem(R.drawable.glyphicons_371_plus,
+                getString(R.string.new_file_txt), new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        AlertDialogs.editFileTxt(a, null, AppProfile.DOWNLOADS_DIR, new StringResponse() {
+                            @Override public boolean onResultRecive(String string) {
+                                ExtUtils.openFile(a, new FileMeta(string));
+                                return false;
+                            }
+                        });
+                    }
+                }, null));
     }
 
     /** "add a library folder" flow, same checks as the preferences page. */
@@ -1179,31 +1270,66 @@ import java.util.Map;
                 });
     }
 
+    /** "add a single file to the library" flow, from the old preferences row. */
+    private void addLibraryFile(final Runnable refresh) {
+        final androidx.fragment.app.FragmentActivity fa = (androidx.fragment.app.FragmentActivity) getActivity();
+        ChooserDialogFragment.chooseFile(fa, "")
+                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                    @Override public boolean onResultRecive(String nPath, Dialog dialog) {
+                        if (!new File(nPath).isFile()) {
+                            Toast.makeText(fa, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                        } else if (JsonDB.contains(BookCSS.get().searchPathsJson, nPath)) {
+                            Toast.makeText(fa, R.string.this_directory_is_already_in_the_list, Toast.LENGTH_LONG).show();
+                        } else {
+                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        }
+                        dialog.dismiss();
+                        AppProfile.save(fa);
+                        refresh.run();
+                        populate();
+                        return false;
+                    }
+                });
+    }
+
+    /** Runs the library scan (the "search" action of the old preferences row). */
+    private void scanLibrary() {
+        final Activity a = getActivity();
+        if (a == null) {
+            return;
+        }
+        AppProfile.save(a);
+        SearchAllBooksWorker.run(a);
+        Intent intent = new Intent(UIFragment.INTENT_TINT_CHANGE)//
+                .putExtra(MainTabs2.EXTRA_PAGE_NUMBER, UITab.getCurrentTabIndex(UITab.SearchFragment));//
+        LocalBroadcastManager.getInstance(a).sendBroadcast(intent);
+    }
+
     /** Section header row: title on the left, an "add" link on the right. */
     private View netSectionHeader(String title, OnClickListener onAdd) {
         LinearLayout row = new LinearLayout(getActivity());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(Dips.dpToPx(14), Dips.dpToPx(8), Dips.dpToPx(14), Dips.dpToPx(2));
+        row.setPadding(Dips.dpToPx(14), Dips.dpToPx(12), Dips.dpToPx(14), Dips.dpToPx(6));
 
         TextView t = new TextView(getActivity());
         t.setText(title);
-        t.setTextSize(14);
+        t.setTextSize(16);
         t.setTypeface(null, Typeface.BOLD);
-        t.setTextColor(getResources().getColor(R.color.tint_gray));
+        t.setTextColor(TintUtil.getColorInDayNighth());
         row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
         TextView add = new TextView(getActivity());
         add.setText("+ " + getString(R.string.add));
-        add.setTextSize(14);
+        add.setTextSize(15);
         add.setTextColor(TintUtil.color);
         add.setOnClickListener(onAdd);
         row.addView(add, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         return row;
     }
 
-    /** Vertical list entry with a leading icon. */
-    private View netListItem(int iconRes, String text, OnClickListener onClick) {
+    /** Vertical list entry with a leading icon and an optional delete icon. */
+    private View netListItem(int iconRes, String text, OnClickListener onClick, OnClickListener onRemove) {
         LinearLayout row = new LinearLayout(getActivity());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -1223,6 +1349,15 @@ import java.util.Map;
         t.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
         t.setTextColor(TintUtil.getColorInDayNighth());
         row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+
+        if (onRemove != null) {
+            ImageView del = new ImageView(getActivity());
+            del.setImageResource(R.drawable.glyphicons_599_menu_close);
+            del.setColorFilter(TintUtil.getColorInDayNighth());
+            del.setPadding(Dips.dpToPx(12), Dips.dpToPx(4), Dips.dpToPx(2), Dips.dpToPx(4));
+            del.setOnClickListener(onRemove);
+            row.addView(del, new LinearLayout.LayoutParams(Dips.dpToPx(26), Dips.dpToPx(26)));
+        }
         return row;
     }
 
@@ -1231,13 +1366,13 @@ import java.util.Map;
         line.setBackgroundColor(0x1e999999);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, Dips.dpToPx(1));
-        lp.topMargin = Dips.dpToPx(6);
-        lp.bottomMargin = Dips.dpToPx(2);
+        lp.topMargin = Dips.dpToPx(12);
+        lp.bottomMargin = Dips.dpToPx(6);
         line.setLayoutParams(lp);
         return line;
     }
 
-    /** Saved OPDS catalogs as {url, title} pairs (favorites entry skipped). */
+    /** Saved OPDS catalogs as {url, title, rawLine} triples (favorites entry skipped). */
     private List<String[]> getOpdsCatalogs() {
         List<String[]> res = new ArrayList<>();
         for (String line : AppState.get().allOPDSLinks.split(";")) {
@@ -1246,7 +1381,7 @@ import java.util.Map;
             }
             String[] it = line.split(",");
             if (it.length >= 2) {
-                res.add(new String[]{it[0], it[1]});
+                res.add(new String[]{it[0], it[1], line + ";"});
             }
         }
         return res;
@@ -1374,6 +1509,11 @@ import java.util.Map;
         // the root view it would break the OPDS / WebDAV / folders grouping
         if (quickDirChipsRow != null) {
             quickDirChipsRow.setVisibility(ROOT_PATH.equals(path) ? View.GONE : View.VISIBLE);
+        }
+        // the browse toolbar (back / paste / sort / ...) belongs to directory
+        // browsing; the "My files" root page is a plain configuration list
+        if (pathContainer != null) {
+            pathContainer.setVisibility(ROOT_PATH.equals(path) ? View.GONE : View.VISIBLE);
         }
         populate();
     }

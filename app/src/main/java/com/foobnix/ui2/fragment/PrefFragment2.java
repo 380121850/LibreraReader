@@ -81,6 +81,7 @@ import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.Urls;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.presentation.PathAdapter;
+import com.foobnix.pdf.info.view.AboutSectionBinder;
 import com.foobnix.pdf.info.view.AlertDialogs;
 import com.foobnix.pdf.info.view.BrightnessHelper;
 import com.foobnix.pdf.info.view.CustomSeek;
@@ -137,7 +138,7 @@ public class PrefFragment2 extends UIFragment {
     private static final String WWW_SITE = "https://librera.mobi";
     private static final String WWW_BETA_SITE = "http://beta.librera.mobi";
     private static final String WWW_WIKI_SITE = "https://librera.mobi/faq";
-    View section1, section2, section4, section6, section8, section9, panelRecent, overlay,
+    View section1, section2, section4, section8, section9, panelRecent, overlay,
             statusBarHack;
     TextView singIn, syncInfo, syncInfo2, syncHeader;
     CheckBox isEnableSync;
@@ -191,7 +192,6 @@ public class PrefFragment2 extends UIFragment {
         TintUtil.setBackgroundFillColor(section1, TintUtil.color);
         TintUtil.setBackgroundFillColor(section2, TintUtil.color);
         TintUtil.setBackgroundFillColor(section4, TintUtil.color);
-        TintUtil.setBackgroundFillColor(section6, TintUtil.color);
         TintUtil.setBackgroundFillColor(section8, TintUtil.color);
         TintUtil.setBackgroundFillColor(section9, TintUtil.color);
         TintUtil.setBackgroundFillColor(panelRecent, TintUtil.color);
@@ -493,7 +493,6 @@ public class PrefFragment2 extends UIFragment {
         section1 = inflate.findViewById(R.id.section1);
         section2 = inflate.findViewById(R.id.section2);
         section4 = inflate.findViewById(R.id.section4);
-        section6 = inflate.findViewById(R.id.section6);
 
         // collapsible second-level groups: click header to toggle content
         final View tabsConfigHeader = inflate.findViewById(R.id.tabsConfigHeader);
@@ -550,15 +549,6 @@ public class PrefFragment2 extends UIFragment {
             @Override public void onClick(View v) {
                 libraryDisplayConfigContainer.setVisibility(
                         libraryDisplayConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-            }
-        });
-
-        final View fileSearchConfigHeader = inflate.findViewById(R.id.fileSearchConfigHeader);
-        final View fileSearchConfigContainer = inflate.findViewById(R.id.fileSearchConfigContainer);
-        fileSearchConfigHeader.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-                fileSearchConfigContainer.setVisibility(
-                        fileSearchConfigContainer.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -666,34 +656,9 @@ public class PrefFragment2 extends UIFragment {
 
         // ((TextView) findViewById(R.id.appName)).setText(AppsConfig.APP_NAME);
 
-        try {
-            PackageInfo packageInfo = getActivity().getPackageManager()
-                                                   .getPackageInfo(getActivity().getPackageName(), 0);
-            String version =
-                    packageInfo.versionName + " (" + AppsConfig.MUPDF_FZ_VERSION + "-" + LibreraBuildConfig.FLAVOR + ")";
-            if (Dips.isEInk()) {
-                version += " INK";
-            }
-            if (AppsConfig.IS_LOG) {
-                version += "\n MODEL: " + Build.MODEL;
-                version += "\n BRAND: " + Build.BRAND;
-                version += "\n PRODUCT: " + Build.PRODUCT;
-                version += "\n MANUFACTURER: " + Build.MANUFACTURER;
-                version += "\n DEVICE: " + Build.DEVICE;
-                version += "\n REFRESH: " + Dips.getRefreshRate();
-                version += "\n W x H: " + Dips.screenWidthDP() + " x " + Dips.screenHeightDP();
-                version += "\n Night: " + Apps.isNight(getActivity());
-            }
-
-            // ((TextView) inflate.findViewById(R.id.pVersion)).setText(String.format("%s:
-            // %s (%s)", getString(R.string.version), version, AppsConfig.MUPDF_VERSION));
-            ((TextView) inflate.findViewById(R.id.pVersion)).setText(
-                    String.format("%s: %s", getString(R.string.version), version));
-            ((TextView) inflate.findViewById(R.id.section6)).setText(
-                    String.format("%s: %s %s %s", Apps.getApplicationName(getActivity()), version,
-                            "SDK: " + Build.VERSION.SDK_INT, Build.MANUFACTURER));
-        } catch (final NameNotFoundException e) {
-        }
+        // collapsed 软件说明 row: click opens the drawer-style about dialog
+        TxtUtils.underlineTextView(inflate.findViewById(R.id.aboutSoftware))
+                .setOnClickListener(v -> AboutSectionBinder.showDialog(getActivity()));
 
         TextView onCloseApp = inflate.findViewById(R.id.onCloseApp);
         TxtUtils.underlineTextView(onCloseApp);
@@ -1139,21 +1104,8 @@ public class PrefFragment2 extends UIFragment {
                                                     }
                                                 });
 
-        final TextView onMail = inflate.findViewById(R.id.onMailSupport);
-        onMail.setText(TxtUtils.underline(
-
-                getString(R.string.my_email)));
-
-        onMail.setOnClickListener(new
-
-                                          OnClickListener() {
-                                              @Override
-
-                                              public void onClick(final View v) {
-                                                  onEmail();
-                                              }
-                                          });
-
+        // onMailSupport / whatIsNew / rate / web / pro / licences rows moved
+        // into the 软件说明 dialog (AboutSectionBinder)
         ((ConfLineView) inflate.findViewById(R.id.configLongClick)).init(//
                 () -> AppState.get().defaultLongClick,//
                 value -> AppState.get().defaultLongClick = value,//
@@ -1490,25 +1442,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
             }
         });
 
-        final TextView whatIsNew = inflate.findViewById(R.id.whatIsNew);
-        whatIsNew.setText(
-
-                getActivity().
-
-                                     getString(R.string.what_is_new_in) + " " + Apps.getApplicationName(
-
-                        getActivity()) + " " + Apps.getVersionName(
-
-                        getActivity()));
-        TxtUtils.underlineTextView(whatIsNew);
-        whatIsNew.setOnClickListener(new View.OnClickListener() {
-
-            @Override public void onClick(View v) {
-                AndroidWhatsNew.show2(getActivity());
-
-            }
-        });
-
         ///
 
         // BrightnessHelper.controlsWrapper(inflate, getActivity());
@@ -1531,16 +1464,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
                });
 
         initKeys();
-
-        final LinearLayout libraryFoldersConfigContainer = inflate.findViewById(R.id.libraryFoldersConfigContainer);
-        TxtUtils.underlineTextView(inflate.findViewById(R.id.libraryFoldersSettings))
-                .setOnClickListener(v -> {
-                    boolean expand = libraryFoldersConfigContainer.getVisibility() != View.VISIBLE;
-                    libraryFoldersConfigContainer.setVisibility(expand ? View.VISIBLE : View.GONE);
-                    if (expand) {
-                        populateFolderConfig(libraryFoldersConfigContainer);
-                    }
-                });
 
         TxtUtils.underlineTextView(inflate.findViewById(R.id.importButton))
                 .setOnClickListener(v -> PrefDialogs.importDialog(getActivity()));
@@ -2186,62 +2109,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
             }
         });
 
-        underline(inflate.findViewById(R.id.onRateIt)).
-
-                                                              setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.rateIT(getActivity());
-            }
-        });
-
-        underline(inflate.findViewById(R.id.openWeb)).
-
-                                                             setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.open(getActivity(), WWW_SITE);
-            }
-        });
-
-        underline(inflate.findViewById(R.id.openBeta)).
-
-                                                              setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.open(getActivity(), WWW_BETA_SITE);
-            }
-        });
-
-        underline(inflate.findViewById(R.id.openWiki)).
-
-                                                              setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.open(getActivity(), WWW_WIKI_SITE);
-            }
-        });
-
-        underline(inflate.findViewById(R.id.onTelegram)).
-
-                                                                setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.open(getActivity(), "https://t.me/LibreraReader");
-            }
-        });
-
-        TextView proText = inflate.findViewById(R.id.downloadPRO);
-        TxtUtils.underlineTextView(proText);
-        ((View) proText.getParent()).
-
-                                            setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(final View v) {
-                Urls.openPdfPro(getActivity());
-            }
-        });
-
         inflate.findViewById(R.id.cleanRecent)
                .
 
@@ -2297,50 +2164,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
                    }
                });
 
-        // licences link
-        underline(inflate.findViewById(R.id.libraryLicenses)).
-
-                                                                     setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(View v) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                alert.setTitle(R.string.licenses_for_libraries);
-
-                WebView wv = new WebView(getActivity());
-                wv.loadUrl("file:///android_asset/licenses.html");
-                wv.setWebViewClient(new WebViewClient() {
-                    @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                        view.loadUrl(url);
-                        return true;
-                    }
-                });
-
-                alert.setView(wv);
-                alert.setNegativeButton(R.string.close, new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int id) {
-                        dialog.dismiss();
-                    }
-                });
-                AlertDialog create = alert.create();
-                create.setOnDismissListener(new OnDismissListener() {
-
-                    @Override public void onDismiss(DialogInterface dialog) {
-                        Keyboards.hideNavigation(getActivity());
-                    }
-                });
-                create.show();
-            }
-        });
-
-        TxtUtils.underlineTextView(inflate.findViewById(R.id.docSearch))
-                .
-
-                        setOnClickListener(new OnClickListener() {
-
-                    @Override public void onClick(View v) {
-                        MultyDocSearchDialog.show(getActivity());
-                    }
-                });
         // convert
         final TextView docConverter = inflate.findViewById(R.id.docConverter);
         TxtUtils.underlineTextView(docConverter);
@@ -2371,21 +2194,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
                                                         p.show();
                                                     }
                                                 });
-
-        final TextView newFile = inflate.findViewById(R.id.newFile);
-        TxtUtils.underlineTextView(newFile);
-        newFile.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-
-                AlertDialogs.editFileTxt(getActivity(), null, AppProfile.DOWNLOADS_DIR, new StringResponse() {
-                    @Override public boolean onResultRecive(String string) {
-                        ExtUtils.openFile(getActivity(), new FileMeta(string));
-                        return false;
-                    }
-                });
-
-            }
-        });
 
         statusBarHack = getActivity().findViewById(R.id.systemBarHack);
 
@@ -2780,135 +2588,6 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
                 notifyFragment();
             }
         });
-    }
-
-    private void populateFolderConfig(final LinearLayout root) {
-        final Activity a = getActivity();
-        if (a == null) {
-            return;
-        }
-        root.removeAllViews();
-
-        final Runnable refresh = new Runnable() {
-            @Override public void run() {
-                populateFolderConfig(root);
-            }
-        };
-
-        final PathAdapter recentAdapter = new PathAdapter();
-        recentAdapter.setOnDeleClick(new ResultResponse<Uri>() {
-            @Override
-            public boolean onResultRecive(Uri result) {
-                String path = result.getPath();
-                BookCSS.get().searchPathsJson = JsonDB.remove(BookCSS.get().searchPathsJson, path);
-                saveChanges();
-                refresh.run();
-                return false;
-            }
-        });
-        recentAdapter.setPaths(JsonDB.get(BookCSS.get().searchPathsJson));
-
-        final LinearLayout pathsList = new LinearLayout(a);
-        pathsList.setOrientation(LinearLayout.VERTICAL);
-        for (int i = 0; i < recentAdapter.getCount(); i++) {
-            pathsList.addView(recentAdapter.getView(i, null, pathsList));
-        }
-        root.addView(pathsList, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        final LinearLayout addRow = new LinearLayout(a);
-        addRow.setOrientation(LinearLayout.HORIZONTAL);
-        addRow.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
-
-        final TextView addFolder = new TextView(a);
-        addFolder.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_folder)));
-        addRow.addView(addFolder, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        final TextView addFile = new TextView(a);
-        addFile.setText(TxtUtils.notAndUnderline("+ ", a.getString(R.string.add_file)));
-        addFile.setPadding(Dips.dpToPx(10), 0, 0, 0);
-        addRow.addView(addFile, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        root.addView(addRow, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        final TextView search = new TextView(a);
-        search.setText(TxtUtils.notAndUnderline("", a.getString(R.string.search)));
-        search.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
-        search.setOnClickListener(v -> onScan());
-        root.addView(search, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        addFolder.setOnClickListener(v -> ChooserDialogFragment
-                .chooseFolder(getActivity(), BookCSS.get().dirLastPath)
-                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
-                    @Override
-                    public boolean onResultRecive(String nPath, Dialog dialog) {
-                        if (nPath.equals("/")) {
-                            Toast.makeText(a, String.format("[ / ] %s", a.getString(R.string.incorrect_value)),
-                                    Toast.LENGTH_LONG).show();
-                            return false;
-                        }
-                        boolean isExists = false;
-                        String existPath = "";
-                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
-                            if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
-                                isExists = true;
-                                existPath = str;
-                                break;
-                            }
-                        }
-                        if (ExtUtils.isExteralSD(nPath)) {
-                            Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
-                        } else if (isExists) {
-                            Toast.makeText(a,
-                                    String.format("[ %s == %s ] %s", nPath, existPath,
-                                            a.getString(R.string.this_directory_is_already_in_the_list)),
-                                    Toast.LENGTH_LONG).show();
-                        } else {
-                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
-                        }
-                        dialog.dismiss();
-                        saveChanges();
-                        refresh.run();
-                        return false;
-                    }
-                }));
-
-        addFile.setOnClickListener(v -> ChooserDialogFragment
-                .chooseFile(getActivity(), "")
-                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
-                    @Override
-                    public boolean onResultRecive(String nPath, Dialog dialog) {
-                        if (!new File(nPath).isFile()) {
-                            Toast.makeText(a, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
-                            return false;
-                        }
-                        boolean isExists = false;
-                        String existPath = "";
-                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
-                            if (str != null && str.trim().length() != 0 && nPath.equals(str)) {
-                                isExists = true;
-                                existPath = str;
-                                break;
-                            }
-                        }
-                        if (isExists) {
-                            Toast.makeText(a,
-                                    String.format("[ %s == %s ] %s", nPath, existPath,
-                                            a.getString(R.string.this_directory_is_already_in_the_list)),
-                                    Toast.LENGTH_LONG).show();
-                        } else {
-                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
-                        }
-                        dialog.dismiss();
-                        saveChanges();
-                        refresh.run();
-                        return false;
-                    }
-                }));
     }
 
     @Override public void onResume() {

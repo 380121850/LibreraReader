@@ -1156,7 +1156,17 @@ public class OpdsFragment2 extends UIFragment<Entry> {
                     url = popStack();
                 }
             });
-            url = popStack();
+            // unreachable catalog: fall back to the parent (or the root when
+            // the page opened straight on the target) and rebind, so BACK
+            // doesn't retry the dead url forever
+            String parent = popStack();
+            if (parent.equals(url) || stack.isEmpty()) {
+                stack.clear();
+                url = "/";
+            } else {
+                url = parent;
+            }
+            populate();
             return;
         }
 

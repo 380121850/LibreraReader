@@ -758,7 +758,8 @@
    <string name="moon_range_year">近1年</string>
    <string name="moon_net_section_opds">网上书库（OPDS）</string>
    <string name="moon_net_section_webdav">WebDAV</string>
-   <string name="moon_section_folders">文件夹</string>
+   <string name="moon_section_folders">书库文件夹</string>
+   <string name="moon_remove_folder_hint">从书库列表中移除该文件夹？磁盘上的文件夹不会被删除</string>
    <string name="moon_stat_hm">%1$d小时%2$d分</string>
    <string name="moon_stat_min">%1$d分钟</string>
    <string name="moon_no_recent_book">暂无最近阅读</string>

@@ -70,6 +70,7 @@ import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.Urls;
 import com.foobnix.pdf.info.model.BookCSS;
+import com.foobnix.pdf.info.view.AboutSectionBinder;
 import com.foobnix.pdf.info.view.BrightnessHelper;
 import com.foobnix.pdf.info.view.Dialogs;
 import com.foobnix.pdf.info.view.MyProgressBar;
@@ -997,93 +998,7 @@ public class MainTabs2 extends AdsFragmentActivity {
      * support mail, web and rate links — NOT the settings sections themselves.
      */
     private void showAboutDialog() {
-        View content = LayoutInflater.from(this).inflate(R.layout.dialog_about, null);
-        bindAboutSection(content);
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.moon_drawer_about)
-                .setView(content)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
-    }
-
-    /** Wire the shared about_section layout (same block the 偏好 page shows at its bottom). */
-    private void bindAboutSection(View root) {
-        try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            String version = packageInfo.versionName + " (" + AppsConfig.MUPDF_FZ_VERSION + "-" + LibreraBuildConfig.FLAVOR + ")";
-            ((TextView) root.findViewById(R.id.pVersion)).setText(
-                    String.format("%s: %s", getString(R.string.version), version));
-            TextView section6 = root.findViewById(R.id.section6);
-            section6.setText(
-                    String.format("%s: %s %s %s", Apps.getApplicationName(this), version,
-                            "SDK: " + Build.VERSION.SDK_INT, Build.MANUFACTURER));
-            // match the prefs page, which recolors the header pill with the accent
-            TintUtil.setBackgroundFillColor(section6, TintUtil.color);
-        } catch (PackageManager.NameNotFoundException e) {
-            LOG.e(e);
-        }
-
-        TextView whatIsNew = root.findViewById(R.id.whatIsNew);
-        whatIsNew.setText(getString(R.string.what_is_new_in) + " " + Apps.getApplicationName(this) + " " + Apps.getVersionName(this));
-        TxtUtils.underlineTextView(whatIsNew);
-        whatIsNew.setOnClickListener(v -> AndroidWhatsNew.show2(this));
-
-        TextView licenses = root.findViewById(R.id.libraryLicenses);
-        TxtUtils.underlineTextView(licenses);
-        licenses.setOnClickListener(v -> showLicensesDialog());
-
-        TextView onMail = root.findViewById(R.id.onMailSupport);
-        onMail.setText(TxtUtils.underline(getString(R.string.my_email)));
-        onMail.setOnClickListener(v -> onEmailSupport());
-
-        TextView openWeb = root.findViewById(R.id.openWeb);
-        TxtUtils.underlineTextView(openWeb);
-        openWeb.setOnClickListener(v -> Urls.open(this, "https://librera.mobi"));
-
-        TextView proText = root.findViewById(R.id.downloadPRO);
-        TxtUtils.underlineTextView(proText);
-        ((View) proText.getParent()).setOnClickListener(v -> Urls.openPdfPro(this));
-
-        TextView rateIt = root.findViewById(R.id.onRateIt);
-        TxtUtils.underlineTextView(rateIt);
-        rateIt.setOnClickListener(v -> Urls.rateIT(this));
-    }
-
-    private void showLicensesDialog() {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle(R.string.licenses_for_libraries);
-        WebView wv = new WebView(this);
-        wv.loadUrl("file:///android_asset/licenses.html");
-        wv.setWebViewClient(new WebViewClient() {
-            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-        });
-        alert.setView(wv);
-        alert.setNegativeButton(R.string.close, (dialog, id) -> dialog.dismiss());
-        AlertDialog dialog = alert.create();
-        // release the WebView instead of leaking it on every open
-        dialog.setOnDismissListener(d -> {
-            wv.loadUrl("about:blank");
-            wv.destroy();
-        });
-        dialog.show();
-    }
-
-    private void onEmailSupport() {
-        Intent emailIntent = new Intent(Intent.ACTION_SEND);
-        String address = getString(R.string.my_email).replace("<u>", "").replace("</u>", "");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{address});
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT,
-                Apps.getApplicationName(this) + " " + Apps.getVersionName(this));
-        emailIntent.setType("plain/text");
-        emailIntent.putExtra(Intent.EXTRA_TEXT, "Hi Support, ");
-        try {
-            startActivity(Intent.createChooser(emailIntent, getString(R.string.send_mail)));
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(this, R.string.there_are_no_email_applications_installed_, Toast.LENGTH_SHORT).show();
-        }
+        AboutSectionBinder.showDialog(this);
     }
 
     CharSequence appNameCache;
@@ -1190,28 +1105,16 @@ public class MainTabs2 extends AdsFragmentActivity {
     }
 
     /**
-     * Opens the Network page on a specific OPDS catalog or saved WebDAV
-     * server ("url" is the catalog href / server url; the page falls back to
-     * its combined root list when the tab is disabled and shown as overlay).
+     * Opens a detached network page on a specific OPDS catalog or WebDAV
+     * server ("url" is the catalog href / server url, "title" the display
+     * name for the top bar). The page is an independent OpdsFragment2 shown
+     * in the overlay container — the Network tab itself is never touched.
      */
-    public void openNetworkPage(final boolean webDav, final String targetUrl) {
-        // hidden Network tab (folded into "My files"): go straight to the
-        // temporary overlay — a detached tabFragments entry can't be paged to
-        boolean found = UITab.OpdsFragment.isVisible();
-        if (found) {
-            for (int i = 0; i < tabFragments.size(); i++) {
-                if (tabFragments.get(i) instanceof OpdsFragment2) {
-                    ((OpdsFragment2) tabFragments.get(i)).openExternal(webDav, targetUrl);
-                    pager.setCurrentItem(adapter.toVirtual(i));
-                    break;
-                }
-            }
-        } else {
-            showTabOverlay(UITab.OpdsFragment);
-            if (overlayFragment instanceof OpdsFragment2) {
-                ((OpdsFragment2) overlayFragment).openExternal(webDav, targetUrl);
-            }
-        }
+    public void openNetworkPage(final boolean webDav, final String targetUrl, final String title) {
+        OpdsFragment2 fragment = new OpdsFragment2();
+        showFragmentOverlay(fragment,
+                TxtUtils.isEmpty(title) ? getString(UITab.OpdsFragment.getName()) : title);
+        fragment.openExternal(webDav, targetUrl);
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
         }
@@ -1267,12 +1170,31 @@ public class MainTabs2 extends AdsFragmentActivity {
                 return;
             }
             UIFragment fragment = tab.getClazz().newInstance();
+            showFragmentOverlay(fragment, getString(tab.getName()));
+            overlayTab = tab;
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * Shows an arbitrary fragment as a temporary page in the overlay container
+     * ("title" goes to the top bar). Used for hidden tabs and for detached
+     * pages (e.g. the network browser opened from "My files") that run their
+     * own instance and never share state with the tab of the same class.
+     */
+    public void showFragmentOverlay(UIFragment fragment, String title) {
+        try {
+            ViewGroup container = findViewById(R.id.overlayContainer);
+            if (container == null) {
+                return;
+            }
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.overlayContainer, fragment)
                     .commitAllowingStateLoss();
-            overlayTab = tab;
             overlayFragment = fragment;
+            overlayTab = null;
 
             int bg = Color.WHITE;
             if (AppState.get().appTheme == AppState.THEME_DARK_OLED) {
@@ -1287,7 +1209,7 @@ public class MainTabs2 extends AdsFragmentActivity {
                 fabLastBook.setVisibility(View.GONE);
             }
             if (topBarTitle != null) {
-                topBarTitle.setText(getString(tab.getName()));
+                topBarTitle.setText(title);
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -1604,9 +1526,13 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     @Override
     public void onBackPressedImpl() {
-        // leave the temporary drawer overlay first
+        // leave the temporary drawer overlay first; the page consumes BACK for
+        // its own internal navigation (OPDS/WebDAV levels) until at its root
         ViewGroup overlayContainer = findViewById(R.id.overlayContainer);
         if (overlayContainer != null && overlayContainer.getVisibility() == View.VISIBLE) {
+            if (overlayFragment != null && overlayFragment.isBackPressed()) {
+                return;
+            }
             hideTabOverlay();
             return;
         }
