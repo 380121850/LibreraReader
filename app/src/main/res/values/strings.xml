@@ -751,6 +751,14 @@
    <string name="moon_stat_time_total">Total reading time</string>
    <string name="moon_stat_today">Today</string>
    <string name="moon_stat_speed">Speed (pages/min)</string>
+  <string name="moon_monthly_title">Monthly reading time (last 12 months)</string>
+  <string name="moon_my_files">My files</string>
+  <string name="moon_range_week">Week</string>
+  <string name="moon_range_month">Month</string>
+  <string name="moon_range_year">Year</string>
+  <string name="moon_net_section_opds">Online catalogs (OPDS)</string>
+  <string name="moon_net_section_webdav">WebDAV</string>
+  <string name="moon_section_folders">Folders</string>
    <string name="moon_stat_hm">%1$d h %2$d min</string>
    <string name="moon_stat_min">%1$d min</string>
    <string name="moon_no_recent_book">No recent book</string>

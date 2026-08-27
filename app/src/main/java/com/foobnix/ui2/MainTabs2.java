@@ -107,10 +107,14 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import mobi.librera.libgooglepro.RefiewForm;
 
@@ -136,6 +140,9 @@ public class MainTabs2 extends AdsFragmentActivity {
     MyProgressBar fab;
     ImageView fabLastBook;
     SwipeRefreshLayout swipeRefreshLayout;
+    TextView drawerQuote;
+    List<String> drawerQuotes;
+    Random drawerQuoteRandom = new Random();
     boolean isMyKey = false;
     OnPageChangeListener onPageChangeListener = new OnPageChangeListener() {
         UIFragment uiFragment = null;
@@ -472,6 +479,8 @@ public class MainTabs2 extends AdsFragmentActivity {
             //tabFragments.add(new CloudsFragment2());
         }
         drawerLayout = findViewById(R.id.drawer_layout);
+        drawerQuote = findViewById(R.id.drawerQuote);
+        showRandomQuote();
 
         imageMenu.setOnClickListener(new OnClickListener() {
             @Override
@@ -579,6 +588,7 @@ public class MainTabs2 extends AdsFragmentActivity {
             @Override
             public void onDrawerOpened(View arg0) {
                 LOG.d("drawerLayout-onDrawerOpened");
+                showRandomQuote();
                 if (AppSP.get().isEnableSync) {
                     swipeRefreshLayout.setEnabled(false);
                 }
@@ -1139,6 +1149,68 @@ public class MainTabs2 extends AdsFragmentActivity {
             // disabled there opens as a temporary overlay instead of showing
             // "tab is hidden". The tab bar configuration is not modified.
             showTabOverlay(tab);
+        }
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
+        }
+    }
+
+    /**
+     * Shows a random reading quote in the drawer banner's top-left corner.
+     * The 1000+ quotes ship in assets/reading_quotes.txt (one per line,
+     * "text —— source"), loaded once and kept in memory.
+     */
+    private void showRandomQuote() {
+        if (drawerQuote == null) {
+            return;
+        }
+        try {
+            if (drawerQuotes == null) {
+                List<String> lines = new ArrayList<>();
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(getAssets().open("reading_quotes.txt"), StandardCharsets.UTF_8));
+                try {
+                    for (String line; (line = reader.readLine()) != null; ) {
+                        if (!line.trim().isEmpty()) {
+                            lines.add(line.trim());
+                        }
+                    }
+                } finally {
+                    reader.close();
+                }
+                drawerQuotes = lines;
+            }
+            if (!drawerQuotes.isEmpty()) {
+                drawerQuote.setTextColor(TintUtil.getColorInDayNighth());
+                drawerQuote.setText(drawerQuotes.get(drawerQuoteRandom.nextInt(drawerQuotes.size())));
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * Opens the Network page on a specific OPDS catalog or saved WebDAV
+     * server ("url" is the catalog href / server url; the page falls back to
+     * its combined root list when the tab is disabled and shown as overlay).
+     */
+    public void openNetworkPage(final boolean webDav, final String targetUrl) {
+        // hidden Network tab (folded into "My files"): go straight to the
+        // temporary overlay — a detached tabFragments entry can't be paged to
+        boolean found = UITab.OpdsFragment.isVisible();
+        if (found) {
+            for (int i = 0; i < tabFragments.size(); i++) {
+                if (tabFragments.get(i) instanceof OpdsFragment2) {
+                    ((OpdsFragment2) tabFragments.get(i)).openExternal(webDav, targetUrl);
+                    pager.setCurrentItem(adapter.toVirtual(i));
+                    break;
+                }
+            }
+        } else {
+            showTabOverlay(UITab.OpdsFragment);
+            if (overlayFragment instanceof OpdsFragment2) {
+                ((OpdsFragment2) overlayFragment).openExternal(webDav, targetUrl);
+            }
         }
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);

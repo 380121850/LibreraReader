@@ -124,7 +124,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     AuthorsAdapter2 authorsAdapter;
     TextView countBooks, sortBy, layoutErrorOnRestart;
     Handler handler;
-    ImageView sortOrder, myAutoCompleteImage, cleanFilter, menu2;
+    ImageView sortOrder, myAutoCompleteImage, cleanFilter;
     View onRefresh, secondTopPanel, layoutError;
     View emptyLibraryHint;
     public String selectedReadState = "";
@@ -520,11 +520,6 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     @Override public void onTintChanged() {
         TintUtil.setBackgroundFillColor(secondTopPanel, TintUtil.color);
 
-        int color =
-                (AppState.get().appTheme == AppState.THEME_DARK_OLED || AppState.get().appTheme == AppState.THEME_DARK) ?
-                        Color.WHITE : TintUtil.color;
-        TintUtil.setTintImageNoAlpha(menu2, color);
-
         int colorTheme = TintUtil.getColorInDayNighth();
         colorTheme = ColorUtils.setAlphaComponent(colorTheme, 230);
 
@@ -535,21 +530,17 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
         if (AppState.get().appTheme == AppState.THEME_DARK_OLED || (AppState.get().appTheme == AppState.THEME_DARK && TintUtil.color == Color.BLACK)) {
             searchEditText.setBackgroundResource(R.drawable.bg_search_edit_night);
-            menu2.setBackgroundResource(R.drawable.bg_search_edit_night);
 
         } else {
             searchEditText.setBackgroundResource(R.drawable.bg_search_edit);
-            menu2.setBackgroundResource(R.drawable.bg_search_edit);
         }
         TintUtil.setStrokeColor(searchEditText, TintUtil.color);
-        TintUtil.setStrokeColor(menu2, TintUtil.color);
 
         TintUtil.setUITextColor(searchEditText, colorTheme);
 
         if (AppState.get().appTheme == AppState.THEME_INK) {
             searchEditText.setBackgroundResource(R.drawable.bg_search_edit);
             TintUtil.setStrokeColor(searchEditText, Color.BLACK);
-            TintUtil.setStrokeColor(menu2, Color.BLACK);
             TintUtil.setUITextColor(searchEditText, Color.BLACK);
             countBooks.setTextColor(Color.BLACK);
 
@@ -619,7 +610,6 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         cleanFilter = (ImageView) view.findViewById(R.id.cleanFilter);
         sortBy = (TextView) view.findViewById(R.id.sortBy);
         sortOrder = (ImageView) view.findViewById(R.id.sortOrder);
-        menu2 = (ImageView) view.findViewById(R.id.menu2);
         myAutoCompleteImage = (ImageView) view.findViewById(R.id.myAutoCompleteImage);
         searchEditText = (AutoCompleteTextView) view.findViewById(R.id.filterLine);
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
@@ -835,17 +825,6 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             }
         });
 
-        menu2.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View view) {
-                if (view.getRootView()
-                        .findViewById(R.id.imageMenu1) != null) {
-                    view.getRootView()
-                        .findViewById(R.id.imageMenu1)
-                        .performClick();
-                }
-            }
-        });
-
         LocalBroadcastManager.getInstance(getActivity())
                              .registerReceiver(broadcastReceiver, new IntentFilter(BooksService.INTENT_NAME));
 
@@ -919,11 +898,6 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
         Keyboards.close(getActivity());
 
-    }
-
-    @Override public void onResume() {
-        super.onResume();
-        menu2.setVisibility(getActivity().findViewById(R.id.imageMenu1) == null ? View.GONE : View.VISIBLE);
     }
 
     @Override public void onStop() {

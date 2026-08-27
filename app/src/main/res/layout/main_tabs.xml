@@ -165,12 +165,17 @@
                     <!-- background is set in code per theme (light/dark/OLED/ink) -->
 
                     <!-- Moon+ style banner header -->
-                    <ImageView
-                        android:id="@+id/drawerBanner"
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="170dip"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/drawer_banner" />
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/drawerBanner"
+                            android:layout_width="match_parent"
+                            android:layout_height="170dip"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/drawer_banner" />
+                    </FrameLayout>
 
                     <!-- scrollable nav area: keeps the bottom action bar reachable
                          on short/landscape screens -->
@@ -187,6 +192,25 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
                     </ScrollView>
+
+                    <!-- random reading quote, refreshed on every drawer open;
+                         floats three text lines above the bottom action bar
+                         (settings/about/etc.). Text color is set in code per
+                         day/night theme. -->
+                    <TextView
+                        android:id="@+id/drawerQuote"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="66dip"
+                        android:gravity="start|center_vertical"
+                        android:paddingStart="12dip"
+                        android:paddingLeft="12dip"
+                        android:paddingTop="8dip"
+                        android:paddingEnd="12dip"
+                        android:paddingRight="12dip"
+                        android:paddingBottom="8dip"
+                        android:textSize="19sp"
+                        android:lineSpacingExtra="3dip" />
 
                     <View
                         android:id="@+id/drawerNavDivider"

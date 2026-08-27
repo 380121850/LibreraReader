@@ -30,7 +30,7 @@ public class AppSP {
     public boolean isFirstTimeVertical = true;
     public boolean isFirstTimeHorizontal = true;
 
-    public int readingMode = AppState.READING_MODE_BOOK;
+    public int readingMode = AppState.READING_MODE_SCROLL;
     public long syncTime;
     public int syncTimeStatus;
     // Cumulative time (ms) spent in the reader, shown on the dashboard stats.
@@ -40,6 +40,12 @@ public class AppSP {
     public String readDayKey = "";
     public long readDayMs = 0;
     public long readPages = 0;
+    // Reading time per calendar month, "{"yyyy-MM": ms}" — kept for the last
+    // 13 months only. Filled by ReadingStats.onPause alongside readTimeMs.
+    public String readMonthlyJson = "{}";
+    // Reading time per calendar day, "{"yyyy-MM-dd": ms}" — kept for the last
+    // 40 days (feeds the week/month views of the stats chart).
+    public String readDailyJson = "{}";
     public String hypenLang = null;
     public boolean isCut = false;
     public boolean isDouble = false;

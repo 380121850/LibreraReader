@@ -751,6 +751,14 @@
    <string name="moon_stat_time_total">总阅读时间</string>
    <string name="moon_stat_today">今日阅读</string>
    <string name="moon_stat_speed">阅读速度（页/分）</string>
+   <string name="moon_monthly_title">每月阅读时间（近12个月）</string>
+   <string name="moon_my_files">我的文件</string>
+   <string name="moon_range_week">近1周</string>
+   <string name="moon_range_month">近1月</string>
+   <string name="moon_range_year">近1年</string>
+   <string name="moon_net_section_opds">网上书库（OPDS）</string>
+   <string name="moon_net_section_webdav">WebDAV</string>
+   <string name="moon_section_folders">文件夹</string>
    <string name="moon_stat_hm">%1$d小时%2$d分</string>
    <string name="moon_stat_min">%1$d分钟</string>
    <string name="moon_no_recent_book">暂无最近阅读</string>

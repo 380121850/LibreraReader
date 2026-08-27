@@ -431,7 +431,14 @@ public class OpdsFragment2 extends UIFragment<Entry> {
 
         OPDS.buildProxy();
 
-        populate();
+        if (pendingOpenUrl != null) {
+            String target = pendingOpenUrl;
+            boolean webDav = pendingOpenWebDav;
+            pendingOpenUrl = null;
+            applyExternalTarget(webDav, target);
+        } else {
+            populate();
+        }
         onTintChanged();
 
         return view;
@@ -791,6 +798,32 @@ public class OpdsFragment2 extends UIFragment<Entry> {
 
     public boolean isRoot() {
         return "/".equals(url) && !webDavMode;
+    }
+
+    // external entry from the "My files" page: applied on onCreateView when
+    // the fragment sits detached beyond the pager's offscreen limit
+    String pendingOpenUrl;
+    boolean pendingOpenWebDav;
+
+    /** Open a specific OPDS catalog (or the root list when url is "/"). */
+    public void openExternal(boolean webDav, String targetUrl) {
+        if (isAdded() && recyclerView != null) {
+            applyExternalTarget(webDav, targetUrl);
+        } else {
+            pendingOpenUrl = targetUrl;
+            pendingOpenWebDav = webDav;
+        }
+    }
+
+    private void applyExternalTarget(boolean webDav, String targetUrl) {
+        webDavMode = webDav;
+        authFailed = false;
+        webDavLoadFailed = false;
+        currentServerUrl = webDav ? targetUrl : "";
+        url = TxtUtils.isEmpty(targetUrl) ? "/" : targetUrl;
+        stack.clear();
+        stack.push(url);
+        populate();
     }
 
     public void onClickWebDav(WebDavItem item) {

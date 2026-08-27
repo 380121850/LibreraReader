@@ -1,6 +1,7 @@
 package com.foobnix.ui2.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.foobnix.android.utils.LOG;
+import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
 import com.foobnix.model.AppBookmark;
@@ -35,14 +37,17 @@ import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.search.activity.msg.OpenDirMessage;
 import com.foobnix.pdf.info.wrapper.UITab;
+import com.foobnix.pdf.info.view.MonthlyBarsView;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.AppRecycleAdapter;
 import com.foobnix.ui2.MainTabs2;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -113,6 +118,12 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         View statRead = view.findViewById(R.id.statRead);
         if (statRead != null) {
             statRead.setOnClickListener(v -> openLibraryWithFilter("read"));
+        }
+
+        // the total-time card opens the per-month reading-time bar chart
+        View statHours = view.findViewById(R.id.statHours);
+        if (statHours != null) {
+            statHours.setOnClickListener(v -> showMonthlyReading());
         }
 
         bindStat(view, R.id.statHours, R.string.moon_stat_time_total);
@@ -294,6 +305,110 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         Activity a = getActivity();
         if (a instanceof MainTabs2) {
             ((MainTabs2) a).openLibraryWithReadState(readState);
+        }
+    }
+
+    /**
+     * "Total reading time" card: bar chart of the reading time booked per
+     * day (last week / last month) or per month (last year). Data recorded
+     * by ReadingStats into AppSP.readDailyJson/readMonthlyJson; time before
+     * this feature shipped shows 0.
+     */
+    private void showMonthlyReading() {
+        Activity a = getActivity();
+        if (a == null) {
+            return;
+        }
+        final MonthlyBarsView bars = new MonthlyBarsView(a);
+        bars.setPadding(Dips.dpToPx(8), Dips.dpToPx(6), Dips.dpToPx(8), 0);
+
+        // custom title: range switcher (week / month / year)
+        LinearLayout switcher = new LinearLayout(a);
+        switcher.setOrientation(LinearLayout.HORIZONTAL);
+        switcher.setPadding(Dips.dpToPx(20), Dips.dpToPx(14), Dips.dpToPx(20), 0);
+        final int[][] defs = {
+                {R.string.moon_range_week, 7, 0},
+                {R.string.moon_range_month, 30, 1},
+                {R.string.moon_range_year, 12, 2},
+        };
+        final TextView[] tabs = new TextView[defs.length];
+        final int[] current = {2}; // default: last 12 months
+        for (int i = 0; i < defs.length; i++) {
+            final int idx = i;
+            TextView t = new TextView(a);
+            t.setText(defs[i][0]);
+            t.setTextSize(15);
+            t.setPadding(Dips.dpToPx(14), 0, Dips.dpToPx(14), Dips.dpToPx(6));
+            t.setOnClickListener(v -> {
+                current[0] = defs[idx][2];
+                fillReadingBars(bars, defs[idx][2]);
+                for (int k = 0; k < tabs.length; k++) {
+                    tabs[k].setTextColor(k == idx ? TintUtil.color : 0xFF757575);
+                    tabs[k].setPaintFlags(tabs[k].getPaintFlags() & ~android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+                    if (k == idx) {
+                        tabs[k].setPaintFlags(tabs[k].getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+                    }
+                }
+            });
+            tabs[i] = t;
+            switcher.addView(t);
+        }
+        tabs[2].setTextColor(TintUtil.color);
+        tabs[2].setPaintFlags(tabs[2].getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        fillReadingBars(bars, 2);
+
+        new AlertDialog.Builder(a)//
+                .setCustomTitle(switcher)//
+                .setView(bars)//
+                .setPositiveButton(R.string.ok, null)//
+                .show();
+    }
+
+    /** mode: 0 = last 7 days, 1 = last 30 days, 2 = last 12 months */
+    private void fillReadingBars(MonthlyBarsView bars, int mode) {
+        if (mode == 2) {
+            JSONObject months = parseBuckets(AppSP.get().readMonthlyJson);
+            long[] values = new long[12];
+            String[] labels = new String[12];
+            Calendar cal = Calendar.getInstance();
+            int thisYear = cal.get(Calendar.YEAR);
+            for (int i = 11; i >= 0; i--) {
+                Calendar month = (Calendar) cal.clone();
+                month.add(Calendar.MONTH, -i);
+                String key = String.format(Locale.US, "%1$d-%2$02d",
+                        month.get(Calendar.YEAR), month.get(Calendar.MONTH) + 1);
+                values[11 - i] = months.optLong(key, 0);
+                int m = month.get(Calendar.MONTH) + 1;
+                labels[11 - i] = month.get(Calendar.YEAR) == thisYear
+                        ? String.valueOf(m)
+                        : String.format(Locale.US, "%1$d/%2$d", month.get(Calendar.YEAR) % 100, m);
+            }
+            bars.setData(values, labels, 1);
+            return;
+        }
+
+        int days = mode == 0 ? 7 : 30;
+        JSONObject daily = parseBuckets(AppSP.get().readDailyJson);
+        long[] values = new long[days];
+        String[] labels = new String[days];
+        Calendar cal = Calendar.getInstance();
+        for (int i = days - 1; i >= 0; i--) {
+            Calendar day = (Calendar) cal.clone();
+            day.add(Calendar.DAY_OF_MONTH, -i);
+            String key = String.format(Locale.US, "%1$d-%2$02d-%3$02d",
+                    day.get(Calendar.YEAR), day.get(Calendar.MONTH) + 1, day.get(Calendar.DAY_OF_MONTH));
+            values[days - 1 - i] = daily.optLong(key, 0);
+            labels[days - 1 - i] = String.format(Locale.US, "%1$d/%2$d",
+                    day.get(Calendar.MONTH) + 1, day.get(Calendar.DAY_OF_MONTH));
+        }
+        bars.setData(values, labels, mode == 0 ? 1 : 5);
+    }
+
+    private static JSONObject parseBuckets(String json) {
+        try {
+            return new JSONObject(json == null ? "{}" : json);
+        } catch (Exception e) {
+            return new JSONObject();
         }
     }
 

@@ -214,10 +214,9 @@ public class AppDB {
     }
 
     public void addRecent(String path) {
-        if (!UITab.isShowRecent()) {
-            return;
-        }
-
+        // No legacy-tab gate here: the dashboard's "recent reading" section
+        // reads this list even when the old Recent tab is hidden in the
+        // default tab order, so recording must not depend on its visibility.
         if (!new File(path).isFile()) {
             LOG.d("Can't add to recent, it's not a file", path);
             return;

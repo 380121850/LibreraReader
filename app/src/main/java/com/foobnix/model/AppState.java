@@ -134,7 +134,7 @@ public class AppState {
     // 9 (dashboard home) first: Moon+ style dashboard is the landing page.
     // Index 8 must stay unused: AppState.loadInit strips stale "8#" entries
     // left by the old standalone WebDAV tab.
-    public final static String DEFAULTS_TABS_ORDER = "9#1,0#1,1#1,5#1,6#1,2#0,3#0,4#0,7#0";
+    public final static String DEFAULTS_TABS_ORDER = "9#1,0#1,1#1,5#0,6#1,2#0,3#0,4#0,7#0";
     final public static List<Integer> WIDGET_SIZE = Arrays.asList(0, 70, 100, 150, 200, 250);
     public final static int MAX_SPEED = 149;
     public final static int MODE_GRID = 1;
@@ -454,7 +454,7 @@ public class AppState {
     public String displayPath = AppProfile.DOWNLOADS_DIR.getPath();
 
     public float editLineWidth = 3;
-    @IgnoreHashCode public boolean isRememberMode = false;
+    @IgnoreHashCode public boolean isRememberMode = true;
     public volatile boolean isAutoScroll = false;
     public int autoScrollSpeed = 120;
     @IgnoreHashCode public boolean isScrollSpeedByVolumeKeys = false;
@@ -469,7 +469,7 @@ public class AppState {
     @IgnoreHashCode public boolean isRememberDictionary;
     public String fromLang = "en";
     public String toLang = Urls.getLangCode();
-    @IgnoreHashCode public int orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+    @IgnoreHashCode public int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     public int previousLibraryMode = MODE_GRID;
     public int libraryMode = MODE_GRID;
     public int broseMode = MODE_LIST;
@@ -579,8 +579,9 @@ public class AppState {
     public String bookTags = "";
     public String recentTag = "";
     public boolean isRestoreSearchQuery = false;
-    public boolean lockBooksByDefault = false;
+    public boolean lockBooksByDefault = true;
     public String searchQuery = "";
+    public boolean networkTabMerged = false;
     @IgnoreHashCode public int hashCode = 0;
     @IgnoreHashCode public boolean isSelectTexByTouch = false;
     public boolean isAppPassword;
@@ -758,6 +759,22 @@ public class AppState {
                     }
                     AppState.get().tabsOrder9 = rebuilt.toString();
                     LOG.d("migration", "webdav-merge tabsOrder9:", AppState.get().tabsOrder9);
+                }
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+
+            // The Network page's content (OPDS + WebDAV) was folded into the
+            // "My files" page: hide the standalone Network tab once per
+            // upgrade; a user who re-enables it manually is left alone.
+            try {
+                if (!AppState.get().networkTabMerged) {
+                    AppState.get().networkTabMerged = true;
+                    String order = AppState.get().tabsOrder9;
+                    if (TxtUtils.isNotEmpty(order) && order.contains("5#1")) {
+                        AppState.get().tabsOrder9 = order.replace("5#1", "5#0");
+                        LOG.d("migration", "network-merge tabsOrder9:", AppState.get().tabsOrder9);
+                    }
                 }
             } catch (Exception e) {
                 LOG.e(e);

@@ -2,6 +2,7 @@ package com.foobnix.ui2.fragment;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +32,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.foobnix.webdav.WebDavServer;
+import com.foobnix.webdav.WebDavStore;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -46,6 +49,7 @@ import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
+import com.foobnix.android.utils.ResultResponse2;
 import com.foobnix.android.utils.StringDB;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.android.utils.Views;
@@ -71,6 +75,9 @@ import com.foobnix.pdf.info.view.Dialogs;
 import com.foobnix.pdf.info.view.MyPopupMenu;
 import com.foobnix.pdf.info.view.MyProgressBar;
 import com.foobnix.pdf.info.widget.ShareDialog;
+import com.foobnix.pdf.info.widget.AddCatalogDialog;
+import com.foobnix.pdf.info.widget.ChooserDialogFragment;
+import com.foobnix.webdav.AddWebDavDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
 import com.foobnix.pdf.search.view.AsyncProgressResultToastTask;
 import com.foobnix.pdf.search.view.AsyncProgressTask;
@@ -97,7 +104,16 @@ import java.util.Map;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP) public class BrowseFragment2 extends UIFragment<FileMeta> {
 
     public static final Pair<Integer, Integer> PAIR =
-            new Pair<Integer, Integer>(R.string.folders, R.drawable.glyphicons_145_folder_open);
+    new Pair<Integer, Integer>(R.string.moon_my_files, R.drawable.glyphicons_145_folder_open);
+
+    /**
+     * Pseudo-path of the "My files" root view: lists the configured library
+     * folders (and the standard quick dirs) as closed entries. The network
+     * section (OPDS + WebDAV) is shown above the list only in this mode.
+     */
+    public static final String ROOT_PATH = "my-files:";
+    LinearLayout netSection;
+    View quickDirChipsRow;
     public static final String EXTRA_INIT_PATH = "EXTRA_PATH";
     public static final String EXTRA_TYPE = "EXTRA_TYPE";
     public static final String EXTRA_TEXT = "EXTRA_TEXT";
@@ -719,6 +735,10 @@ import java.util.Map;
             }
         });
 
+        netSection = view.findViewById(R.id.netSection);
+        quickDirChipsRow = (View) view.findViewById(R.id.quickDirChips).getParent();
+        buildNetSections();
+
         displayAnyPath(getInitPath());
         onTintChanged();
 
@@ -858,9 +878,12 @@ import java.util.Map;
         } catch (Exception e) {
             LOG.e(e);
         }
-        // The Folder tab (no explicit init path) opens at the first configured
-        // library folder, so it reflects the folders added in "Library Folders"
-        // settings instead of the last browsed directory.
+        // The "My files" tab (no explicit init path) opens on the root view:
+        // the configured library folders listed closed, not expanded into the
+        // last browsed directory.
+        if (TYPE_DEFAULT == fragmentType) {
+            return ROOT_PATH;
+        }
         for (String scanPath : JsonDB.get(BookCSS.get().searchPathsJson)) {
             if (TxtUtils.isNotEmpty(scanPath) && new File(scanPath).isDirectory()) {
                 return scanPath;
@@ -880,6 +903,25 @@ import java.util.Map;
     @Override public List<FileMeta> prepareDataInBackground() {
 
         try {
+
+            if (ROOT_PATH.equals(AppState.get().displayPath)) {
+                // "My files" root: the configured library folders, listed
+                // closed (not expanded); standard quick dirs when none.
+                List<FileMeta> roots = new ArrayList<FileMeta>();
+                for (String path : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                    if (TxtUtils.isNotEmpty(path) && new File(path).isDirectory()) {
+                        roots.add(rootDirMeta(path));
+                    }
+                }
+                if (roots.isEmpty()) {
+                    roots.add(rootDirMeta(Environment.getExternalStorageDirectory().getPath()));
+                    String pathDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+                    if (new File(pathDownloads).isDirectory()) {
+                        roots.add(rootDirMeta(pathDownloads));
+                    }
+                }
+                return roots;
+            }
 
             if (AppState.get().displayPath.startsWith(Clouds.PREFIX_CLOUD)) {
                 cloudStorage = Clouds.get()
@@ -1038,10 +1080,195 @@ import java.util.Map;
 
     }
 
+    private FileMeta rootDirMeta(String path) {
+        FileMeta m = new FileMeta(path);
+        m.setCusType(FileMetaAdapter.DISPLAY_TYPE_DIRECTORY);
+        // folder list entry: name as the title, full path as the subtitle
+        m.setTitle(ExtUtils.getFileName(path));
+        m.setPathTxt(ExtUtils.getFileName(path));
+        return m;
+    }
+
+    /**
+     * Network section of the "My files" root view: three separated blocks
+     * (OPDS catalogs, WebDAV servers, library folders), each with its own
+     * header + "add" button and a vertical list. Tapping an OPDS/WebDAV entry
+     * opens the Network page directly on that target (page or temporary
+     * overlay when its tab is hidden).
+     */
+    private void buildNetSections() {
+        if (netSection == null) {
+            return;
+        }
+        final Activity a = getActivity();
+        if (!(a instanceof MainTabs2)) {
+            return;
+        }
+        netSection.removeAllViews();
+        final Runnable rebuild = new Runnable() {
+            @Override public void run() {
+                buildNetSections();
+            }
+        };
+
+        // --- OPDS catalogs ---
+        netSection.addView(netSectionDivider());
+        netSection.addView(netSectionHeader(getString(R.string.moon_net_section_opds), new OnClickListener() {
+            @Override public void onClick(View v) {
+                AddCatalogDialog.showDialog(a, rebuild, null, true);
+            }
+        }));
+        for (final String[] cat : getOpdsCatalogs()) {
+            netSection.addView(netListItem(R.drawable.glyphicons_417_globe, cat[1], new OnClickListener() {
+                @Override public void onClick(View v) {
+                    ((MainTabs2) a).openNetworkPage(false, cat[0]);
+                }
+            }));
+        }
+
+        // --- WebDAV servers (block always visible, list may be empty) ---
+        netSection.addView(netSectionDivider());
+        netSection.addView(netSectionHeader(getString(R.string.moon_net_section_webdav), new OnClickListener() {
+            @Override public void onClick(View v) {
+                AddWebDavDialog.showDialog(a, rebuild, null);
+            }
+        }));
+        for (final WebDavServer srv : WebDavStore.load()) {
+            netSection.addView(netListItem(R.drawable.glyphicons_544_cloud, srv.title, new OnClickListener() {
+                @Override public void onClick(View v) {
+                    ((MainTabs2) a).openNetworkPage(true, srv.url);
+                }
+            }));
+        }
+
+        // --- library folders (list itself lives in the RecyclerView) ---
+        netSection.addView(netSectionDivider());
+        netSection.addView(netSectionHeader(getString(R.string.moon_section_folders), new OnClickListener() {
+            @Override public void onClick(View v) {
+                addLibraryFolder(rebuild);
+            }
+        }));
+    }
+
+    /** "add a library folder" flow, same checks as the preferences page. */
+    private void addLibraryFolder(final Runnable refresh) {
+        final androidx.fragment.app.FragmentActivity fa = (androidx.fragment.app.FragmentActivity) getActivity();
+        ChooserDialogFragment.chooseFolder(fa, BookCSS.get().dirLastPath)
+                .setOnSelectListener(new ResultResponse2<String, Dialog>() {
+                    @Override public boolean onResultRecive(String nPath, Dialog dialog) {
+                        boolean isExists = false;
+                        for (String str : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                            if (TxtUtils.isNotEmpty(str) && nPath.equals(str)) {
+                                isExists = true;
+                                break;
+                            }
+                        }
+                        if (nPath.equals("/") || ExtUtils.isExteralSD(nPath)) {
+                            Toast.makeText(fa, R.string.incorrect_value, Toast.LENGTH_SHORT).show();
+                        } else if (isExists) {
+                            Toast.makeText(fa, R.string.this_directory_is_already_in_the_list, Toast.LENGTH_LONG).show();
+                        } else {
+                            BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        }
+                        dialog.dismiss();
+                        AppProfile.save(fa);
+                        refresh.run();
+                        populate();
+                        return false;
+                    }
+                });
+    }
+
+    /** Section header row: title on the left, an "add" link on the right. */
+    private View netSectionHeader(String title, OnClickListener onAdd) {
+        LinearLayout row = new LinearLayout(getActivity());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Dips.dpToPx(14), Dips.dpToPx(8), Dips.dpToPx(14), Dips.dpToPx(2));
+
+        TextView t = new TextView(getActivity());
+        t.setText(title);
+        t.setTextSize(14);
+        t.setTypeface(null, Typeface.BOLD);
+        t.setTextColor(getResources().getColor(R.color.tint_gray));
+        row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView add = new TextView(getActivity());
+        add.setText("+ " + getString(R.string.add));
+        add.setTextSize(14);
+        add.setTextColor(TintUtil.color);
+        add.setOnClickListener(onAdd);
+        row.addView(add, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        return row;
+    }
+
+    /** Vertical list entry with a leading icon. */
+    private View netListItem(int iconRes, String text, OnClickListener onClick) {
+        LinearLayout row = new LinearLayout(getActivity());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Dips.dpToPx(14), Dips.dpToPx(6), Dips.dpToPx(14), Dips.dpToPx(6));
+        row.setOnClickListener(onClick);
+
+        ImageView icon = new ImageView(getActivity());
+        icon.setImageResource(iconRes);
+        icon.setColorFilter(TintUtil.getColorInDayNighth());
+        icon.setPadding(0, 0, Dips.dpToPx(10), 0);
+        row.addView(icon, new LinearLayout.LayoutParams(Dips.dpToPx(22), Dips.dpToPx(22)));
+
+        TextView t = new TextView(getActivity());
+        t.setText(text);
+        t.setTextSize(15);
+        t.setSingleLine(true);
+        t.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
+        t.setTextColor(TintUtil.getColorInDayNighth());
+        row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+        return row;
+    }
+
+    private View netSectionDivider() {
+        View line = new View(getActivity());
+        line.setBackgroundColor(0x1e999999);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, Dips.dpToPx(1));
+        lp.topMargin = Dips.dpToPx(6);
+        lp.bottomMargin = Dips.dpToPx(2);
+        line.setLayoutParams(lp);
+        return line;
+    }
+
+    /** Saved OPDS catalogs as {url, title} pairs (favorites entry skipped). */
+    private List<String[]> getOpdsCatalogs() {
+        List<String[]> res = new ArrayList<>();
+        for (String line : AppState.get().allOPDSLinks.split(";")) {
+            if (TxtUtils.isEmpty(line) || line.contains("star_1.png")) {
+                continue;
+            }
+            String[] it = line.split(",");
+            if (it.length >= 2) {
+                res.add(new String[]{it[0], it[1]});
+            }
+        }
+        return res;
+    }
+
     public boolean onBackAction() {
         if (AppState.get().isHideReadBook) {
             //IMG.clearMemoryCache();
             //IMG.clearDiscCache();
+        }
+        // leaving one of the root entries goes back to the closed list, not
+        // up into the storage tree
+        if (!ROOT_PATH.equals(AppState.get().displayPath)) {
+            for (String scanPath : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                if (TxtUtils.isNotEmpty(scanPath) && scanPath.equals(AppState.get().displayPath)) {
+                    displayAnyPath(ROOT_PATH);
+                    return true;
+                }
+            }
+        }
+        if (ROOT_PATH.equals(AppState.get().displayPath)) {
+            return false;
         }
         if (ExtUtils.isExteralSD(BookCSS.get().dirLastPath)) {
             String path = BookCSS.get().dirLastPath;
@@ -1140,7 +1367,14 @@ import java.util.Map;
         isRestorePos = false;
         AppState.get().displayPath = path;
         BookCSS.get().dirLastPath = path;
-
+        if (netSection != null) {
+            netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
+        }
+        // the quick-dir chip strip only makes sense inside a directory; on
+        // the root view it would break the OPDS / WebDAV / folders grouping
+        if (quickDirChipsRow != null) {
+            quickDirChipsRow.setVisibility(ROOT_PATH.equals(path) ? View.GONE : View.VISIBLE);
+        }
         populate();
     }
 
@@ -1206,6 +1440,14 @@ import java.util.Map;
 
     public void showPathHeader() {
         paths.removeAllViews();
+
+        if (ROOT_PATH.equals(AppState.get().displayPath)) {
+            TextView nameView = new TextView(getActivity());
+            nameView.setText(R.string.moon_my_files);
+            nameView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+            paths.addView(nameView);
+            return;
+        }
 
         if (TYPE_SELECT_FILE_OR_FOLDER == fragmentType) {
             editPath.setText(AppState.get().displayPath);

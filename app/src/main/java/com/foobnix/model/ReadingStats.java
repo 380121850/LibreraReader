@@ -2,8 +2,14 @@ package com.foobnix.model;
 
 import android.os.SystemClock;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -61,5 +67,42 @@ public final class ReadingStats {
 
         sp.readPages += pendingFlips;
         pendingFlips = 0;
+
+        addBucket(sp, "readMonthlyJson", "yyyy-MM", delta, 13);
+        addBucket(sp, "readDailyJson", "yyyy-MM-dd", delta, 40);
+    }
+
+    /**
+     * Fold the session delta into a "key pattern -> ms" JSON bucket on AppSP,
+     * keeping only the most recent {@code keep} keys so the string stays
+     * bounded. A malformed stored JSON resets the bucket instead of throwing.
+     */
+    private static void addBucket(AppSP sp, String field, String pattern, long delta, int keep) {
+        try {
+            java.lang.reflect.Field f = AppSP.class.getField(field);
+            String raw = (String) f.get(sp);
+            JSONObject buckets = new JSONObject(raw == null ? "{}" : raw);
+            String key = new SimpleDateFormat(pattern, Locale.US).format(new Date());
+            buckets.put(key, buckets.optLong(key) + delta);
+            if (buckets.length() > keep) {
+                List<String> keys = new ArrayList<>();
+                Iterator<String> it = buckets.keys();
+                while (it.hasNext()) {
+                    keys.add(it.next());
+                }
+                Collections.sort(keys);
+                for (int i = 0; i < keys.size() - keep; i++) {
+                    buckets.remove(keys.get(i));
+                }
+            }
+            f.set(sp, buckets.toString());
+        } catch (Exception e) {
+            // never let accounting break the reading session teardown
+            try {
+                java.lang.reflect.Field f = AppSP.class.getField(field);
+                f.set(sp, "{}");
+            } catch (Exception ignored) {
+            }
+        }
     }
 }
