@@ -307,6 +307,67 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 2. **笔记位置跳转**:阅读页选文本→发送到 AI→保存笔记→书签笔记→打开合并笔记→点击笔记时间→跳转到对应阅读位置(第一章 2/10,`p=0.06521739`)
 3. **备份按书**:导出后 zip 内含 `app-BookmarksByBook.json`,按书籍分组(3 本书:致命弱点.mobi/没有人给他写信的上校.epub/《驻京办主任3》-王晓方著.epub),书签+笔记完整;导入后恢复 12 条记录、8 条笔记,位置保留,无重复
 
+## [2026-08-30] 代码检视修复 7 个隐含 BUG
+
+### 一、修复内容
+
+| BUG等级 | 文件 | 问题描述 | 修复方案 |
+|---------|------|----------|----------|
+| **HIGH** | `AppBookmark.java` | `equals()` 仅依赖时间戳，可能导致错误删除 | 添加 `path` 和 `text` 比较，确保唯一性 |
+| **HIGH** | `AppProfile.java` | `clear()` 未重置 CountDownLatch，导致 `awaitDBReady()` 永久阻塞 | 通过反射重置 `DB_READY` 计数器 |
+| **MEDIUM** | `BookmarksFragment2.java` | `mergeNotes()` 中的 `SimpleDateFormat` 在后台线程创建 | 缓存为类字段，在主线程初始化 |
+| **MEDIUM** | `ExtUtils.java` | `getAllExportString()` 未处理 null 路径和空列表 | 添加 null 检查和空列表处理 |
+| **MEDIUM** | `MainTabs2.java` | `getCurrentRealIndex()` 可能返回越界索引 | 先检查 `tabFragments.isEmpty()` |
+| **LOW** | `AppBookmark.java` | `getPage()` 未处理负数和 NaN | 边界检查，限制 `p` 在 [0, 1] 范围 |
+| **LOW** | `ExtUtils.java` | `exportAllBookmarksToFile()` 文件写入未关闭 | 使用 try-with-resources 确保关闭 |
+
+### 二、技术细节
+
+1. **AppBookmark.equals()**: 原 `a.t == t` 改为 `Objects.equals(path, a.path) && Objects.equals(text, a.text) && t == a.t`
+2. **AppProfile.clear()**: 使用反射重置 `static final` CountDownLatch
+3. **SimpleDateFormat 缓存**: 避免后台线程重复创建，提升性能
+4. **null 检查**: 防止 NPE，增强健壮性
+5. **边界检查**: 确保 `getCurrentRealIndex()` 不越界
+6. **数值约束**: `getPage()` 处理异常百分比值
+7. **资源管理**: try-with-resources 防止文件泄漏
+
+### 三、验证结果
+
+1. **构建成功**: APK 生成无错误，所有修复编译通过
+2. **安装运行**: 应用成功安装到 MI9，启动正常，无崩溃
+3. **功能验证**: 书签管理、导出功能正常，界面显示完整
+4. **日志检查**: `logcat` 无 AndroidRuntime 错误，运行稳定
+5. **界面截图**: 主界面正常显示，Tab 切换正常
+
+## [2026-08-30] 第三轮复审:验证前两轮修复质量 + 修复 8 个问题
+
+前两轮共修复 13 个 BUG。本轮复审发现其中 4 处修复本身有问题（需返工），另发现 4 个此前未覆盖的新 BUG。
+
+### 一、前两轮修复的返工（Q1-Q4）
+
+| 编号 | 文件 | 问题 | 返工方案 |
+|------|------|------|----------|
+| **Q1 (HIGH)** | `AppProfile.java` | BUG 8 的反射重置 `static final` 字段在 ART 上会抛 IllegalAccessException（即使 setAccessible(true)），且 R8 混淆后 `getDeclaredField("DB_READY")` 找不到字段 | 声明改为 `private static volatile CountDownLatch DB_READY`（去 final），`clear()` 直接赋新 latch，删除全部反射代码 |
+| **Q2 (MEDIUM)** | `AppBookmark.java` | BUG 7 只改了 equals（t+path+text），hashCode 仍是 `(path+text+p)`——不含 t、含 p，违反 equals/hashCode 契约 | hashCode 改为 `Objects.hash(t, path, text)` |
+| **Q3 (MEDIUM)** | `BookmarksFragment2.java` | BUG 9 属误诊（后台线程"创建" SimpleDateFormat 无害，局部变量本就线程安全），原修复反把它变成跨线程共享字段；`populate()` 用 2 线程池且 `inProgress` 有竞态窗口，并发 `mergeNotes()` 会踩坏 SimpleDateFormat | 回退为 `mergeNotes()` 内局部变量，删除共享字段 |
+| **Q4 (HIGH·功能)** | `BookmarksData.java` | BUG 10 只堵了崩溃：`getBookmarksMap()` 是永远 `return null` 的 stub，导出书签到文件/Gmail 永远输出 "No bookmarks found"（崩溃前 Gmail 导出直接 NPE，这一点确实修掉了） | 真正实现 `getBookmarksMap()`：`getAll()` 按 `getPath()` 用 LinkedHashMap 分组，null path 跳过 |
+
+### 二、新发现的 BUG（N1-N4）
+
+| 编号 | 文件 | 问题 | 修复 |
+|------|------|------|------|
+| **N1 (HIGH)** | `ExtUtils.java` | `doifFileExists(Context, File)` 的 `Clouds.isCloud(file.getPath())` 在 `file != null` 检查**之前**执行（null 检查是死代码）；`doifFileExists(Context, String)` 传 null 时 `Clouds.isCloud(null)`（`path.startsWith`）直接 NPE | 两个重载入口加 null guard，null 直接返回 false |
+| **N2 (HIGH)** | `BookmarksFragment2.java` | 书签长按查看详情 `new File(result.getPath())` 无 null 守卫（单击有守卫、长按没有），path 为 null 的书签长按即崩溃 | 长按回调加 `result == null \|\| result.getPath() == null` 守卫 |
+| **N3 (MEDIUM)** | `BookmarksFragment2.java` | `onDeleteResponse` 的 `b.getPath().equals(path)` 任一为 null 即 NPE（后台线程直接崩应用）；`new File(result.getPath())` 同理；`countBookmarksForPath` 同样问题 | 改 `path != null && path.equals(b.getPath())` / `Objects.equals`；`sendBookmarksTo` 分支前判空 |
+| **N4 (MEDIUM)** | `AppBookmark.java` `BookmarksAdapter2.java` `BookmarksFragment2.java` | 书籍标题行靠 `text.contains(" items")` 判定：用户书签名含 " items"（如 "100 items"）会被误判为标题行——点击变筛选、删除会删光该书全部书签 | `AppBookmark` 新增 `transient public boolean isBookHeader`（Objects 序列化跳过 transient，无兼容问题），`prepareDataInBackground` 创建标题行时置位；adapter 的 `isBookHeader()`、Fragment 的单击/删除判断全部改用该标志；删除已无引用的 `HEADER_SUFFIX` 常量 |
+
+### 三、验证（MI9 真机，构建 + 安装 + 冒烟）
+
+1. **构建**: `BUILD SUCCESSFUL in 36s`，93 tasks 全部通过
+2. **安装启动**: push + `pm install -r -t` 成功，monkey 启动正常，`logcat -s AndroidRuntime:E` 零错误
+3. **书签页冒烟**: 首页→书签笔记"更多"→按书视图 7 本书标题行渲染正常（isBookHeader 标志链路 ✓）
+4. **筛选链路**: 点世界观标题行→筛选出"[2026-08-29 23:44] 笔记 (2)"（时间格式正确，局部 SimpleDateFormat ✓）+ 66% 快速书签（页码徽章 ✓），"返回"链接正常
+
 ---
 
 ## [2026-08-29] 代码检视修复 6 个隐含 BUG

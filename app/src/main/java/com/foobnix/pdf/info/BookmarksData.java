@@ -250,8 +250,25 @@ public class BookmarksData {
     };
 
 
+    /**
+     * All bookmarks grouped by book path (used by the export-to-file/Gmail
+     * features). Null paths (e.g. quick bookmarks without a book) are skipped.
+     */
     public Map<String, List<AppBookmark>> getBookmarksMap() {
-        return null;
+        Map<String, List<AppBookmark>> map = new java.util.LinkedHashMap<>();
+        for (AppBookmark b : getAll()) {
+            String path = b.getPath();
+            if (path == null) {
+                continue;
+            }
+            List<AppBookmark> list = map.get(path);
+            if (list == null) {
+                list = new ArrayList<>();
+                map.put(path, list);
+            }
+            list.add(b);
+        }
+        return map;
     }
 
 

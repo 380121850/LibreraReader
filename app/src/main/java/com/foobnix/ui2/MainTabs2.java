@@ -1338,6 +1338,9 @@ public class MainTabs2 extends AdsFragmentActivity {
      * last tab.
      */
     private int getCurrentRealIndex() {
+        if (tabFragments == null || tabFragments.isEmpty()) {
+            return 0;
+        }
         int pos = pager != null ? pager.getCurrentItem() : 0;
         if (adapter != null && adapter.isLooping()) {
             pos = adapter.toReal(pos);

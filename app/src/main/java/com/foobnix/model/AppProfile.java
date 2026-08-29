@@ -102,7 +102,8 @@ public class AppProfile {
 
     // Signalled once the deferred getCount() task finishes, so consumers
     // (e.g. SearchFragment2's bookCount decision) can wait safely.
-    private static final CountDownLatch DB_READY = new CountDownLatch(1);
+    // volatile non-final: clear() swaps in a fresh latch when the profile resets.
+    private static volatile CountDownLatch DB_READY = new CountDownLatch(1);
 
     /** Block up to {@code timeoutMs} until the deferred DB count finishes. */
     public static void awaitDBReady(long timeoutMs) {
@@ -497,5 +498,8 @@ public class AppProfile {
         profile = "";
         AppState.get().isLoaded = false;
         syncBookmarksByBook = null;
+        // Fresh latch so awaitDBReady() waits for the next init()'s count
+        // instead of falling through a latch that was already counted down.
+        DB_READY = new CountDownLatch(1);
     }
 }

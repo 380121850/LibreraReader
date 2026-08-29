@@ -4,6 +4,7 @@ import com.foobnix.android.utils.LOG;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 public class AppBookmark implements MyPath.RelativePath {
     public String path;
@@ -22,6 +23,10 @@ public class AppBookmark implements MyPath.RelativePath {
     // Per-note list carried by a merged note entry (display only, never serialized)
     transient public List<AppBookmark> notes;
 
+    // True for the synthetic "book summary" rows in the by-book view
+    // (display only, never serialized — must NOT be matched by text content)
+    transient public boolean isBookHeader;
+
     public AppBookmark() {
 
     }
@@ -37,7 +42,12 @@ public class AppBookmark implements MyPath.RelativePath {
 
     public int getPage(int pages) {
         LOG.d("MyMath getPage",p, pages);
-        return Math.max(1,Math.round(p * pages));
+        if (pages <= 0) {
+            return 1;
+        }
+        // Clamp p to [0, 1] range to handle negative values and NaN
+        float clampedP = Math.max(0f, Math.min(1f, p));
+        return Math.max(1, Math.round(clampedP * pages));
     }
 
     public String getText() {
@@ -62,13 +72,17 @@ public class AppBookmark implements MyPath.RelativePath {
 
     @Override
     public int hashCode() {
-        return (path + text + p).hashCode();
+        // Must match equals(): same fields (t, path, text), so two equal
+        // objects always share a hash even when p differs.
+        return java.util.Objects.hash(t, path, text);
     }
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
         AppBookmark a = (AppBookmark) obj;
-        return a.t == t;
+        return t == a.t && Objects.equals(path, a.path) && Objects.equals(text, a.text);
     }
 
 

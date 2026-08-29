@@ -102,6 +102,9 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
 
             @Override
             public boolean onResultRecive(AppBookmark result) {
+                if (result == null || result.getPath() == null) {
+                    return true;
+                }
                 FileInformationDialog.showFileInfoDialog(getActivity(), new File(result.getPath()), null);
                 return true;
             }
@@ -324,7 +327,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             String text = bookmarksEditSearch.getText().toString().toLowerCase(Locale.US).trim();
 
             // Check if this is a book header entry (summary line with count)
-            boolean isBookHeader = result != null && result.text.contains(" items");
+            boolean isBookHeader = result != null && result.isBookHeader;
 
             if (isBookHeader) {
                 // Clicking a book header: filter to show all bookmarks for this book
@@ -427,13 +430,13 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
 
         @Override
         public boolean onResultRecive(AppBookmark result) {
-            // Book header entries (with "items" in text): remove all bookmarks for that book
-            if (result != null && result.text.contains(" items")) {
+            // Book header entries: remove all bookmarks for that book
+            if (result != null && result.isBookHeader) {
                 String path = result.getPath();
                 List<AppBookmark> all = BookmarksData.get().getAll(getActivity());
                 int removedCount = 0;
                 for (AppBookmark b : all) {
-                    if (b.getPath().equals(path)) {
+                    if (path != null && path.equals(b.getPath())) {
                         BookmarksData.get().remove(b);
                         removedCount++;
                     }
@@ -443,7 +446,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             } else if (bookmarksAdapter.withPageNumber) {
                 BookmarksData.get().remove(result);
                 populate();
-            } else {
+            } else if (result != null && result.getPath() != null) {
                 ExtUtils.sendBookmarksTo(getActivity(), new File(result.getPath()));
             }
             return false;
@@ -478,6 +481,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
                         summary.t = bookmark.t;
                         summary.isF = false;
                         summary.isAiNote = false; // not an AI note, just a book header
+                        summary.isBookHeader = true; // identifies the row reliably (text content is user data)
                         filtered.add(summary);
                     }
                 }
@@ -532,7 +536,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
     private int countBookmarksForPath(List<AppBookmark> all, String path) {
         int count = 0;
         for (AppBookmark b : all) {
-            if (b.getPath().equals(path)) {
+            if (java.util.Objects.equals(b.getPath(), path)) {
                 count++;
             }
         }
@@ -559,6 +563,8 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
                 return Long.compare(o2.getTime(), o1.getTime());
             }
         });
+        // Local instance on purpose: mergeNotes runs on the populate executor
+        // (a 2-thread pool) and SimpleDateFormat is not thread-safe when shared.
         java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
         StringBuilder content = new StringBuilder();
         AppBookmark first = notes.get(0);

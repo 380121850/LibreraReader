@@ -646,11 +646,14 @@ public class ExtUtils {
     }
 
     public static boolean doifFileExists(Context c, File file) {
+        if (file == null) {
+            return false;
+        }
         if (Clouds.isCloud(file.getPath())) {
             return true;
         }
 
-        if (file != null && file.isFile()) {
+        if (file.isFile()) {
             return true;
         }
         if (c != null) {
@@ -660,6 +663,9 @@ public class ExtUtils {
     }
 
     public static boolean doifFileExists(Context c, String path) {
+        if (path == null) {
+            return false;
+        }
         if (Clouds.isCloud(path)) {
             return true;
         }
@@ -1252,10 +1258,10 @@ public class ExtUtils {
                 }
                 try {
                     LOG.d("exportAllBookmarksToFile 2", toFile);
-                    FileWriter writer = new FileWriter(toFile);
-                    writer.write(getAllExportString(a, BookmarksData.get()));
-                    writer.flush();
-                    writer.close();
+                    try (FileWriter writer = new FileWriter(toFile)) {
+                        writer.write(getAllExportString(a, BookmarksData.get()));
+                        writer.flush();
+                    }
                     Toast.makeText(a, R.string.success, Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     LOG.e(e);
@@ -1339,14 +1345,29 @@ public class ExtUtils {
     }
 
     public static String getAllExportString(final Activity a, BookmarksData viewerPreferences) {
+        if (a == null || viewerPreferences == null) {
+            return "";
+        }
+        
         final StringBuilder out = new StringBuilder();
         Map<String, List<AppBookmark>> bookmarks = viewerPreferences.getBookmarksMap();
+        
+        if (bookmarks == null || bookmarks.isEmpty()) {
+            out.append(a.getString(R.string.bookmarks) + "\n");
+            out.append("\n");
+            out.append("No bookmarks found\n");
+            return out.toString();
+        }
 
         out.append(a.getString(R.string.bookmarks) + "\n");
         out.append("\n");
 
         for (String path : bookmarks.keySet()) {
             List<AppBookmark> list = bookmarks.get(path);
+            if (list == null || list.isEmpty()) {
+                continue;
+            }
+            
             // Collections.sort(list, BookmarksData.COMPARE_BY_PAGE);
             File file = new File(path);
             if (file.isFile()) {

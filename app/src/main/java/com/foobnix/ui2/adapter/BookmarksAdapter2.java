@@ -33,9 +33,6 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
     public boolean withPageNumber = true;
     private ResultResponse<AppBookmark> onDeleteClickListener;
 
-    // Marker suffix used to identify book header entries in the list
-    public static final String HEADER_SUFFIX = " items";
-
     // Formats note timestamps as "yyyy-MM-dd HH:mm"
     private static final java.text.SimpleDateFormat NOTE_TIME_FORMAT =
             new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US);
@@ -49,7 +46,9 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
     /** Returns true if this item is a book header entry */
     private boolean isBookHeader(int position) {
         AppBookmark item = getItem(position);
-        return item != null && item.text != null && item.text.contains(HEADER_SUFFIX);
+        // Header rows carry a dedicated flag set when the summary entry is
+        // built — text content is user data and must not be matched here.
+        return item != null && item.isBookHeader;
     }
 
     @Override
