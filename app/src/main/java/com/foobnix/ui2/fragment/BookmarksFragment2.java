@@ -56,6 +56,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
     View bookmarksSearchContainer, bookmarksClearFilter, topPanel;
     TextView exportBookmarks, importBookmarks, allBookmarks;
     EditText bookmarksEditSearch;
+    String readingNoteLabel;
     ImageView onListGrid, search;
 
     @Override
@@ -66,6 +67,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_bookmarks2, container, false);
+        readingNoteLabel = getString(R.string.reading_note);
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
 
         topPanel = view.findViewById(R.id.topPanel);
@@ -382,7 +384,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
                     if (dialogRef[0] != null) {
                         dialogRef[0].dismiss();
                     }
-                    if (n.getPercent() > 0f && ExtUtils.doifFileExists(activity, n.getPath())) {
+                    if (n.getPath() != null && n.getPercent() >= 0f && ExtUtils.doifFileExists(activity, n.getPath())) {
                         final File file = new File(n.getPath());
                         ExtUtils.showDocumentWithoutDialog2(activity, Uri.fromFile(file), n.getPercent(), null);
                     }
@@ -577,7 +579,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
         merged.isAiNote = true;
         merged.p = 0;
         merged.t = first.t;
-        merged.text = getString(R.string.reading_note) + " (" + notes.size() + ")";
+        merged.text = readingNoteLabel + " (" + notes.size() + ")";
         merged.aiAnswer = content.toString();
         // Carry the per-note entries (newest first) so the dialog can render
         // each note with a clickable timestamp that jumps to its position.

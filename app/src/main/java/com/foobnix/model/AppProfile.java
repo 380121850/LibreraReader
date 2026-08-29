@@ -496,5 +496,6 @@ public class AppProfile {
     public static void clear() {
         profile = "";
         AppState.get().isLoaded = false;
+        syncBookmarksByBook = null;
     }
 }

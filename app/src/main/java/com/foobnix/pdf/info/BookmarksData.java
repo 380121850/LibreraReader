@@ -187,8 +187,9 @@ public class BookmarksData {
      * Writes all bookmarks & AI notes grouped by book (file name) into
      * app-BookmarksByBook.json, so the backup zip carries them per book.
      */
-    public void saveByBook() {
+    public synchronized void saveByBook() {
         try {
+            if (AppProfile.syncBookmarksByBook == null) return;
             LinkedJSONObject byBook = new LinkedJSONObject();
             for (AppBookmark b : getAll()) {
                 String book = ExtUtils.getFileName(b.getPath());
@@ -209,8 +210,9 @@ public class BookmarksData {
      * app-Bookmarks.json after a restore. Entries are keyed by creation time,
      * so the merge is idempotent (existing keys are kept).
      */
-    public void importByBook() {
+    public synchronized void importByBook() {
         try {
+            if (AppProfile.syncBookmarksByBook == null) return;
             LinkedJSONObject byBook = IO.readJsonObject(AppProfile.syncBookmarksByBook);
             LinkedJSONObject all = IO.readJsonObject(AppProfile.syncBookmarks);
             final Iterator<String> books = byBook.keys();

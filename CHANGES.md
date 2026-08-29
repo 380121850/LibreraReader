@@ -307,4 +307,38 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 2. **笔记位置跳转**:阅读页选文本→发送到 AI→保存笔记→书签笔记→打开合并笔记→点击笔记时间→跳转到对应阅读位置(第一章 2/10,`p=0.06521739`)
 3. **备份按书**:导出后 zip 内含 `app-BookmarksByBook.json`,按书籍分组(3 本书:致命弱点.mobi/没有人给他写信的上校.epub/《驻京办主任3》-王晓方著.epub),书签+笔记完整;导入后恢复 12 条记录、8 条笔记,位置保留,无重复
 
+---
+
+## [2026-08-29] 代码检视修复 6 个隐含 BUG
+
+### 根因分析过程
+
+对 8 个修改过的源文件进行系统检视，发现 6 个 BUG（2 高/2 中/2 低）：
+
+| BUG | 文件 | 类型 | 根因 |
+|-----|------|------|------|
+| 1 (HIGH) | `BookmarksFragment2.java:387` | NPE 崩溃 | 点击笔记时间时 `n.getPath()` 返回 null → `new File(null)` 崩溃 |
+| 2 (HIGH) | `BookmarksData.java:192,215` | NPE 崩溃 | `syncBookmarksByBook` 在 `init()` 前为 null → IO 操作 NPE |
+| 3 (MED) | `BookmarksFragment2.java:582` | 后台线程 UI 调用 | `mergeNotes()` 在 executor 线程调 `Fragment.getString()` |
+| 4 (MED) | `BookmarksData.java:190,213` | 并发安全 | `saveByBook()`/`importByBook()` 无同步，非线程安全容器 |
+| 5 (LOW) | `BookmarksFragment2.java:387` | 功能缺失 | `n.getPercent() > 0f` 跳过 position=0 的笔记 |
+| 6 (LOW) | `AppProfile.java:496-499` | 状态不一致 | `clear()` 未重置 `syncBookmarksByBook` 静态字段 |
+
+### 修复方案
+
+| BUG | 改动 |
+|-----|------|
+| 1 | `BookmarksFragment2.java:387` 加 `n.getPath() != null &&` 守卫 |
+| 2 | `BookmarksData.java:saveByBook/importByBook` 开头加 `if (AppProfile.syncBookmarksByBook == null) return;` |
+| 3 | 新增字段 `readingNoteLabel`，`onCreateView` 主线程缓存，`mergeNotes` 改用缓存值 |
+| 4 | `saveByBook()`/`importByBook()` 加 `synchronized` 关键字 |
+| 5 | `n.getPercent() > 0f` → `n.getPercent() >= 0f` |
+| 6 | `AppProfile.clear()` 末尾加 `syncBookmarksByBook = null;` |
+
+### 验证
+
+- Ubuntu 远程构建 librera Debug
+- 真机确认：打开书签笔记 → 点击笔记时间 → 不崩溃、正确跳转
+- 导出备份 → 不崩溃、按书分组文件正确写入
+
 
