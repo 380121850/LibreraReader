@@ -258,6 +258,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         AppsConfig.ensureMuPdfLoaded();
+        com.foobnix.sys.TempHolder.readerActive = true;
         finishOtherViewer(this, VerticalViewActivity.class);
         quickBookmark = getString(R.string.fast_bookmark);
         LOG.d("getRequestedOrientation", AppState.get().orientation, getRequestedOrientation());
@@ -1502,6 +1503,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Override
     protected void onDestroy() {
+        com.foobnix.sys.TempHolder.readerActive = false;
         super.onDestroy();
 
         if (loadinAsyncTask != null) {

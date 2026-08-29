@@ -103,11 +103,14 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         AppsConfig.ensureMuPdfLoaded();
+        TempHolder.readerActive = true;
         finishOtherViewer(this, HorizontalViewActivity.class);
         DocumentController.doRotation(this);
         DocumentController.doContextMenu(this);
 
-        FileMetaCore.checkOrCreateMetaInfo(this);
+        // Metadata extraction moved to BookLoadTask (background): doing it on
+        // the main thread here froze the UI for the full parse of unscanned
+        // books before the loading dialog could appear.
 
         if (getIntent().getData() != null) {
             String path = getIntent().getData().getPath();
@@ -128,7 +131,6 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
                 }
             }
 
-            BookCSS.get().detectLang(path);
         }
 
         getController().beforeCreate(this);
@@ -299,6 +301,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     protected void onDestroy() {
+        TempHolder.readerActive = false;
         super.onDestroy();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);

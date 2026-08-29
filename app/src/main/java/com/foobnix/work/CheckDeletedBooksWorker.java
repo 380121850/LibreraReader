@@ -88,6 +88,7 @@ public class CheckDeletedBooksWorker extends MessageWorker {
         }
 
         boolean notifyResults = false;
+        final LinkedList<String> newBooks = new LinkedList<String>();
 
         for (FileMeta meta : localMeta) {
             if (isStopped()) {
@@ -95,6 +96,7 @@ public class CheckDeletedBooksWorker extends MessageWorker {
             }
             if (!all.contains(meta)) {
                 FileMetaCore.createMetaIfNeedSafe(meta.getPath(), true);
+                newBooks.add(meta.getPath());
                 LOG.d("CheckDeletedBooksWorker", "Add book", meta.getPath());
                 notifyResults = true;
             }
@@ -123,6 +125,12 @@ public class CheckDeletedBooksWorker extends MessageWorker {
 
         //TagData.restoreTags();
         Tags2.updateTagsDB();
+
+        // Newly discovered books: persist their MuPDF accelerator in the
+        // background so the first open doesn't pay for the full layout.
+        if (!newBooks.isEmpty()) {
+            com.foobnix.pdf.info.BookWarmer.warmAsync(newBooks);
+        }
 
         return true;
 

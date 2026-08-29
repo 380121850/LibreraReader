@@ -762,6 +762,14 @@ public class MainTabs2 extends AdsFragmentActivity {
             }, 4000);
         }
 
+        // Warm the MuPDF accelerator for the last-read book shortly after
+        // launch, so its next open skips the full-document layout. Repeats are
+        // deduplicated inside BookWarmer.
+        handler.postDelayed(() -> {
+            com.foobnix.pdf.info.BookWarmer.warmAsync(
+                    java.util.Collections.singletonList(com.foobnix.model.AppSP.get().lastBookPath));
+        }, 9000);
+
         if (!AppState.get().isEnableAccessibility && once) {
             once = false;
             handler.postDelayed(() -> {

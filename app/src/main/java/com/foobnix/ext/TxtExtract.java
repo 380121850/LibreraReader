@@ -35,8 +35,6 @@ public class TxtExtract {
     }
 
     public static String extract1(String inputPath, String outputDir) throws IOException {
-        File file = new File(outputDir, inputPath.hashCode() + "_.fb2");
-
         String encoding = "UTF-8";
         if (AppState.get().isCharacterEncoding) {
             encoding = AppState.get().characterEncoding;
@@ -44,9 +42,21 @@ public class TxtExtract {
             encoding = ExtUtils.determineTxtEncoding(new FileInputStream(inputPath));
         }
 
+        // The conversion is O(file size) (full read + optional hyphenation), so
+        // cache it per source path + conversion settings and only regenerate
+        // when the cached file is missing.
+        final String key = inputPath.hashCode() + "_" + BookCSS.get().isAutoHypens + AppSP.get().hypenLang
+                + encoding + AppState.get().isCharacterEncoding;
+        File file = new File(outputDir, key.hashCode() + "_.fb2");
+        if (file.isFile() && file.length() > 0) {
+            LOG.d("extract1 cache", file);
+            return file.getPath();
+        }
+        File tmp = new File(outputDir, file.getName() + ".tmp");
+
         BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(inputPath), encoding));
 
-        PrintWriter writer = new PrintWriter(file);
+        PrintWriter writer = new PrintWriter(tmp);
         String line;
         writer.println("<FictionBook>");
 
@@ -79,6 +89,7 @@ public class TxtExtract {
         writer.println("</FictionBook>");
         input.close();
         writer.close();
+        tmp.renameTo(file);
         return file.getPath();
     }
 

@@ -17,7 +17,10 @@ public class TxtContext extends PdfContext {
 
         String extractFile = null;
         try {
-            CacheZipUtils.emptyAllCacheDirs();
+            // Do NOT wipe the shared cache dirs here: conversion products and
+            // MuPDF accelerator files of other books are content-keyed and
+            // bounded by LRU trimming, clearing them made every open a full
+            // re-conversion + re-layout.
             if (AppState.get().isPreText) {
                 extractFile = TxtExtract.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath());
                 MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, extractFile, "");

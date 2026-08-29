@@ -26,6 +26,9 @@ public class TempHolder {
     public static volatile boolean isConverting = false;
     public static volatile boolean isRecordTTS = false;
 
+    /** True while a reader activity is in the foreground; background warm-up tasks yield to it. */
+    public static volatile boolean readerActive = false;
+
     public static int isRecordFrom = 1;
     public static int isRecordTo = 1;
 

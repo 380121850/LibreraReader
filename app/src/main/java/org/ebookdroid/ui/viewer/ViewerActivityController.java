@@ -23,17 +23,21 @@ import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.model.ReadingStats;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.R;
+import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.model.OutlineLinkWrapper;
 import com.foobnix.pdf.info.wrapper.DocumentController;
 import com.foobnix.pdf.info.wrapper.DocumentWrapperUI;
+import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.search.activity.HorizontalModeController;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.sys.VerticalModeController;
 import com.foobnix.tts.TTSEngine;
 import com.foobnix.tts.TTSNotification;
 import com.foobnix.ui2.AdsFragmentActivity;
+import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.FileMetaCore;
 
 import org.ebookdroid.BookType;
@@ -130,8 +134,11 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
             m_fileName = filePath;
             codecType = BookType.getByUri(m_fileName);
 
-            FileMeta meta = FileMetaCore.createMetaIfNeed(m_fileName, false);
-            title = meta.getTitle();
+            // Fast DB-only lookup: the (possibly expensive) full metadata
+            // extraction runs inside BookLoadTask on a background thread, so
+            // an unscanned book no longer blocks the main thread here.
+            FileMeta meta = AppDB.get().load(m_fileName);
+            title = meta == null ? null : meta.getTitle();
             if (TxtUtils.isEmpty(title)) {
                 title = ExtUtils.getFileName(m_fileName);
             }
@@ -156,7 +163,20 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
             wrapperControlls.hideShowEditIcon();
 
-            controller.addRecent(filePath);
+            // Recent list update writes DB + JSON; keep it off the main thread
+            // (the horizontal mode path already calls this from a background
+            // thread, so it is background-safe).
+            final String recentPath = filePath;
+            AppsConfig.executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        controller.addRecent(recentPath);
+                    } catch (Throwable e) {
+                        LOG.e(e);
+                    }
+                }
+            });
             SettingsManager.getBookSettings(filePath);
 
             final AppBook.Diff diff = new AppBook.Diff(null, SettingsManager.getBookSettings());
@@ -556,6 +576,8 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         private String m_fileName;
         private final String m_password;
         private final Runnable onBookLoaded;
+        private long benchT0;
+        private volatile String metaTitle;
 
         public BookLoadTask(final String fileName, final String password, Runnable onBookLoaded) {
             super(getManagedComponent());
@@ -565,7 +587,10 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         }
 
         @Override public void run() {
-            execute();
+            // Parallel executor: the process-wide serial queue could otherwise
+            // delay the load behind unrelated background tasks. Native access
+            // stays serialized by TempHolder.lock.
+            executeOnExecutor(CopyAsyncTask.THREAD_POOL_EXECUTOR);
         }
 
         @Override public void onBookCancel() {
@@ -574,12 +599,32 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
             closeActivity(null);
         }
 
+        @Override protected void onPreExecute() {
+            super.onPreExecute();
+            benchT0 = android.os.SystemClock.elapsedRealtime();
+            android.util.Log.i("BENCH", "load-begin");
+        }
+
         @Override protected Throwable doInBackground(final String... params) {
             try {
                 //Thread.sleep(3000);
                 m_fileName = Apps.getBookPathFromActivity(getActivity());
 
+                // Full metadata extraction + hyphenation language detection,
+                // both potentially O(file), run here on the background thread
+                // (they used to run on the main thread in onCreate/afterCreate).
+                try {
+                    FileMeta meta = FileMetaCore.createMetaIfNeed(m_fileName, false);
+                    if (meta != null) {
+                        metaTitle = meta.getTitle();
+                    }
+                    BookCSS.get().detectLang(m_fileName);
+                } catch (Throwable e) {
+                    LOG.e(e);
+                }
+
                 documentModel.open(m_fileName, m_password);
+                android.util.Log.i("BENCH", "doc-open-done " + (android.os.SystemClock.elapsedRealtime() - benchT0) + "ms");
                 getDocumentController().init(this);
                 return null;
             } catch (final MuPdfPasswordException pex) {
@@ -597,6 +642,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         @Override protected void onPostExecute(Throwable result) {
             try {
                 LOG.d("onPostExecute");
+                android.util.Log.i("BENCH", "load-end " + (android.os.SystemClock.elapsedRealtime() - benchT0) + "ms");
                 if (TempHolder.get().loadingCancelled.get()) {
                     super.onPostExecute(result);
                     closeActivity(null);
@@ -606,6 +652,12 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                 wrapperControlls.onLoadBookFinish();
                 if (result == null) {
                     try {
+                        // The real title (extracted on the background thread)
+                        // replaces the filename placeholder used before load.
+                        if (metaTitle != null && !metaTitle.equals(title)) {
+                            title = metaTitle;
+                            wrapperControlls.setTitle(title);
+                        }
                         getDocumentController().show();
 
                         final DocumentModel dm = getDocumentModel();

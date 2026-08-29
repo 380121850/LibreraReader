@@ -1,0 +1,94 @@
+package com.foobnix.pdf.info;
+
+import android.os.SystemClock;
+import android.util.Log;
+
+import com.foobnix.android.utils.Dips;
+import com.foobnix.android.utils.LOG;
+import com.foobnix.pdf.info.model.BookCSS;
+import com.foobnix.sys.TempHolder;
+
+import org.ebookdroid.BookType;
+import org.ebookdroid.core.codec.CodecContext;
+import org.ebookdroid.core.codec.CodecDocument;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Lays out books in the background (open + page count) purely to persist the
+ * MuPDF accelerator file, so the first real open of a book skips the expensive
+ * full-document layout. Skipped while a reader activity is in the foreground.
+ */
+public class BookWarmer {
+    private static final int MAX_WARM_BOOKS = 5;
+    private static final Set<String> warmed = Collections.synchronizedSet(new LinkedHashSet<String>());
+
+    public static void warmAsync(final List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return;
+        }
+        final List<String> todo = new ArrayList<String>();
+        synchronized (warmed) {
+            for (String path : paths) {
+                if (path != null && warmed.size() < MAX_WARM_BOOKS && !warmed.contains(path) && new File(path).isFile()) {
+                    warmed.add(path);
+                    todo.add(path);
+                }
+            }
+        }
+        if (todo.isEmpty()) {
+            return;
+        }
+        AppsConfig.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+                for (String path : todo) {
+                    if (TempHolder.readerActive) {
+                        return; // user started reading; don't compete for the native lock
+                    }
+                    warmOne(path);
+                }
+            }
+        });
+    }
+
+    private static void warmOne(final String path) {
+        final long t0 = SystemClock.elapsedRealtime();
+        CodecContext context = null;
+        CodecDocument document = null;
+        try {
+            context = BookType.getCodecContextByPath(path);
+            if (context == null) {
+                return;
+            }
+            document = context.openDocument(path, "");
+            if (document != null && !document.isRecycled()) {
+                final int pages = document.getPageCount(Dips.screenWidth(), Dips.screenHeight(),
+                        Dips.spToPx(BookCSS.get().fontSizeSp));
+                Log.i("BENCH", "warm " + ExtUtils.getFileName(path) + " pages=" + pages
+                        + " " + (SystemClock.elapsedRealtime() - t0) + "ms");
+            }
+        } catch (Throwable e) {
+            LOG.e(e);
+        } finally {
+            try {
+                if (document != null) {
+                    document.recycle();
+                }
+            } catch (Throwable ignore) {
+            }
+            try {
+                if (context != null) {
+                    context.recycle();
+                }
+            } catch (Throwable ignore) {
+            }
+        }
+    }
+}

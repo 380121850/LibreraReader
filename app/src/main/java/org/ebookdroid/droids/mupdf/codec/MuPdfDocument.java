@@ -11,6 +11,7 @@ import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.sys.TempHolder;
 
 import org.ebookdroid.BookType;
+import org.ebookdroid.core.codec.AbstractCodecContext;
 import org.ebookdroid.core.codec.AbstractCodecDocument;
 import org.ebookdroid.core.codec.CodecPage;
 import org.ebookdroid.core.codec.CodecPageInfo;
@@ -108,10 +109,15 @@ public class MuPdfDocument extends AbstractCodecDocument {
             int isImageScale = AppState.get().enableImageScale ? 1 : 0;
 
             LOG.d("accel cache1", fname);
-            String accel = new EpubContext().getCacheFileName(fname)
+            // Key the accelerator by file content version too: reusing a stale
+            // accelerator after the book file changed would report wrong page
+            // counts.
+            String accel = new EpubContext().getCacheFileName(fname + AbstractCodecContext.getFileNameSalt(fname))
                                             .getPath() + "+accel";
             accel = accel.replace(CacheZipUtils.CACHE_BOOK_DIR.getPath(), CacheZipUtils.CACHE_TEMP.getPath());
             LOG.d("accel cache2", accel, new File(accel).exists());
+            CacheZipUtils.trimAccel(CacheZipUtils.CACHE_TEMP == null ? null : CacheZipUtils.CACHE_TEMP.listFiles(),
+                    new File(accel), 8);
 
             final long open = open(allocatedMemory, format, fname, pwd, css,
                     BookCSS.get().documentStyle == BookCSS.STYLES_ONLY_USER ? 0 : 1, BookCSS.get().imageScale,

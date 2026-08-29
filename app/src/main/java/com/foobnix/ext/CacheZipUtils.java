@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -193,6 +195,91 @@ public class CacheZipUtils {
                         deleteDir(file);
                         LOG.d("Delete-dir", file);
                     }
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    private static String ownerKey(File f) {
+        String name = f.getName();
+        if (name.endsWith(".json")) {
+            return name.substring(0, name.length() - ".json".length());
+        }
+        return name;
+    }
+
+    /**
+     * Keeps the newest conversion caches plus the book currently in use,
+     * deleting older ones beyond keepCount. Files are grouped per book (a
+     * product file and its "<name>.json" sidecar count as one group). This
+     * replaces the old "delete everything except the current book" behaviour
+     * so switching between a few books no longer forces full re-conversions.
+     */
+    public static void trimFiles(File[] files, final File keep, final int keepCount) {
+        try {
+            if (files == null || keep == null) {
+                return;
+            }
+            final List<File> list = new ArrayList<File>();
+            for (File f : files) {
+                if (f != null && !"outline".equals(f.getName())) {
+                    list.add(f);
+                }
+            }
+            Collections.sort(list, new Comparator<File>() {
+                @Override
+                public int compare(File a, File b) {
+                    return Long.compare(b.lastModified(), a.lastModified());
+                }
+            });
+            final String keepOwner = ownerKey(keep);
+            final List<String> keptOwners = new ArrayList<String>();
+            for (File f : list) {
+                final String owner = ownerKey(f);
+                if (owner.equals(keepOwner) || keptOwners.contains(owner)) {
+                    continue;
+                }
+                if (keptOwners.size() < keepCount) {
+                    keptOwners.add(owner);
+                    continue;
+                }
+                if (f.isFile()) {
+                    f.delete();
+                    LOG.d("trimFiles delete", f);
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * Bounds the MuPDF accelerator cache (files named "*+accel") to the newest
+     * keepCount entries; only accelerator files participate.
+     */
+    public static void trimAccel(File[] files, final File keep, final int keepCount) {
+        try {
+            if (files == null) {
+                return;
+            }
+            final List<File> accels = new ArrayList<File>();
+            for (File f : files) {
+                if (f != null && f.isFile() && f.getName().endsWith("+accel")) {
+                    accels.add(f);
+                }
+            }
+            Collections.sort(accels, new Comparator<File>() {
+                @Override
+                public int compare(File a, File b) {
+                    return Long.compare(b.lastModified(), a.lastModified());
+                }
+            });
+            for (int i = keepCount; i < accels.size(); i++) {
+                final File f = accels.get(i);
+                if (!f.equals(keep) && f.delete()) {
+                    LOG.d("trimAccel delete", f);
                 }
             }
         } catch (Exception e) {
