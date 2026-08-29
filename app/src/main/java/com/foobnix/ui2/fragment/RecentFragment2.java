@@ -21,6 +21,8 @@ import com.foobnix.dao2.FileMeta;
 import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppState;
+import com.foobnix.model.BookStateStore;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
@@ -29,11 +31,15 @@ import com.foobnix.pdf.info.view.MyPopupMenu;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.ui2.AppDB;
+import com.foobnix.ui2.adapter.DefaultListeners;
 import com.foobnix.ui2.adapter.FileMetaAdapter;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RecentFragment2 extends UIFragment<FileMeta> {
     public static final Pair<Integer, Integer> PAIR = new Pair<Integer, Integer>(R.string.recent, R.drawable.glyphicons_422_book_library);
@@ -41,6 +47,12 @@ public class RecentFragment2 extends UIFragment<FileMeta> {
     ImageView onListGrid;
     View panelRecent;
     TextView recentName;
+
+    // multi-select (same mechanics as the library page)
+    boolean selectionMode = false;
+    final Set<String> selectedPaths = new LinkedHashSet<String>();
+    SelectionBarController selectionBarController;
+
     ResultResponse<FileMeta> onDeleteRecentClick = new ResultResponse<FileMeta>() {
 
         @Override
@@ -123,6 +135,19 @@ public class RecentFragment2 extends UIFragment<FileMeta> {
 
         recentAdapter.setOnDeleteClickListener(onDeleteRecentClick);
 
+        setupSelectionBar(view);
+        wrapItemClickListenerForSelection();
+        // long-press on a book enters multi-select
+        recentAdapter.setOnItemLongClickListener(new ResultResponse<FileMeta>() {
+            @Override public boolean onResultRecive(FileMeta meta) {
+                if (meta != null && meta.getPath() != null && !AppDB.get().isFolder(meta)) {
+                    startSelection(meta.getPath());
+                    return true;
+                }
+                return DefaultListeners.onLongClickChooser(getActivity(), recentAdapter).onResultRecive(meta);
+            }
+        });
+
         onGridList();
         populate();
 
@@ -135,6 +160,125 @@ public class RecentFragment2 extends UIFragment<FileMeta> {
     public void onTintChanged() {
         TintUtil.setBackgroundFillColor(panelRecent, TintUtil.color);
     }
+
+    // ------------------------------------------------------------------ batch selection
+
+    private void setupSelectionBar(View view) {
+        selectionBarController = SelectionBarController.bind(view, new SelectionBarController.Callbacks() {
+            @Override public void onSelectAll() {
+                for (FileMeta m : recentAdapter.getItemsList()) {
+                    if (m != null && m.getPath() != null && !AppDB.get().isFolder(m)) {
+                        selectedPaths.add(m.getPath());
+                    }
+                }
+                updateSelectionCount();
+                recentAdapter.notifyDataSetChanged();
+            }
+
+            @Override public void onCancel() {
+                exitSelection();
+            }
+
+            @Override public void onApplyState(int state) {
+                applySelection(state);
+            }
+        });
+    }
+
+    /**
+     * In selection mode a tap toggles the book's selection instead of opening
+     * it; otherwise the default listener (open book) runs unchanged.
+     */
+    private void wrapItemClickListenerForSelection() {
+        final ResultResponse<FileMeta> defaultClick = recentAdapter.getOnItemClickListener();
+        recentAdapter.setOnItemClickListener(new ResultResponse<FileMeta>() {
+            @Override public boolean onResultRecive(FileMeta meta) {
+                if (selectionMode && meta != null && meta.getPath() != null) {
+                    toggleSelection(meta.getPath());
+                    return true;
+                }
+                return defaultClick != null && defaultClick.onResultRecive(meta);
+            }
+        });
+    }
+
+    public void startSelection(String path) {
+        selectionMode = true;
+        selectedPaths.clear();
+        if (path != null) {
+            selectedPaths.add(path);
+        }
+        recentAdapter.selectionPaths = selectedPaths;
+        if (selectionBarController != null) {
+            selectionBarController.setVisible(true);
+        }
+        updateSelectionCount();
+        recentAdapter.notifyDataSetChanged();
+    }
+
+    private void toggleSelection(String path) {
+        if (selectedPaths.contains(path)) {
+            selectedPaths.remove(path);
+        } else {
+            selectedPaths.add(path);
+        }
+        updateSelectionCount();
+        recentAdapter.notifyDataSetChanged();
+    }
+
+    private void updateSelectionCount() {
+        if (selectionBarController != null) {
+            selectionBarController.setCount(selectedPaths.size());
+        }
+    }
+
+    public void exitSelection() {
+        selectionMode = false;
+        selectedPaths.clear();
+        if (recentAdapter != null) {
+            recentAdapter.selectionPaths = null;
+            recentAdapter.notifyDataSetChanged();
+        }
+        if (selectionBarController != null) {
+            selectionBarController.setVisible(false);
+        }
+    }
+
+    private void applySelection(final int state) {
+        if (selectedPaths.isEmpty()) {
+            exitSelection();
+            return;
+        }
+        final List<String> paths = new ArrayList<String>(selectedPaths);
+        exitSelection();
+        AppsConfig.executorService.execute(new Runnable() {
+            @Override public void run() {
+                try {
+                    BookStateStore.markAll(paths, state);
+                } catch (Exception e) {
+                    LOG.e(e);
+                }
+                handler.post(new Runnable() {
+                    @Override public void run() {
+                        if (getActivity() != null) {
+                            TempHolder.listHash++;
+                            resetFragment();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public boolean isBackPressed() {
+        if (selectionMode) {
+            exitSelection();
+            return true;
+        }
+        return false;
+    }
+
 
     public boolean onBackAction() {
         return false;

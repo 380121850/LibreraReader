@@ -85,6 +85,7 @@ import com.foobnix.ui2.AppDB.SEARCH_IN;
 import com.foobnix.ui2.AppDB.SORT_BY;
 import com.foobnix.ui2.BooksService;
 import com.foobnix.ui2.adapter.AuthorsAdapter2;
+import com.foobnix.ui2.adapter.DefaultListeners;
 import com.foobnix.ui2.adapter.FileMetaAdapter;
 import com.foobnix.work.CheckDeletedBooksWorker;
 import com.foobnix.work.SearchAllBooksWorker;
@@ -222,32 +223,11 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
     boolean selectionMode = false;
     final Set<String> selectedPaths = new LinkedHashSet<String>();
-    LinearLayout selectionBar;
-    TextView selectionCount;
+    SelectionBarController selectionBarController;
 
     private void setupSelectionBar(View view) {
-        selectionBar = view.findViewById(R.id.selectionBar);
-        selectionCount = view.findViewById(R.id.selectionCount);
-        if (selectionBar == null) {
-            return;
-        }
-        boolean dark = AppState.get().appTheme == AppState.THEME_DARK
-                || AppState.get().appTheme == AppState.THEME_DARK_OLED;
-        selectionBar.setBackgroundColor(dark ? 0xFF26262A : 0xFFF0F0F2);
-
-        LinearLayout actions = view.findViewById(R.id.selectionActions);
-        LinearLayout topRow = view.findViewById(R.id.selectionTopRow);
-        if (actions == null || topRow == null) {
-            return;
-        }
-
-        addSelectionAction(actions, R.string.moon_mark_read, BookStateStore.READ);
-        addSelectionAction(actions, R.string.moon_mark_unread, BookStateStore.UNREAD);
-        addSelectionAction(actions, R.string.moon_mark_reading, BookStateStore.READING);
-
-        TextView selectAll = makeShelfChip(R.string.moon_select_all, false);
-        selectAll.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
+        selectionBarController = SelectionBarController.bind(view, new SelectionBarController.Callbacks() {
+            @Override public void onSelectAll() {
                 for (FileMeta m : searchAdapter.getItemsList()) {
                     if (m != null && m.getPath() != null && !AppDB.get().isFolder(m)) {
                         selectedPaths.add(m.getPath());
@@ -256,26 +236,15 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                 updateSelectionCount();
                 searchAdapter.notifyDataSetChanged();
             }
-        });
-        actions.addView(selectAll);
 
-        TextView cancel = makeShelfChip(R.string.cancel, false);
-        cancel.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override public void onCancel() {
                 exitSelection();
             }
-        });
-        topRow.addView(cancel, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-    }
 
-    private void addSelectionAction(LinearLayout bar, int textRes, final int state) {
-        TextView chip = makeShelfChip(textRes, false);
-        chip.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override public void onApplyState(int state) {
                 applySelection(state);
             }
         });
-        bar.addView(chip, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     /**
@@ -305,8 +274,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             selectedPaths.add(path);
         }
         searchAdapter.selectionPaths = selectedPaths;
-        if (selectionBar != null) {
-            selectionBar.setVisibility(View.VISIBLE);
+        if (selectionBarController != null) {
+            selectionBarController.setVisible(true);
         }
         updateSelectionCount();
         searchAdapter.notifyDataSetChanged();
@@ -323,8 +292,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     }
 
     private void updateSelectionCount() {
-        if (selectionCount != null && getActivity() != null) {
-            selectionCount.setText(getString(R.string.moon_selected_count, selectedPaths.size()));
+        if (selectionBarController != null) {
+            selectionBarController.setCount(selectedPaths.size());
         }
     }
 
@@ -335,8 +304,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             searchAdapter.selectionPaths = null;
             searchAdapter.notifyDataSetChanged();
         }
-        if (selectionBar != null) {
-            selectionBar.setVisibility(View.GONE);
+        if (selectionBarController != null) {
+            selectionBarController.setVisible(false);
         }
     }
 
@@ -763,6 +732,17 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         buildShelfChips(view);
         setupSelectionBar(view);
         wrapItemClickListenerForSelection();
+        // long-press on a book enters multi-select (folders keep the default
+        // long-press menu from bindAdapter)
+        searchAdapter.setOnItemLongClickListener(new ResultResponse<FileMeta>() {
+            @Override public boolean onResultRecive(FileMeta meta) {
+                if (meta != null && meta.getPath() != null && !AppDB.get().isFolder(meta)) {
+                    startSelection(meta.getPath());
+                    return true;
+                }
+                return DefaultListeners.onLongClickChooser(getActivity(), searchAdapter).onResultRecive(meta);
+            }
+        });
 
         searchAdapter.setOnAuthorClickListener(onAuthorClick);
         searchAdapter.setOnSeriesClickListener(onSeriesClick);
@@ -1407,6 +1387,10 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     }
 
     @Override public boolean isBackPressed() {
+        if (selectionMode) {
+            exitSelection();
+            return true;
+        }
         if (recyclerView == null) {
             return false;
         }

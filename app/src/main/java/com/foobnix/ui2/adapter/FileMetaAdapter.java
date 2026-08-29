@@ -958,14 +958,21 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
                 return true;
             }
         });
-        if (!AppState.get().isBorderAndShadow) {
-            holder.parent.setBackgroundColor(Color.TRANSPARENT);
-        }
-        if (AppState.get().appTheme == AppState.THEME_DARK_OLED && tempValue2 != TEMP2_RECENT_FROM_BOOK) {
-            holder.parent.setBackgroundColor(Color.BLACK);
+        // The row background must be re-derived from the model on EVERY bind:
+        // a recycled view holder would otherwise keep the selection accent of
+        // the previously bound book (phantom selection after entering
+        // multi-select). The XML ripple background is restored as the base.
+        if (holder.defaultBackground == null) {
+            holder.defaultBackground = holder.parent.getBackground();
         }
         if (selectionPaths != null && fileMeta.getPath() != null && selectionPaths.contains(fileMeta.getPath())) {
             holder.parent.setBackgroundColor((TintUtil.color & 0x00FFFFFF) | 0x50000000);
+        } else if (!AppState.get().isBorderAndShadow) {
+            holder.parent.setBackgroundColor(Color.TRANSPARENT);
+        } else if (AppState.get().appTheme == AppState.THEME_DARK_OLED && tempValue2 != TEMP2_RECENT_FROM_BOOK) {
+            holder.parent.setBackgroundColor(Color.BLACK);
+        } else {
+            holder.parent.setBackground(holder.defaultBackground);
         }
 
         if (tempValue == TEMP_VALUE_SERIES) {
@@ -1074,6 +1081,9 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         public ImageView image, star, signIcon, menu, cloudImage;
         public View authorParent, progresLayout, parent, remove, layoutBootom, infoLayout, idProgressColor, idProgressBg, imageParent;
         public View gridProgressLayout, gridProgressFill, gridProgressRest;
+        // XML ripple background captured on first bind, so the recycled row
+        // can always be restored to it (selection accent must not leak)
+        public android.graphics.drawable.Drawable defaultBackground;
 
         public FileMetaViewHolder(View view) {
             super(view);

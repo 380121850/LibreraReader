@@ -218,13 +218,18 @@ public class BookmarksData {
             final Iterator<String> books = byBook.keys();
             while (books.hasNext()) {
                 final String book = books.next();
-                final LinkedJSONObject entries = byBook.getJSONObject(book);
-                final Iterator<String> keys = entries.keys();
-                while (keys.hasNext()) {
-                    final String key = keys.next();
-                    if (!all.has(key)) {
-                        all.put(key, entries.get(key));
+                // per-book restore: one corrupt book entry must not abort the rest
+                try {
+                    final LinkedJSONObject entries = byBook.getJSONObject(book);
+                    final Iterator<String> keys = entries.keys();
+                    while (keys.hasNext()) {
+                        final String key = keys.next();
+                        if (!all.has(key)) {
+                            all.put(key, entries.get(key));
+                        }
                     }
+                } catch (Exception bookError) {
+                    LOG.e(bookError, "importByBook", book);
                 }
             }
             IO.writeObjSync(AppProfile.syncBookmarks, all);

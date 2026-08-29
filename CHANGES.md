@@ -402,4 +402,40 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 - 真机确认：打开书签笔记 → 点击笔记时间 → 不崩溃、正确跳转
 - 导出备份 → 不崩溃、按书分组文件正确写入
 
+## [2026-08-30] WebDAV 按书信息同步 + 长按多选 + 多选假选中修复
+
+### 一、WebDAV 同步重构（全局配置 + 每本书籍信息）
+
+**同步内容**（不同步书籍文件本身）：
+- `global/app-State.json`、`global/app-CSS.json`：全局配置双向同步（内容相同则跳过，不同时较新文件胜；`webdavLastSyncTime/Info` 等易变字段剔除后再比较，避免两台设备回声互覆）
+- `books/<文件哈希>.json`：每本书一个"书籍信息"文件，含 `name`（书籍文件名）+ `hash`（书籍文件内容哈希）+ `t` + `progress`（阅读进度）+ `bookmarks`（书签与 AI 笔记，t 键映射）
+
+**新增/修改文件**：
+
+| 文件 | 改动 |
+|------|------|
+| `FileHash.java`（新增） | 基于系统内置 `java.security.MessageDigest`（MD5）的文件内容哈希；8KB 流式分块；按 `path+lastModified+length` 内存缓存，未变的书不重复计算；另提供文本 MD5（无本地文件时的稳定合成 ID） |
+| `WebDavSyncer.java`（重写） | 远程布局改为 `global/` + `books/<hash>.json`；逐本恢复：每本信息文件独立 try/catch，一本损坏不影响其它；哈希关联：按名定位本地候选文件并计算哈希，**一致 → 完整关联**（进度按策略 newer/farther 合并、书签 t 并集且 path 改写为本地文件），**不一致（同名异书）→ 不覆盖本地进度**，仅书签并集保留"待关联"，无本地文件 → 进度照存（文件日后出现自动生效）；本地新书逐本上传（同名异书各自以自己的哈希共存）；旧 `progress.json`/`bookmarks.json` 一次性迁移后从服务器删除；`global` 同步、`resolveConfig`、错误分类（auth/ssl/network）、对话框与触发点全部保留 |
+| `BookmarksData.importByBook()` | 按书循环体加独立 try/catch（备份 zip 恢复同样逐本容错） |
+
+### 二、书库/最近页长按默认多选
+
+| 文件 | 改动 |
+|------|------|
+| `SelectionBarController.java`（新增） | 从 SearchFragment2 抽取的共享多选栏（已选计数 + 标记已读/未读/在读 + 全选 + 取消），绑定 `selectionBar` 系列 id |
+| `SearchFragment2.java` | 选择栏改用 SelectionBarController；长按书籍 → `startSelection`（目录保留原菜单）；返回键先退多选 |
+| `RecentFragment2.java` | 新增多选能力（复用 FileMetaAdapter.selectionPaths + 控制器），长按 → 多选，标记已读状态走 BookStateStore，返回键先退多选 |
+| `fragment_recent.xml` | 加入与书库相同结构的选择栏 |
+
+### 三、多选"假选中"修复（根因修复）
+
+`FileMetaAdapter.bindFileMetaView`：原来选中行设置高亮后**未选中分支不恢复背景**（默认 `isBorderAndShadow=true` 时整段跳过），ViewHolder 复用后旧高亮残留、`setBackgroundColor` 又永久覆盖涟漪背景。现改为每次绑定按模型推导：选中 → 高亮；未选中 → 依次按 OLED 黑 / `!isBorderAndShadow` 透明 / 恢复 `onCreateViewHolder` 捕获的默认涟漪背景（`FileMetaViewHolder.defaultBackground`）。书库/最近/我的文件所有页面同时生效。
+
+### 四、验证（MI9 真机）
+
+1. 构建 `BUILD SUCCESSFUL`，安装启动无崩溃（logcat 零 AndroidRuntime 错误）
+2. 书库长按某书 → 选择栏出现"已选 1 本"，**仅该书高亮**；连续滚动两屏后可见 9 本书全部无高亮（复用不再泄漏选中色）→ 取消正常退出
+3. 最近阅读长按 → 多选栏出现、仅选中项高亮 → 取消正常
+4. WebDAV：无服务器环境验证不崩溃、无错误日志；对话框与触发点代码未动
+
 
