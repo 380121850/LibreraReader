@@ -47,6 +47,19 @@ public class DocumentModel extends ListenerProxy {
 
     private Page[] pages = EMPTY_PAGES;
 
+    /**
+     * Fast-open (two-phase layout): when >= 0, the next initPages() counts
+     * pages chapter-by-chapter only up to this index instead of laying out
+     * the whole document.
+     */
+    private int progressiveUpto = -1;
+
+    private IActivityController pageBase;
+
+    public void setProgressiveUpto(final int uptoPage) {
+        this.progressiveUpto = uptoPage;
+    }
+
     public DocumentModel(final BookType activityType, IView view) {
         super(CurrentPageListener.class);
         LOG.d("Document activityType Type", activityType);
@@ -178,6 +191,7 @@ public class DocumentModel extends ListenerProxy {
             return;
         }
 
+        pageBase = base;
         final IView view = base.getView();
 
         final CodecPageInfo defCpi = new CodecPageInfo();
@@ -224,8 +238,23 @@ public class DocumentModel extends ListenerProxy {
 
     private CodecPageInfo[] retrievePagesInfo(final IActivityController base, final AppBook bs,
                                               final IProgressIndicator task) {
-        int pagesCount = base.getDecodeService()
+        final int upto = progressiveUpto;
+        final boolean requested = progressiveUpto >= 0;
+        progressiveUpto = -1;
+
+        int pagesCount;
+        boolean progressive = requested;
+        if (progressive) {
+            pagesCount = base.getDecodeService().getPageCountProgressive(upto);
+            if (pagesCount <= 0) {
+                // Fall back to the full count (also completes the layout).
+                pagesCount = base.getDecodeService().getPageCount();
+                progressive = pagesCount > 0;
+            }
+        } else {
+            pagesCount = base.getDecodeService()
                              .getPageCount();
+        }
         if (pagesCount <= 0) {
             CacheZipUtils.emptyAllCacheDirs();
             return null;
@@ -234,27 +263,29 @@ public class DocumentModel extends ListenerProxy {
 
         final PageCacheFile pagesFile = PageCacheFile.getPageFile(bs.path, pagesCount);
 
-        try {
-            FileMeta meta = AppDB.get()
-                                 .load(bs.path);
-            if (meta != null) {
-                meta.setPages(pagesCount);
-                AppDB.get()
-                     .save(meta);
-                LOG.d("update openDocument.getPageCount()", bs.path, pagesCount);
+        if (!progressive) {
+            try {
+                FileMeta meta = AppDB.get()
+                                     .load(bs.path);
+                if (meta != null) {
+                    meta.setPages(pagesCount);
+                    AppDB.get()
+                         .save(meta);
+                    LOG.d("update openDocument.getPageCount()", bs.path, pagesCount);
+                }
+            } catch (Exception e) {
+                LOG.e(e);
             }
-        } catch (Exception e) {
-            LOG.e(e);
+
+            if (pagesFile.exists()) {
+                final CodecPageInfo[] infos = pagesFile.load();
+                if (infos != null && infos.length == decodeService.getPageCount()) {
+                    return infos;
+                }
+            }
         }
 
-        if (pagesFile.exists()) {
-            final CodecPageInfo[] infos = pagesFile.load();
-            if (infos != null && infos.length == decodeService.getPageCount()) {
-                return infos;
-            }
-        }
-
-        final CodecPageInfo[] infos = new CodecPageInfo[decodeService.getPageCount()];
+        final CodecPageInfo[] infos = new CodecPageInfo[pagesCount];
         final CodecPageInfo unified = decodeService.getUnifiedPageInfo();
 
         for (int i = 0; i < infos.length; i++) {
@@ -265,9 +296,35 @@ public class DocumentModel extends ListenerProxy {
         }
 
         // if (decodeService.isPageSizeCacheable()) {
-        pagesFile.save(infos);
-        //}
+        if (!progressive) {
+            pagesFile.save(infos);
+        }
         return infos;
+    }
+
+    /**
+     * Fast-open phase two: grows the page array in place once the full page
+     * count is known. Only possible for documents with a unified page size
+     * (reflowable formats), where appended pages cannot invalidate existing
+     * page bounds, keeping the current scroll position stable.
+     */
+    public synchronized boolean appendPages(final int newCount) {
+        if (pages == null || newCount <= pages.length || pageBase == null) {
+            return false;
+        }
+        final CodecPageInfo unified = decodeService != null ? decodeService.getUnifiedPageInfo() : null;
+        if (unified == null) {
+            return false;
+        }
+        final Page[] old = pages;
+        final Page[] updated = new Page[newCount];
+        System.arraycopy(old, 0, updated, 0, old.length);
+        for (int i = old.length; i < newCount; i++) {
+            updated[i] = new Page(pageBase, new PageIndex(i, i), PageType.FULL_PAGE, unified);
+        }
+        pages = updated;
+        LOG.d("appendPages", old.length, "->", newCount);
+        return true;
     }
 
     private final class PageIterator implements Iterable<Page>, Iterator<Page> {

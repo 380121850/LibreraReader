@@ -556,3 +556,51 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 构建 `BUILD SUCCESSFUL`，安装启动无崩溃；多选选中封面叠加+描边清晰；书架为纯木纹背景。
 
 
+
+## [2026-08-30] 大文件打开速度优化（两阶段：缓存保活 + 静读天下式分阶段排版）
+
+针对 20-30MB 大书"每次打开都慢"的问题，分两个阶段实施，MI9 真机全量验证。
+
+### 一、第一阶段：缓存保活 + 主线程瘦身（Java 层）
+
+根因：TXT 每次打开清空全部缓存目录、每次打开书删除其它书全部转换产物，导致 MuPDF accel 排版缓存永远无法命中 → 每次全量转换 + 全文排版。另有多处主线程重复劳动。
+
+- `TxtContext`：删除打开时的 emptyAllCacheDirs()（不再殃及全部缓存）
+- `TxtExtract.extract1`：txt→fb2 全量转换结果缓存化（key 含路径+连字符/语言/编码设置，tmp+rename 防半文件）
+- `AbstractCodecContext`：转换缓存"删其它全部"→ LRU 保留最近 4 本（含同名 .json 脚注缓存）；`CacheZipUtils.trimFiles/trimAccel` 新增
+- `MuPdfDocument`：accel 文件 LRU 上限 8 个；accel 键加入文件 salt（length+lastModified），书文件更新后不再复用过期页数
+- `VerticalViewActivity/ViewerActivityController`：主线程移除重复元数据提取（checkOrCreateMetaInfo/createMetaIfNeed 二选一）与 detectLang，全部移入 BookLoadTask 后台线程；addRecent（DB+JSON 写）移入后台
+- `BookLoadTask`：SERIAL_EXECUTOR → THREAD_POOL_EXECUTOR（native 访问已有 TempHolder.lock 串行化）
+- 新增 `BookWarmer`：后台空闲预热 MuPDF accel（最近阅读书 + 扫描新书，阅读器前台时自动让位）
+
+### 二、第二阶段：静读天下式分阶段排版（C 层 + Java 层）
+
+首屏不再等待全书排版：利用 mupdf 1.23.7 公开 API `fz_count_chapters/fz_count_chapter_pages`（EPUB 按章惰性排版），打开时仅排版到上次阅读位置即显示第一屏，其余章节后台补齐。
+
+- `Builder/jni/libmupdf-librera.c`：新增 JNI `getPageCountProgressive(handle,w,h,em,uptoPage)` —— 逐章排版累计至 uptoPage 即停（fz_save_accelerator 保存部分页数）；无章节支持的格式回退全量计数；已重建 arm64 libMuPDF.so
+- `CodecDocument/DecodeService/DecodeServiceBase/MuPdfDocument`：渐进计数管道（默认实现 = 全量计数；仅重排格式启用）
+- `DocumentModel`：`setProgressiveUpto` + `appendPages`（尾追加页，既有页 bounds 不动 → 滚动位置与页码天然稳定）；渐进路径跳过 PageCacheFile 读写
+- `AppBook`：新增 `pg`（绝对页码锚点，随进度 JSON 自动持久化）；旧进度无 pg 时用书库 DB 历史页数×百分比估算目标；新书（p=0）只排前 150 页
+- `AbstractViewController.show()`：优先按 pg 恢复位置（比百分比换算更精确）
+- `ViewerActivityController`：二阶段编排 —— 首屏上屏后后台完成全量排版 → `appendPages` 尾部扩容 → `invalidatePageSizes(PAGE_LOADED)` 增量堆叠 → 进度条/页码/刻度刷新（`DocumentWrapperUI.refreshPageCount`）
+- `Fb2Context`：打开时的损坏探测由全量 getPageCount 改为仅排第 1 章（原实现使 TXT/FB2 的渐进排版完全失效）
+- 设置项：`AppState.isFastOpen`（默认开）；EXTRA_PERCENT 入口自动走全量路径
+
+关键修复（mupdf 内部日志验证）：排版 em 参数两种单位（sp/px）并存导致 accel 每次打开失效 —— 渐进路径统一 sp→px 与全量计数一致；Fb2Context 探针使 TXT 合成 EPUB 退化为单巨章时首屏仍可控。
+
+### 三、MI9 真机收益（22-29MB 测试书，单位秒）
+
+| 格式 | 打开 | 优化前 | 优化后 | 提升 |
+|---|---|---|---|---|
+| EPUB | 热 | 0.35 | **0.17** | 2× |
+| TXT | 热 | 27.0~29.6（缓存永不命中） | **0.085** | ~300× |
+| FB2 | 热 | 0.20 | **0.078** | 2.6× |
+| PDF | 冷 | 0.20 | 0.20 | 持平 |
+| EPUB | 冷 | 17.2 | **7.1**（首屏；余量后台补齐） | 2.4× |
+| TXT/FB2 | 冷 | 27~29 | 28.5/11.0（转换 O(文件) 固有，之后走缓存） | — |
+
+注：冷打开耗时主要为 O(文件) 的格式转换（TXT 双重转换、EPUB 连字符/脚注全量重写——与用户开启的排版特性相关），首次之后全部命中缓存；epub 冷打开的全书排版移至首屏之后的后台完成。已知边界：TXT/FB2 合成 EPUB 为单巨章，首屏渲染需整章排版（约数秒，属 mupdf fz_store 行为）——拆分 spine 章节列为后续优化项。
+
+### 四、验证
+
+MI9（48fee174）：四格式冷/热全矩阵计时通过；滚动渲染、进度恢复（pg 锚点精确恢复）、多书缓存共存（LRU-4）、二阶段后台补全后页码/进度条自动校正、退出重开零崩溃（logcat crash buffer 无 FATAL）；书库/最近阅读/书签笔记等既有功能回归正常。

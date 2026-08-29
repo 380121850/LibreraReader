@@ -725,6 +725,58 @@ JNIEXPORT jint
     return count;
 }
 
+/*
+ * Progressive page count for reflowable (chapter based) documents: lays out
+ * chapter by chapter only until the requested page index is reachable and
+ * returns the cumulative page count so far. The remaining chapters are left
+ * un-laid-out; a later full fz_count_pages() finishes them. Falls back to the
+ * full count when the document has no chapter support (e.g. PDF).
+ */
+JNIEXPORT jint
+
+  JNICALL
+  Java_org_ebookdroid_droids_mupdf_codec_MuPdfDocument_getPageCountProgressive(JNIEnv* env,
+                                                                               jclass clazz,
+                                                                               jlong handle,
+                                                                               jint width,
+                                                                               jint height,
+                                                                               jint size,
+                                                                               jint uptoPage)
+{
+    renderdocument_t* doc = (renderdocument_t*)(long)handle;
+    if (!doc || !doc->ctx || !doc->document) {
+        return -1;
+    }
+    int count = 0;
+    fz_try(doc->ctx)
+    {
+        fontSize = size;
+
+        /* Fix the layout geometry and validate/reuse the accelerator. This
+         * does not lay out any chapter by itself for reflowable documents. */
+        fz_layout_document(doc->ctx, doc->document, width, height, size);
+
+        int chapters = fz_count_chapters(doc->ctx, doc->document);
+        int total = 0;
+        int i;
+        for (i = 0; i < chapters; i++) {
+            total += fz_count_chapter_pages(doc->ctx, doc->document, i);
+            if (total >= uptoPage) {
+                break;
+            }
+        }
+        count = total;
+        fz_save_accelerator(doc->ctx, doc->document, doc->accel);
+    }
+    fz_catch(doc->ctx)
+    {
+        /* No chapter support (PDF) or layout failure: caller falls back to
+         * the normal full page count. */
+        count = 0;
+    }
+    return count;
+}
+
 JNIEXPORT jlong
 
   JNICALL

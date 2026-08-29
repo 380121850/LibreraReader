@@ -731,6 +731,15 @@ public class DocumentWrapperUI {
         maxSeek.setContentDescription(dc.getString(R.string.m_total_pages) + " " + info.textPage);
     }
 
+    /**
+     * Fast-open phase two: re-syncs every page-count-dependent UI element
+     * after the background layout appended pages.
+     */
+    public void refreshPageCount() {
+        updateUI();
+        progressDraw.updatePageCount(dc.getPageCount() - 1);
+    }
+
     public void updateUI() {
         //hideShowAnnotationLine();
         final int max = dc.getPageCount();
@@ -741,9 +750,7 @@ public class DocumentWrapperUI {
         seekBar.setOnSeekBarChangeListener(null);
         seekBar.setMax(max - 1);
         seekBar.setProgress(current - 1);
-        seekBar.setOnSeekBarChangeListener(onSeek);
-
-        speedSeekBar.setOnSeekBarChangeListener(null);
+        seekBar.setOnSeekBarChangeListener(onSeek);        speedSeekBar.setOnSeekBarChangeListener(null);
         speedSeekBar.setMax(AppState.MAX_SPEED);
         speedSeekBar.setProgress(AppState.get().autoScrollSpeed);
         speedSeekBar.setOnSeekBarChangeListener(onSpeed);

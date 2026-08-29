@@ -159,7 +159,11 @@ public abstract class AbstractViewController extends AbstractComponentController
 
             final AppBook bs = SettingsManager.getBookSettings();
 
-            PageIndex currentPage = bs.getCurrentPage(getBase().getDocumentModel().getPageCount());
+            final int pageCount = getBase().getDocumentModel().getPageCount();
+            // Fast-open: restore by the saved absolute page whenever it is
+            // inside the laid-out range (percent math needs the final count).
+            PageIndex currentPage =
+                    bs.pg >= 0 && bs.pg < pageCount ? new PageIndex(bs.pg, bs.pg) : bs.getCurrentPage(pageCount);
             int toPage = currentPage != null ? currentPage.docIndex : 0;
 
             if (AppState.get().isAlwaysOpenOnPage1) {

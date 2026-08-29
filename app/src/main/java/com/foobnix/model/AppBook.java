@@ -30,6 +30,7 @@ public class AppBook implements CurrentPageListener {
     public int d = 0;//delta
 
     public float p; //percent
+    public int pg = -1; //absolute 0-based page of the last save (fast-open anchor)
     public long t;//time
     public String ln;
 
@@ -86,6 +87,7 @@ public class AppBook implements CurrentPageListener {
             return;
         }
         this.p = MyMath.percent(page, pages);
+        this.pg = page - 1;
         LOG.d("currentPageChanged", page, pages, p);
         t = System.currentTimeMillis();
         if (page == pages) {

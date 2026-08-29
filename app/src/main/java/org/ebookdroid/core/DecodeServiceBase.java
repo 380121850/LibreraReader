@@ -492,6 +492,13 @@ public class DecodeServiceBase implements DecodeService {
     }
 
     @Override
+    public int getPageCountProgressive(final int uptoPage) {
+        return codecDocument != null
+                ? codecDocument.getPageCountProgressive(view.getWidth(), view.getHeight(), BookCSS.get().fontSizeSp, uptoPage)
+                : 0;
+    }
+
+    @Override
     public void getOutline(final ResultResponse<List<OutlineLink>> response) {
 
 //        if (true) {

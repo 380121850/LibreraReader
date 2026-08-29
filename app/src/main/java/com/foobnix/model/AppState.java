@@ -598,6 +598,11 @@ public class AppState {
     public String nameMusicianMode = "";
     public boolean isDisplayAllFilesInFolder = false;
     public boolean isAlwaysOpenOnPage1 = false;
+    /**
+     * Fast-open: lay out reflowable books only up to the saved reading
+     * position first and finish the remaining chapters in the background.
+     */
+    public boolean isFastOpen = true;
     public boolean isHideReadBook = false;
     public boolean isFolderPreview = false;
     public String myAutoCompleteDb = "";

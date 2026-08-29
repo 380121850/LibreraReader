@@ -23,6 +23,11 @@ import java.util.Map;
 public class DecodeServiceStub implements DecodeService {
 
 	@Override
+	public int getPageCountProgressive(int uptoPage) {
+		return 0;
+	}
+
+	@Override
 	public void shutdown() {
 	}
 

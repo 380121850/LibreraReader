@@ -256,6 +256,36 @@ public class MuPdfDocument extends AbstractCodecDocument {
         return pageCountWithException;
     }
 
+    private static native int getPageCountProgressive(long handle, int w, int h, int size, int uptoPage);
+
+    @Override
+    public int getPageCountProgressive(int w, int h, int size, int uptoPage) {
+        this.w = w;
+        this.h = h;
+        if (!isEpub) {
+            // Chapter-wise layout only applies to reflowable documents.
+            return getPageCount(w, h, size);
+        }
+        TempHolder.lock.lock();
+        try {
+            if (isRecycled()) {
+                return 0;
+            }
+            // size is in sp here (same contract as getPageCount); the native
+            // layout em must match the other call sites exactly, or the
+            // accelerator is invalidated on every open.
+            int n = getPageCountProgressive(documentHandle, w, h, Dips.spToPx(size), Math.max(1, uptoPage));
+            if (n <= 0) {
+                // Chapter API unavailable or failed: fall back to the full count.
+                n = getPageCountWithException(documentHandle, w, h, size);
+            }
+            LOG.d("MuPdfDocument getPageCountProgressive", uptoPage, "->", n);
+            return n;
+        } finally {
+            TempHolder.lock.unlock();
+        }
+    }
+
     public int getW() {
         return w > 0 ? w : Dips.screenWidth();
     }

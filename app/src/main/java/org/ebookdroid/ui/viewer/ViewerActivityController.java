@@ -45,6 +45,7 @@ import org.ebookdroid.common.settings.SettingsManager;
 import org.ebookdroid.common.settings.listeners.IBookSettingsChangeListener;
 import org.ebookdroid.common.settings.types.DocumentViewMode;
 import org.ebookdroid.core.DecodeService;
+import org.ebookdroid.core.Page;
 import org.ebookdroid.core.ViewState;
 import org.ebookdroid.core.events.CurrentPageListener;
 import org.ebookdroid.core.events.DecodingProgressListener;
@@ -205,6 +206,9 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     }
 
     public int pageCount;
+
+    /** True while the current load used the two-phase (progressive) layout. */
+    private volatile boolean progressiveLoad;
 
     public void startDecoding(final String fileName, final String password) {
         getManagedComponent().view.getView()
@@ -625,6 +629,44 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
                 documentModel.open(m_fileName, m_password);
                 android.util.Log.i("BENCH", "doc-open-done " + (android.os.SystemClock.elapsedRealtime() - benchT0) + "ms");
+
+                // Fast-open (two-phase layout): lay out only up to the saved
+                // reading position (or the first pages of a fresh book) so the
+                // first screen appears without the full-document layout; the
+                // remaining chapters are laid out in the background afterwards.
+                int uptoPage = -1;
+                if (AppState.get().isFastOpen && ExtUtils.isTextFomat(m_fileName)
+                        && (intent == null || intent.getStringExtra(DocumentController.EXTRA_PERCENT) == null)) {
+                    final AppBook bs = SettingsManager.getBookSettings();
+                    if (bs != null) {
+                        if (bs.pg >= 0) {
+                            uptoPage = bs.pg + Math.max(80, bs.pg / 4);
+                        } else {
+                            // Progress saved by an older version: estimate the
+                            // target page from the library page count.
+                            int dbPages = 0;
+                            try {
+                                final FileMeta meta = AppDB.get().load(m_fileName);
+                                if (meta != null) {
+                                    dbPages = meta.getPages();
+                                }
+                            } catch (Throwable t) {
+                                LOG.e(t);
+                            }
+                            if (dbPages > 0 && bs.p > 0f) {
+                                final int target = Math.round(dbPages * bs.p);
+                                uptoPage = target + Math.max(120, target / 4);
+                            } else if (bs.p <= 0f) {
+                                uptoPage = 150;
+                            }
+                        }
+                    }
+                }
+                if (uptoPage > 0) {
+                    progressiveLoad = true;
+                    documentModel.setProgressiveUpto(uptoPage);
+                }
+
                 getDocumentController().init(this);
                 return null;
             } catch (final MuPdfPasswordException pex) {
@@ -664,6 +706,10 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                         currentPageChanged(dm.getCurrentIndex().docIndex, -1);
                         onBookLoaded.run();
 
+                        if (progressiveLoad) {
+                            startPhaseTwoLayout(dm);
+                        }
+
                     } catch (final Throwable th) {
                         result = th;
                     }
@@ -690,6 +736,56 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         @Override public void setProgressDialogMessage(final int resourceID, final Object... args) {
             publishProgress(getManagedComponent().getString(resourceID, args));
         }
+    }
+
+    /**
+     * Fast-open phase two: finishes the full-document layout in the
+     * background and grows the page canvas in place. Pages are appended at
+     * the tail, so the current reading position stays visually stable; only
+     * the page counters and the progress bar widen afterwards.
+     */
+    private void startPhaseTwoLayout(final DocumentModel dm) {
+        progressiveLoad = false;
+        final int knownCount = dm.getPageCount();
+        if (knownCount <= 0) {
+            return;
+        }
+        final long t0 = android.os.SystemClock.elapsedRealtime();
+        android.util.Log.i("BENCH", "phase2-begin n1=" + knownCount);
+        AppsConfig.executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final int fullCount = dm.decodeService.getPageCount();
+                    android.util.Log.i("BENCH", "phase2-end n2=" + fullCount + " "
+                            + (android.os.SystemClock.elapsedRealtime() - t0) + "ms");
+                    if (fullCount <= knownCount || getActivity() == null) {
+                        return;
+                    }
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (TempHolder.get().loadingCancelled.get()) {
+                                    return;
+                                }
+                                final Page firstNewPage = dm.getPageObject(knownCount);
+                                if (dm.appendPages(fullCount) && firstNewPage != null) {
+                                    getDocumentController().invalidatePageSizes(
+                                            IViewController.InvalidateSizeReason.PAGE_LOADED, firstNewPage);
+                                    currentPageChanged(dm.getCurrentIndex().docIndex, -1);
+                                    wrapperControlls.refreshPageCount();
+                                }
+                            } catch (Throwable e) {
+                                LOG.e(e);
+                            }
+                        }
+                    });
+                } catch (Throwable e) {
+                    LOG.e(e);
+                }
+            }
+        });
     }
 
 }

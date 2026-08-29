@@ -16,6 +16,15 @@ public interface CodecDocument {
 
     int getPageCount(int w, int h, int fsize);
 
+    /**
+     * Progressive page count for fast-open: lays out only as many chapters as
+     * needed to make {@code uptoPage} reachable and returns the cumulative
+     * page count so far. The default simply computes the full count.
+     */
+    default int getPageCountProgressive(int w, int h, int fsize, int uptoPage) {
+        return getPageCount(w, h, fsize);
+    }
+
     CodecPage getPage(int pageNuber);
 
     CodecPage getPageInner(int pageNuber);

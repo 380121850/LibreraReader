@@ -1,5 +1,6 @@
 package org.ebookdroid.droids;
 
+import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.ext.Fb2Extractor;
@@ -62,7 +63,10 @@ public class Fb2Context extends PdfContext {
 
         try {
             muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, outName, password);
-            muPdfDocument.getPageCount();
+            // Corruption probe: lay out only the first chapter (full count
+            // would force the whole-document layout and defeat fast-open).
+            muPdfDocument.getPageCountProgressive(Dips.screenWidth(), Dips.screenHeight(),
+                    BookCSS.get().fontSizeSp, 1);
         } catch (Exception e) {
             LOG.e(e);
             LOG.d("Fb2Context Fix XML true");

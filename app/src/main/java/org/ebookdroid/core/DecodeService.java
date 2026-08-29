@@ -32,6 +32,8 @@ public interface DecodeService {
 
 	int getPageCount();
 
+	int getPageCountProgressive(int uptoPage);
+
 	void getOutline(final ResultResponse<List<OutlineLink>> response);
 
     String getFooterNote(String text, String chapter);
