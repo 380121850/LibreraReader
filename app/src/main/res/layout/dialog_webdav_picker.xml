@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/panel_padding">
+
+    <TextView
+        android:id="@+id/webdavPickerPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dip"
+        android:singleLine="true"
+        android:ellipsize="start"
+        android:textStyle="bold"
+        android:text="/" />
+
+    <ListView
+        android:id="@+id/webdavPickerList"
+        android:layout_width="match_parent"
+        android:layout_height="360dip" />
+
+    <com.foobnix.pdf.info.view.MyProgressBar
+        android:id="@+id/webdavPickerProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
+</LinearLayout>

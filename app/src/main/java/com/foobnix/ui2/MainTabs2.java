@@ -50,6 +50,7 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.Safe;
 import com.foobnix.android.utils.StringDB;
 import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.webdav.WebDavSyncer;
 import com.foobnix.dao2.FileMeta;
 import com.foobnix.drive.GFile;
 import com.foobnix.ext.CacheZipUtils.CacheDir;
@@ -163,12 +164,8 @@ public class MainTabs2 extends AdsFragmentActivity {
             TempHolder.get().currentTab = pos;
 
             LOG.d("onPageSelected", uiFragment);
+            // every page shows its own tab name, the dashboard included
             CharSequence title = adapter.getRealPageTitle(pos);
-            // On the dashboard home the bar shows the app name instead of
-            // "Home" (Moon+ style); the tab itself keeps its own label.
-            if (uiFragment instanceof DashboardFragment2) {
-                title = getAppName();
-            }
             if (topBarTitle != null && topBarTitle.getVisibility() == View.VISIBLE) {
                 topBarTitle.setText(title.toString());
             }
@@ -471,11 +468,9 @@ public class MainTabs2 extends AdsFragmentActivity {
         } catch (Exception e) {
             LOG.e(e);
             Toast.makeText(MainTabs2.this, R.string.msg_unexpected_error, Toast.LENGTH_LONG).show();
+            tabFragments.add(new DashboardFragment2());
             tabFragments.add(new SearchFragment2());
             tabFragments.add(new BrowseFragment2());
-            tabFragments.add(new RecentFragment2());
-            tabFragments.add(new BookmarksFragment2());
-            tabFragments.add(new OpdsFragment2());
             tabFragments.add(new PrefFragment2());
             //tabFragments.add(new CloudsFragment2());
         }
@@ -559,11 +554,7 @@ public class MainTabs2 extends AdsFragmentActivity {
         // onPageSelected does not fire for the initial page, so set the bar
         // title to the first tab explicitly (e.g. "Home" on a fresh install).
         if (topBarTitle != null && adapter.getRealCount() > 0) {
-            CharSequence title = adapter.getRealPageTitle(0);
-            if (tabFragments.get(0) instanceof DashboardFragment2) {
-                title = getAppName();
-            }
-            topBarTitle.setText(title.toString());
+            topBarTitle.setText(adapter.getRealPageTitle(0).toString());
         }
 
         // same for the last-book FAB: it starts on the first (Home) tab
@@ -662,6 +653,12 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         indicator.setOnTabReselect(index -> {
             try {
+                // Re-tapping the active tab must first close any temporary
+                // overlay page (最近阅读/书签笔记/我的珍藏/网上书库 open as
+                // overlays on top of the current tab), then let the page handle
+                // the reselect (e.g. OPDS -> root). hideTabOverlay() is a no-op
+                // when no overlay is showing.
+                hideTabOverlay();
                 tabFragments.get(index).onTabReselect();
             } catch (Exception e) {
                 LOG.e(e);
@@ -753,6 +750,17 @@ public class MainTabs2 extends AdsFragmentActivity {
         }
 
         checkGoToPage(getIntent());
+
+        // WebDAV reading-data sync: run silently in the background shortly
+        // after launch when enabled, so progress/bookmarks from other devices
+        // appear without opening the settings dialog.
+        if (AppState.get().webdavSyncEnabled && TxtUtils.isNotEmpty(AppState.get().webdavSyncServer)) {
+            handler.postDelayed(() -> {
+                if (AppState.get().webdavSyncEnabled) {
+                    WebDavSyncer.syncAsync(MainTabs2.this, null);
+                }
+            }, 4000);
+        }
 
         if (!AppState.get().isEnableAccessibility && once) {
             once = false;
@@ -900,7 +908,7 @@ public class MainTabs2 extends AdsFragmentActivity {
         addDrawerNavRow(parent, R.string.moon_drawer_library, R.drawable.glyphicons_589_book_open, UITab.SearchFragment);
         addDrawerNavRow(parent, R.string.moon_home_files, R.drawable.glyphicons_145_folder_open, UITab.BrowseFragment);
         addDrawerNavRow(parent, R.string.moon_home_net, R.drawable.glyphicons_417_globe, UITab.OpdsFragment);
-        addDrawerNavRow(parent, R.string.bookmarks, R.drawable.glyphicons_73_bookmark, UITab.BookmarksFragment);
+        addDrawerNavRow(parent, R.string.bookmarks_and_notes, R.drawable.glyphicons_73_bookmark, UITab.BookmarksFragment);
 
         buildDrawerBottomBar();
     }
@@ -1001,21 +1009,7 @@ public class MainTabs2 extends AdsFragmentActivity {
         AboutSectionBinder.showDialog(this);
     }
 
-    CharSequence appNameCache;
-
     private boolean eventBusRegistered = false;
-
-    private CharSequence getAppName() {
-        if (appNameCache == null) {
-            try {
-                appNameCache = getPackageManager().getApplicationLabel(getApplicationInfo());
-            } catch (Exception e) {
-                LOG.e(e);
-                appNameCache = "Librera";
-            }
-        }
-        return appNameCache;
-    }
 
     /**
      * Drawer bottom-bar toggle: flip the whole-app day/night theme and restart,
@@ -1118,6 +1112,19 @@ public class MainTabs2 extends AdsFragmentActivity {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START, AppState.get().appTheme != AppState.THEME_INK);
         }
+    }
+
+    /**
+     * Detached folder page opened from the "My files" root: a separate
+     * BrowseFragment2 instance browsing that path, so the tab itself keeps
+     * its root view (decoupled).
+     */
+    public void openFolderPage(final String folderPath) {
+        String name = new File(folderPath).getName();
+        if (TxtUtils.isEmpty(name)) {
+            name = folderPath;
+        }
+        showFragmentOverlay(BrowseFragment2.newFolderInstance(folderPath), name);
     }
 
     /**
@@ -1246,9 +1253,6 @@ public class MainTabs2 extends AdsFragmentActivity {
             }
             int idx = getCurrentRealIndex();
             CharSequence title = adapter.getRealPageTitle(idx);
-            if (tabFragments.get(idx) instanceof DashboardFragment2) {
-                title = getAppName();
-            }
             topBarTitle.setText(title.toString());
         } catch (Exception e) {
             LOG.e(e);

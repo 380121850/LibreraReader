@@ -183,6 +183,54 @@ public class BookmarksData {
         return false;
     }
 
+    /**
+     * Writes all bookmarks & AI notes grouped by book (file name) into
+     * app-BookmarksByBook.json, so the backup zip carries them per book.
+     */
+    public void saveByBook() {
+        try {
+            LinkedJSONObject byBook = new LinkedJSONObject();
+            for (AppBookmark b : getAll()) {
+                String book = ExtUtils.getFileName(b.getPath());
+                LinkedJSONObject entries = byBook.has(book)
+                        ? byBook.getJSONObject(book)
+                        : new LinkedJSONObject();
+                entries.put("" + b.t, Objects.toJSONObject(b));
+                byBook.put(book, entries);
+            }
+            IO.writeObjSync(AppProfile.syncBookmarksByBook, byBook);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * Merges the per-book backup file (app-BookmarksByBook.json) back into
+     * app-Bookmarks.json after a restore. Entries are keyed by creation time,
+     * so the merge is idempotent (existing keys are kept).
+     */
+    public void importByBook() {
+        try {
+            LinkedJSONObject byBook = IO.readJsonObject(AppProfile.syncBookmarksByBook);
+            LinkedJSONObject all = IO.readJsonObject(AppProfile.syncBookmarks);
+            final Iterator<String> books = byBook.keys();
+            while (books.hasNext()) {
+                final String book = books.next();
+                final LinkedJSONObject entries = byBook.getJSONObject(book);
+                final Iterator<String> keys = entries.keys();
+                while (keys.hasNext()) {
+                    final String key = keys.next();
+                    if (!all.has(key)) {
+                        all.put(key, entries.get(key));
+                    }
+                }
+            }
+            IO.writeObjSync(AppProfile.syncBookmarks, all);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
     static final Comparator<AppBookmark> BY_PERCENT = new Comparator<AppBookmark>() {
 
         @Override

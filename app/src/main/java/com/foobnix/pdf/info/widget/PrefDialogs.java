@@ -43,6 +43,7 @@ import com.foobnix.model.AppState;
 import com.foobnix.model.MyPath;
 import com.foobnix.model.SimpleMeta;
 import com.foobnix.pdf.info.AppsConfig;
+import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExportConverter;
 import com.foobnix.pdf.info.ExportSettingsManager;
 import com.foobnix.pdf.info.ExtFilter;
@@ -273,6 +274,9 @@ public class PrefDialogs {
                                 ExportConverter.covertJSONtoNew(activity, new File(result1));
                             } else if (result1.endsWith(EXPORT_BACKUP_ZIP)) {
                                 ExportConverter.unZipFolder(new File(result1), AppProfile.SYNC_FOLDER_ROOT);
+                                // Merge the per-book bookmarks & notes file back into
+                                // app-Bookmarks.json (idempotent by time key).
+                                BookmarksData.get().importByBook();
                             } else {
                                 return false;
                             }
@@ -497,6 +501,9 @@ public class PrefDialogs {
                     @Override
                     protected Boolean doInBackground(Object... objects) {
                         try {
+                            // Refresh the per-book bookmarks & notes file so the
+                            // backup zip carries them grouped by book.
+                            BookmarksData.get().saveByBook();
                             ExportConverter.zipFolder(AppProfile.SYNC_FOLDER_ROOT, toFile);
                             return true;
                         } catch (ZipException e) {

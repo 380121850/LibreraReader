@@ -120,6 +120,37 @@ import java.util.Map;
     public static final String ROOT_PATH = "my-files:";
     LinearLayout netSection;
     View quickDirChipsRow;
+
+    /**
+     * Detached folder page opened from the "My files" root: this instance
+     * keeps its own browse path so the tab's AppState.displayPath stays on
+     * the root view (decoupled), and BACK at the entry folder closes the page.
+     */
+    private String browsePath;
+    private String startFolder;
+
+    /** New detached folder page (shown in the overlay by MainTabs2). */
+    public static BrowseFragment2 newFolderInstance(String folderPath) {
+        BrowseFragment2 fragment = new BrowseFragment2();
+        Bundle args = new Bundle();
+        args.putString("folderPath", folderPath);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    /** The path this fragment browses (fragment-local on the detached page). */
+    String path() {
+        return browsePath != null ? browsePath : AppState.get().displayPath;
+    }
+
+    private void setPath(String p) {
+        if (browsePath != null) {
+            browsePath = p;
+        } else {
+            AppState.get().displayPath = p;
+        }
+    }
+
     public static final String EXTRA_INIT_PATH = "EXTRA_PATH";
     public static final String EXTRA_TYPE = "EXTRA_TYPE";
     public static final String EXTRA_TEXT = "EXTRA_TEXT";
@@ -232,7 +263,7 @@ import java.util.Map;
 
         Bundle arguments = getArguments();
 
-        LOG.d("displayPath-start", AppState.get().displayPath);
+        LOG.d("displayPath-start", path());
         LOG.d("displayPath-start2", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
 
         pathContainer = view.findViewById(R.id.pathContainer);
@@ -290,12 +321,12 @@ import java.util.Map;
         openAsBook.setOnClickListener(new OnClickListener() {
 
             @Override public void onClick(View v) {
-                File file = new File(AppState.get().displayPath, MdContext.SUMMARY_MD);
+                File file = new File(path(), MdContext.SUMMARY_MD);
                 if (file.isFile()) {
                     ExtUtils.openFile(getActivity(), new FileMeta(file.getPath()));
                 } else {
                     File lxml =
-                            FolderContext.genarateXML(searchAdapter.getItemsList(), AppState.get().displayPath, true);
+                            FolderContext.genarateXML(searchAdapter.getItemsList(), path(), true);
                     ExtUtils.showDocumentWithoutDialog2(getActivity(), lxml);
                 }
             }
@@ -644,18 +675,25 @@ import java.util.Map;
             @Override public boolean onResultRecive(FileMeta result) {
                 if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
                     int pos = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-                    rememberPos.put(AppState.get().displayPath, pos);
-                    LOG.d("rememberPos LinearLayoutManager", AppState.get().displayPath, pos);
+                    rememberPos.put(path(), pos);
+                    LOG.d("rememberPos LinearLayoutManager", path(), pos);
                 } else if (recyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
                     int pos =
                             ((StaggeredGridLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPositions(
                                     null)[0];
-                    rememberPos.put(AppState.get().displayPath, pos);
-                    LOG.d("rememberPos StaggeredGridLayoutManager", AppState.get().displayPath, pos);
+                    rememberPos.put(path(), pos);
+                    LOG.d("rememberPos StaggeredGridLayoutManager", path(), pos);
                 }
 
                 if (result.getCusType() != null && result.getCusType() == FileMetaAdapter.DISPLAY_TYPE_DIRECTORY) {
-                    displayAnyPath(result.getPath());
+                    if (browsePath == null && fragmentType == TYPE_DEFAULT
+                            && ROOT_PATH.equals(path())) {
+                        // library folder on the root view: open a detached
+                        // folder page, the tab keeps its root view
+                        ((MainTabs2) getActivity()).openFolderPage(result.getPath());
+                    } else {
+                        displayAnyPath(result.getPath());
+                    }
                     if (fragmentType == TYPE_SELECT_FOLDER) {
                         editPath.setText(fragmentText);
                     }
@@ -678,7 +716,7 @@ import java.util.Map;
             @Override public boolean onResultRecive(FileMeta result) {
                 if (result.getCusType() != null && result.getCusType() == FileMetaAdapter.DISPLAY_TYPE_DIRECTORY) {
                     // displayAnyPath(result.getPath());
-                    if (ROOT_PATH.equals(AppState.get().displayPath)) {
+                    if (ROOT_PATH.equals(path())) {
                         // the root list shows the configured library folders:
                         // long press removes the entry from the list only, the
                         // folder on disk is never touched
@@ -761,7 +799,15 @@ import java.util.Map;
         quickDirChipsRow = (View) view.findViewById(R.id.quickDirChips).getParent();
         buildNetSections();
 
-        displayAnyPath(getInitPath());
+        String folderArg = getArguments() != null ? getArguments().getString("folderPath") : null;
+        if (TxtUtils.isNotEmpty(folderArg)) {
+            // detached folder page: browse this path, the tab keeps its root
+            browsePath = folderArg;
+            startFolder = folderArg;
+            displayAnyPath(folderArg);
+        } else {
+            displayAnyPath(getInitPath());
+        }
         onTintChanged();
 
         MyProgressBar = (MyProgressBar) view.findViewById(R.id.MyProgressBarBrowse);
@@ -775,7 +821,7 @@ import java.util.Map;
 
             @Override public void onClick(View v) {
                 if (TxtUtils.isNotEmpty(TempHolder.get().copyFromPath)) {
-                    ShareDialog.dirLongPress(getActivity(), AppState.get().displayPath, new Runnable() {
+                    ShareDialog.dirLongPress(getActivity(), path(), new Runnable() {
 
                         @Override public void run() {
                             resetFragment();
@@ -802,13 +848,13 @@ import java.util.Map;
                 MyPopupMenu menu = new MyPopupMenu(getActivity(), v);
 
                 boolean isStarFolder = AppDB.get()
-                                            .isStarFolderByFiles(AppState.get().displayPath);
+                                            .isStarFolderByFiles(path());
                 if (!isStarFolder) {
                     menu.getMenu()
                         .add("★ "+getString(R.string.add_to_favorites))
                         .setOnMenuItemClickListener(item -> {
                             AppData.get()
-                                   .addFavorite(new SimpleMeta(AppState.get().displayPath, System.currentTimeMillis()));
+                                   .addFavorite(new SimpleMeta(path(), System.currentTimeMillis()));
                             TempHolder.listHash++;
 
                             return false;
@@ -818,7 +864,7 @@ import java.util.Map;
                         .add("☆ "+getString(R.string.remove_from_favorites))
                         //.add(R.string.remove_from_favorites)
                         .setOnMenuItemClickListener(item -> {
-                            AppData.get().removeFavorite(AppState.get().displayPath);
+                            AppData.get().removeFavorite(path());
                                    TempHolder.listHash++;
 
                             return false;
@@ -828,7 +874,7 @@ import java.util.Map;
                 menu.getMenu()
                     .add(R.string.new_file_txt)
                     .setOnMenuItemClickListener(item -> {
-                        AlertDialogs.editFileTxt(getActivity(), null, new File(AppState.get().displayPath),
+                        AlertDialogs.editFileTxt(getActivity(), null, new File(path()),
                                 new StringResponse() {
                                     @Override public boolean onResultRecive(String string) {
                                         //ExtUtils.openFile(getActivity(), new FileMeta(string));
@@ -846,7 +892,7 @@ import java.util.Map;
 
                                     @Override public boolean onResultRecive(String string) {
                                         AppState.get().isDisplayAllFilesInFolder = true;
-                                        File folder = new File(AppState.get().displayPath, string);
+                                        File folder = new File(path(), string);
                                         LOG.d("create_folder", folder);
                                         if (!folder.mkdirs()) {
                                             Toast.makeText(getContext(), R.string.fail, Toast.LENGTH_SHORT)
@@ -867,7 +913,7 @@ import java.util.Map;
                     .add(R.string.go_to_the_folder)
                     .setOnMenuItemClickListener(new OnMenuItemClickListener() {
                         @Override public boolean onMenuItemClick(MenuItem item) {
-                            String displayPath1 = AppState.get().displayPath;
+                            String displayPath1 = path();
 
                             Dialogs.showEditDialog2(getActivity(), getString(R.string.go_to_the_folder), displayPath1,
                                     new ResultResponse<String>() {
@@ -926,7 +972,7 @@ import java.util.Map;
 
         try {
 
-            if (ROOT_PATH.equals(AppState.get().displayPath)) {
+            if (ROOT_PATH.equals(path())) {
                 // "My files" root: the configured library folders, listed
                 // closed (not expanded); standard quick dirs when none.
                 List<FileMeta> roots = new ArrayList<FileMeta>();
@@ -945,10 +991,10 @@ import java.util.Map;
                 return roots;
             }
 
-            if (AppState.get().displayPath.startsWith(Clouds.PREFIX_CLOUD)) {
+            if (path().startsWith(Clouds.PREFIX_CLOUD)) {
                 cloudStorage = Clouds.get()
-                                     .cloud(AppState.get().displayPath);
-                String cloudPath = Clouds.getPath(AppState.get().displayPath);
+                                     .cloud(path());
+                String cloudPath = Clouds.getPath(path());
                 if (TxtUtils.isEmpty(cloudPath)) {
                     cloudPath = "/";
                 }
@@ -965,7 +1011,7 @@ import java.util.Map;
 
                     LOG.d("CloudMetaData", path, name, modifiedAt, size, cl.getImageMetaData());
 
-                    FileMeta meta = new FileMeta(Clouds.getPrefix(AppState.get().displayPath) + path);
+                    FileMeta meta = new FileMeta(Clouds.getPrefix(path()) + path);
 
                     if (cl.getFolder()) {
                         meta.setCusType(FileMetaAdapter.DISPLAY_TYPE_DIRECTORY);
@@ -993,7 +1039,7 @@ import java.util.Map;
 
                 List<FileMeta> items = new ArrayList<FileMeta>();
 
-                Uri uri = Uri.parse(AppState.get().displayPath);
+                Uri uri = Uri.parse(path());
 
                 ContentResolver contentResolver = getActivity().getContentResolver();
                 Uri childrenUri = null;
@@ -1072,10 +1118,10 @@ import java.util.Map;
 
             } else {
                 boolean isDisplayAllFilesInFolder = AppProfile.DOWNLOADS_DIR.getPath()
-                                                                            .equals(AppState.get().displayPath) || AppState.get().isDisplayAllFilesInFolder;
+                                                                            .equals(path()) || AppState.get().isDisplayAllFilesInFolder;
                 LOG.d("isDisplayAllFilesInFolder1", isDisplayAllFilesInFolder);
                 List<FileMeta> filesAndDirs =
-                        SearchCore.getFilesAndDirs(AppState.get().displayPath, fragmentType == TYPE_DEFAULT,
+                        SearchCore.getFilesAndDirs(path(), fragmentType == TYPE_DEFAULT,
                                 isDisplayAllFilesInFolder);
                 int allCount = filesAndDirs.size();
                 ExtUtils.removeReadBooks(filesAndDirs);
@@ -1093,11 +1139,11 @@ import java.util.Map;
         showPathHeader();
 
         if (isRestorePos) {
-            final int pos = rememberPos.get(AppState.get().displayPath) == null ? 0 :
-                    rememberPos.get(AppState.get().displayPath);
+            final int pos = rememberPos.get(path()) == null ? 0 :
+                    rememberPos.get(path());
             recyclerView.getLayoutManager()
                         .scrollToPosition(pos);
-            LOG.d("rememberPos go", AppState.get().displayPath, pos);
+            LOG.d("rememberPos go", path(), pos);
         }
 
     }
@@ -1392,17 +1438,31 @@ import java.util.Map;
             //IMG.clearMemoryCache();
             //IMG.clearDiscCache();
         }
+        // detached folder page: BACK at the entry folder closes the page,
+        // above it the normal up-navigation applies
+        if (browsePath != null) {
+            if (browsePath.equals(startFolder)) {
+                return false;
+            }
+            String parent = new File(browsePath).getParent();
+            if (TxtUtils.isEmpty(parent)) {
+                return false;
+            }
+            displayAnyPath(parent);
+            isRestorePos = true;
+            return true;
+        }
         // leaving one of the root entries goes back to the closed list, not
         // up into the storage tree
-        if (!ROOT_PATH.equals(AppState.get().displayPath)) {
+        if (!ROOT_PATH.equals(path())) {
             for (String scanPath : JsonDB.get(BookCSS.get().searchPathsJson)) {
-                if (TxtUtils.isNotEmpty(scanPath) && scanPath.equals(AppState.get().displayPath)) {
+                if (TxtUtils.isNotEmpty(scanPath) && scanPath.equals(path())) {
                     displayAnyPath(ROOT_PATH);
                     return true;
                 }
             }
         }
-        if (ROOT_PATH.equals(AppState.get().displayPath)) {
+        if (ROOT_PATH.equals(path())) {
             return false;
         }
         if (ExtUtils.isExteralSD(BookCSS.get().dirLastPath)) {
@@ -1424,7 +1484,7 @@ import java.util.Map;
             }
 
         } else {
-            File file = new File(AppState.get().displayPath);
+            File file = new File(path());
             String path = file.getParent();
 
             if (TxtUtils.isEmpty(path)) {
@@ -1432,7 +1492,7 @@ import java.util.Map;
             }
 
             if (TxtUtils.isEmpty(path) || !path.contains("/")) {
-                path = Clouds.getPrefix(AppState.get().displayPath) + "/";
+                path = Clouds.getPrefix(path()) + "/";
             }
 
             LOG.d("parent", path);
@@ -1500,8 +1560,11 @@ import java.util.Map;
         }
         LOG.d("Display-path", path);
         isRestorePos = false;
-        AppState.get().displayPath = path;
-        BookCSS.get().dirLastPath = path;
+        setPath(path);
+        if (browsePath == null) {
+            // the detached folder page must not move the tab's last dir
+            BookCSS.get().dirLastPath = path;
+        }
         if (netSection != null) {
             netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
         }
@@ -1568,7 +1631,7 @@ import java.util.Map;
 
         }, 100);
 
-        if (new File(AppState.get().displayPath, MdContext.SUMMARY_MD).isFile()) {
+        if (new File(path(), MdContext.SUMMARY_MD).isFile()) {
             openAsBook.setVisibility(View.VISIBLE);
         } else if (FolderContext.isFolderWithImage(items)) {
             openAsBook.setVisibility(View.VISIBLE);
@@ -1581,7 +1644,7 @@ import java.util.Map;
     public void showPathHeader() {
         paths.removeAllViews();
 
-        if (ROOT_PATH.equals(AppState.get().displayPath)) {
+        if (ROOT_PATH.equals(path())) {
             TextView nameView = new TextView(getActivity());
             nameView.setText(R.string.moon_my_files);
             nameView.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
@@ -1590,11 +1653,11 @@ import java.util.Map;
         }
 
         if (TYPE_SELECT_FILE_OR_FOLDER == fragmentType) {
-            editPath.setText(AppState.get().displayPath);
+            editPath.setText(path());
         }
 
-        if (ExtUtils.isExteralSD(AppState.get().displayPath)) {
-            String id = ExtUtils.getExtSDDisplayName(getContext(), AppState.get().displayPath);
+        if (ExtUtils.isExteralSD(path())) {
+            String id = ExtUtils.getExtSDDisplayName(getContext(), path());
 
             TextView slash = new TextView(getActivity());
             slash.setText(id);
@@ -1602,16 +1665,16 @@ import java.util.Map;
             paths.addView(slash);
         } else {
 
-            final String prefix = Clouds.getPrefix(AppState.get().displayPath);
-            final String path = Clouds.getPath(AppState.get().displayPath);
-            final String name = Clouds.getPrefixName(AppState.get().displayPath);
+            final String prefix = Clouds.getPrefix(path());
+            final String path = Clouds.getPath(path());
+            final String name = Clouds.getPrefixName(path());
 
             final String[] split = path.split("/");
 
             TextView nameView = new TextView(getActivity());
             if (split.length == 0) {
                 nameView.setText(name + ": " + Clouds.get()
-                                                     .getUserLogin(AppState.get().displayPath) + " ");
+                                                     .getUserLogin(path()) + " ");
             } else {
                 nameView.setText(name + ":");
             }
@@ -1624,7 +1687,7 @@ import java.util.Map;
             });
             paths.addView(nameView);
 
-            if (split.length == 0 && Clouds.isCloud(AppState.get().displayPath)) {
+            if (split.length == 0 && Clouds.isCloud(path())) {
                 TextView logout = new TextView(getActivity());
                 logout.setText(TxtUtils.underline(getActivity().getString(R.string.logout)));
                 logout.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
@@ -1640,7 +1703,7 @@ import java.util.Map;
                             @Override protected Boolean doInBackground(Object... params) {
                                 try {
                                     Clouds.get()
-                                          .logout(AppState.get().displayPath);
+                                          .logout(path());
                                 } catch (Exception e) {
                                     return false;
                                 }
@@ -1659,7 +1722,7 @@ import java.util.Map;
             }
 
             pasteFrom.setOnClickListener(
-                    v -> ShareDialog.dirLongPress(getActivity(), AppState.get().displayPath, () -> resetFragment()));
+                    v -> ShareDialog.dirLongPress(getActivity(), path(), () -> resetFragment()));
             Views.visible(pasteFrom, TempHolder.get().copyFromPath != null);
 
             for (int i = 0; i < split.length; i++) {
@@ -1757,7 +1820,7 @@ import java.util.Map;
         }
 
         if (AppDB.get()
-                 .isStarFolder(AppState.get().displayPath)) {
+                 .isStarFolder(path())) {
             starIcon.setImageResource(R.drawable.glyphicons_49_star);
         } else {
             starIcon.setImageResource(R.drawable.glyphicons_50_star_empty);
@@ -1768,13 +1831,13 @@ import java.util.Map;
 
             @Override public void onClick(View v) {
                 FileMeta fileMeta = AppDB.get()
-                                         .getOrCreate(AppState.get().displayPath);
+                                         .getOrCreate(path());
                 fileMeta.setCusType(FileMetaAdapter.DISPLAY_TYPE_DIRECTORY);
-                fileMeta.setPathTxt(ExtUtils.getFileName(AppState.get().displayPath));
+                fileMeta.setPathTxt(ExtUtils.getFileName(path()));
                 DefaultListeners.getOnStarClick(getActivity())
                                 .onResultRecive(fileMeta, null);
                 if (AppDB.get()
-                         .isStarFolder(AppState.get().displayPath)) {
+                         .isStarFolder(path())) {
                     starIcon.setImageResource(R.drawable.glyphicons_49_star);
                 } else {
                     starIcon.setImageResource(R.drawable.glyphicons_50_star_empty);
@@ -1782,7 +1845,7 @@ import java.util.Map;
             }
         });
 
-        final String ldir = FolderContext.genarateXML(searchAdapter.getItemsList(), AppState.get().displayPath, false)
+        final String ldir = FolderContext.genarateXML(searchAdapter.getItemsList(), path(), false)
                                          .toString();
         if (AppDB.get()
                  .isStarFolder(ldir)) {
@@ -1798,7 +1861,7 @@ import java.util.Map;
 
             @Override public void onClick(View v) {
                 File genarateXMLBook =
-                        FolderContext.genarateXML(searchAdapter.getItemsList(), AppState.get().displayPath, true);
+                        FolderContext.genarateXML(searchAdapter.getItemsList(), path(), true);
 
                 FileMeta fileMeta = AppDB.get()
                                          .getOrCreate(genarateXMLBook.getPath());

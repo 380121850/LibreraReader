@@ -155,12 +155,21 @@ public enum UITab {
     }
 
     public boolean isVisible() {
-        // Google Drive sync is removed from all builds (Drive SDK stripped from
-        // libDepPro; the stub classes are inert, so the entry point is hidden)
-        if (this == UITab.GoogleDrive2Fragment) {
-            return false;
+        // Tab bar is fixed to the four Moon+-style entries (home / library /
+        // my files / preferences). The pages below stay reachable through the
+        // drawer and dashboard links, which open them as overlay pages.
+        switch (this) {
+            case RecentFragment:
+            case StarsFragment:
+            case BookmarksFragment:
+            case OpdsFragment:
+            // Google Drive sync is removed from all builds (Drive SDK stripped
+            // from libDepPro; the stub classes are inert)
+            case GoogleDrive2Fragment:
+                return false;
+            default:
+                return isVisible;
         }
-        return isVisible;
     }
 
     public void setVisible(boolean isVisible) {

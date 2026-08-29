@@ -310,6 +310,31 @@ public class AppState {
     public boolean isSystemThemeColor = false;
     public String allOPDSLinks = OPDS_DEFAULT;
     public String allWebDavLinks = "";
+    // WebDAV reading-data sync (progress + bookmarks), see WebDavSyncer.
+    // Server credentials are stored separately (WebDavCredentials, keyed by
+    // this URL) so the sync config is fully independent from the browsing
+    // server list in "My files".
+    public boolean webdavSyncEnabled = false;
+    public String webdavSyncServer = "";
+    // server-side directory (relative to the server root) that holds
+    // progress.json / bookmarks.json; picked with the folder browser
+    public String webdavSyncRemoteDir = "Librera";
+    public long webdavLastSyncTime = 0;
+    // progress conflict policy: "newer" (latest edit wins) or "farther" (the
+    // position closer to the end of the book wins)
+    public String webdavSyncPolicy = "newer";
+    public String webdavLastSyncInfo = "";
+
+    // AI LLM provider config (see AiClient): protocol routing key plus the
+    // non-secret fields; the API key lives encrypted in AiCredentials
+    public String aiProtocol = "openai";
+    public String aiBaseUrl = "";
+    public String aiModel = "";
+    // per-question output budget in tokens; user-tunable in the AI settings
+    public int aiMaxTokens = 4096;
+    // reasoning ("thinking") mode of the model; off by default so answers
+    // come straight without a long reasoning section
+    public boolean aiThinking = false;
     public boolean opdsLargeCovers = true;
     public boolean createBookNameFolder = false;
     public String readColors = READ_COLORS_DEAFAUL;
@@ -475,7 +500,7 @@ public class AppState {
     public int broseMode = MODE_LIST;
     public int recentMode = MODE_LIST;
     public int cloudMode = MODE_LIST_COMPACT;
-    public int bookmarksMode = BOOKMARK_MODE_BY_DATE;
+    public int bookmarksMode = BOOKMARK_MODE_BY_BOOK;
     public int starsMode = MODE_LIST_COMPACT;
     public boolean isBrowseGrid = false;
     public boolean isShowCloudsLine = true;

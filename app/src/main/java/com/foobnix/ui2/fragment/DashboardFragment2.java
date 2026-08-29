@@ -97,7 +97,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         setupHeader(view.findViewById(R.id.favHeader), R.string.moon_home_favorites, UITab.StarsFragment);
         setupHeader(view.findViewById(R.id.filesHeader), R.string.moon_home_files, UITab.BrowseFragment);
         setupHeader(view.findViewById(R.id.netHeader), R.string.moon_home_net, UITab.OpdsFragment);
-        setupHeader(view.findViewById(R.id.bookmarkHeader), R.string.bookmarks, UITab.BookmarksFragment);
+        setupHeader(view.findViewById(R.id.bookmarkHeader), R.string.bookmarks_and_notes, UITab.BookmarksFragment);
 
         // Reading stats: no "more" link (no dedicated stats settings page yet).
         View statsHeader = view.findViewById(R.id.statsHeader);
@@ -332,7 +332,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
                 {R.string.moon_range_year, 12, 2},
         };
         final TextView[] tabs = new TextView[defs.length];
-        final int[] current = {2}; // default: last 12 months
+        final int[] current = {0}; // default: last week, per day
         for (int i = 0; i < defs.length; i++) {
             final int idx = i;
             TextView t = new TextView(a);
@@ -353,9 +353,9 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             tabs[i] = t;
             switcher.addView(t);
         }
-        tabs[2].setTextColor(TintUtil.color);
-        tabs[2].setPaintFlags(tabs[2].getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-        fillReadingBars(bars, 2);
+        tabs[0].setTextColor(TintUtil.color);
+        tabs[0].setPaintFlags(tabs[0].getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        fillReadingBars(bars, 0);
 
         new AlertDialog.Builder(a)//
                 .setCustomTitle(switcher)//

@@ -597,6 +597,11 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     }
 
     public boolean onBackAction() {
+        // detached page opened from "My files": BACK at the entry target
+        // closes the page instead of unwinding into the network root list
+        if (externalMode && stack.size() <= 1) {
+            return false;
+        }
         String last = popStack();
 
         boolean res = !getHome().equals(last);
@@ -804,9 +809,14 @@ public class OpdsFragment2 extends UIFragment<Entry> {
     // the fragment sits detached beyond the pager's offscreen limit
     String pendingOpenUrl;
     boolean pendingOpenWebDav;
+    // true while this instance is the detached page opened from "My files":
+    // a dead catalog shows an error instead of falling back to the network
+    // root list, and BACK at the entry target closes the page
+    boolean externalMode = false;
 
     /** Open a specific OPDS catalog (or the root list when url is "/"). */
     public void openExternal(boolean webDav, String targetUrl) {
+        externalMode = true;
         if (isAdded() && recyclerView != null) {
             applyExternalTarget(webDav, targetUrl);
         } else {
@@ -1149,6 +1159,18 @@ public class OpdsFragment2 extends UIFragment<Entry> {
         }
 
         if (entries == null || entries.isEmpty()) {
+            if (externalMode) {
+                // detached page opened from "My files": a dead catalog shows an
+                // error here — it must NOT reset to the network root list
+                searchAdapter.clearItems();
+                recyclerView.setAdapter(searchAdapter);
+                if (title != null) {
+                    titleView.setText("" + title.replaceAll("[\n\r\t ]+", " ").trim());
+                }
+                starIcon.setVisibility(View.GONE);
+                Toast.makeText(getContext(), R.string.loading_error, Toast.LENGTH_LONG).show();
+                return;
+            }
             Urls.openWevView(getActivity(), url, new Runnable() {
 
                 @Override

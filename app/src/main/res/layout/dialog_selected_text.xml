@@ -265,6 +265,32 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/onSendToAi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/wh_button_small"
+                android:layout_height="@dimen/wh_button_small"
+                android:background="@android:drawable/list_selector_background"
+                android:src="@drawable/glyphicons_49_star"
+                android:tint="@color/tint_gray" />
+
+            <TextView
+
+                style="@style/textLink"
+                android:layout_width="match_parent"
+                android:layout_height="35dip"
+                android:gravity="center_vertical"
+                android:paddingLeft="10dip"
+                android:singleLine="true"
+                android:text="@string/ai_send_to_ai"
+                android:textSize="15sp" />
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

@@ -1,5 +1,8 @@
 package com.foobnix.ui2.fragment;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,6 +15,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -19,6 +23,7 @@ import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
@@ -29,6 +34,7 @@ import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
+import com.foobnix.pdf.info.view.AlertDialogs;
 import com.foobnix.pdf.info.view.MyPopupMenu;
 import com.foobnix.pdf.info.widget.FileInformationDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
@@ -37,6 +43,8 @@ import com.foobnix.ui2.adapter.BookmarksAdapter2;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -312,25 +320,125 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
         @Override
         public boolean onResultRecive(AppBookmark result) {
             String text = bookmarksEditSearch.getText().toString().toLowerCase(Locale.US).trim();
-            if (TxtUtils.isNotEmpty(text) || AppState.get().bookmarksMode == AppState.BOOKMARK_MODE_BY_DATE) {
+
+            // Check if this is a book header entry (summary line with count)
+            boolean isBookHeader = result != null && result.text.contains(" items");
+
+            if (isBookHeader) {
+                // Clicking a book header: filter to show all bookmarks for this book
+                String fileName = ExtUtils.getFileName(result.getPath());
+                bookmarksEditSearch.setText(BOOK_PREFIX + " " + fileName);
+                populate();
+            } else if (result != null && result.isAiNote) {
+                // AI notes show their full content in a dialog instead of jumping
+                // to the book like a bookmark does.
+                showNoteDialog(result);
+            } else if (TxtUtils.isNotEmpty(text) || AppState.get().bookmarksMode == AppState.BOOKMARK_MODE_BY_DATE) {
+                // Clicking a regular bookmark: open the book at that page
                 if (ExtUtils.doifFileExists(getContext(), result.getPath())) {
                     final File file = new File(result.getPath());
                     ExtUtils.showDocumentWithoutDialog2(getActivity(), Uri.fromFile(file), result.getPercent(), null);
-
                 }
             } else {
-                bookmarksEditSearch.setText(BOOK_PREFIX + " " + result.getPath());
+                // BY_BOOK mode, no search text: filter to this book
+                String fileName = ExtUtils.getFileName(result.getPath());
+                bookmarksEditSearch.setText(BOOK_PREFIX + " " + fileName);
                 populate();
             }
             return false;
         }
     };
 
+    /** Shows an AI reading note (or merged notes) in a scrollable, selectable dialog */
+    private void showNoteDialog(AppBookmark note) {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        // Merged entries carry the full content (all notes, newest first) in aiAnswer
+        if (note.notes == null || note.notes.isEmpty()) {
+            String content = TxtUtils.isNotEmpty(note.aiAnswer) ? note.aiAnswer : note.text;
+            AlertDialogs.showOkDialog(activity, content, null);
+            return;
+        }
+        // Per-note view: the timestamp of each note is a link that jumps to the
+        // reading position recorded when the note was saved.
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+        final LinearLayout container = new LinearLayout(activity);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(Dips.DP_5, Dips.DP_5, Dips.DP_5, Dips.DP_5);
+        final AlertDialog[] dialogRef = new AlertDialog[1];
+        int idx = 0;
+        for (final AppBookmark n : note.notes) {
+            TextView time = new TextView(activity);
+            time.setText("[" + fmt.format(n.getTime()) + "]");
+            time.setTextSize(14);
+            time.setTypeface(null, Typeface.BOLD);
+            time.setTextColor(activity.getResources().getColor(R.color.tint_blue));
+            time.setPaintFlags(time.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+            time.setPadding(0, Dips.DP_5, 0, Dips.DP_5);
+            time.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    if (dialogRef[0] != null) {
+                        dialogRef[0].dismiss();
+                    }
+                    if (n.getPercent() > 0f && ExtUtils.doifFileExists(activity, n.getPath())) {
+                        final File file = new File(n.getPath());
+                        ExtUtils.showDocumentWithoutDialog2(activity, Uri.fromFile(file), n.getPercent(), null);
+                    }
+                }
+            });
+            container.addView(time);
+
+            TextView body = new TextView(activity);
+            StringBuilder sb = new StringBuilder();
+            if (TxtUtils.isNotEmpty(n.text)) {
+                sb.append(n.text);
+            }
+            if (TxtUtils.isNotEmpty(n.aiAnswer)) {
+                if (sb.length() > 0) {
+                    sb.append("\n\n");
+                }
+                sb.append("AI: ").append(n.aiAnswer);
+            }
+            body.setText(sb.toString());
+            body.setTextSize(15);
+            body.setTextIsSelectable(true);
+            container.addView(body);
+
+            idx++;
+            if (idx < note.notes.size()) {
+                View divider = new View(activity);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, 1);
+                lp.topMargin = Dips.DP_10;
+                lp.bottomMargin = Dips.DP_10;
+                divider.setLayoutParams(lp);
+                divider.setBackgroundColor(activity.getResources().getColor(R.color.lt_grey_dima));
+                container.addView(divider);
+            }
+        }
+        dialogRef[0] = AlertDialogs.showViewDialog(activity, container);
+    }
+
     ResultResponse<AppBookmark> onDeleteResponse = new ResultResponse<AppBookmark>() {
 
         @Override
         public boolean onResultRecive(AppBookmark result) {
-            if (bookmarksAdapter.withPageNumber) {
+            // Book header entries (with "items" in text): remove all bookmarks for that book
+            if (result != null && result.text.contains(" items")) {
+                String path = result.getPath();
+                List<AppBookmark> all = BookmarksData.get().getAll(getActivity());
+                int removedCount = 0;
+                for (AppBookmark b : all) {
+                    if (b.getPath().equals(path)) {
+                        BookmarksData.get().remove(b);
+                        removedCount++;
+                    }
+                }
+                LOG.d("onDeleteResponse", "Removed " + removedCount + " bookmarks for " + path);
+                populate();
+            } else if (bookmarksAdapter.withPageNumber) {
                 BookmarksData.get().remove(result);
                 populate();
             } else {
@@ -350,12 +458,25 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             List<AppBookmark> bookmarks = BookmarksData.get().getAll(getActivity());
 
             if (AppState.get().bookmarksMode == AppState.BOOKMARK_MODE_BY_BOOK) {
+                // By-book view: show one row per book (its cover + name + item count).
+                // Clicking a book row then filters to all bookmarks and notes of that book.
                 List<AppBookmark> filtered = new ArrayList<AppBookmark>();
-                List<String> unic = new ArrayList<String>();
+
+                // Add a "book summary" entry for each unique path
+                List<String> uniquePaths = new ArrayList<>();
                 for (AppBookmark bookmark : bookmarks) {
-                    if (!unic.contains(bookmark.getPath())) {
-                        unic.add(bookmark.getPath());
-                        filtered.add(bookmark);
+                    String p = bookmark.getPath();
+                    if (!uniquePaths.contains(p)) {
+                        uniquePaths.add(p);
+                        // Create a summary entry: copy the first occurrence, mark as book header
+                        AppBookmark summary = new AppBookmark();
+                        summary.path = bookmark.path;
+                        summary.text = ExtUtils.getFileName(p) + "  (" + countBookmarksForPath(bookmarks, p) + " items)";
+                        summary.p = 0;
+                        summary.t = bookmark.t;
+                        summary.isF = false;
+                        summary.isAiNote = false; // not an AI note, just a book header
+                        filtered.add(summary);
                     }
                 }
                 return filtered;
@@ -367,12 +488,29 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             List<AppBookmark> bookmarks = BookmarksData.get().getAll(getActivity());
 
             if (text.startsWith(BOOK_PREFIX)) {
-                text = text.replace(BOOK_PREFIX, "").trim();
+                // Filtering by book (clicked a book header): compare file names so
+                // notes and bookmarks of the same book always match, regardless of
+                // path prefix differences.
+                text = text.replace(BOOK_PREFIX, "").trim().toLowerCase(Locale.US);
+                List<AppBookmark> notes = new ArrayList<AppBookmark>();
+                List<AppBookmark> marks = new ArrayList<AppBookmark>();
                 for (final AppBookmark bookmark : bookmarks) {
-                    if (bookmark.getPath().toLowerCase(Locale.US).contains(text.toLowerCase(Locale.US))) {
-                        filtered.add(bookmark);
+                    String file = ExtUtils.getFileName(bookmark.getPath()).toLowerCase(Locale.US);
+                    if (file.contains(text) || text.contains(file)) {
+                        if (bookmark.isAiNote) {
+                            notes.add(bookmark);
+                        } else {
+                            marks.add(bookmark);
+                        }
                     }
                 }
+                // Merge all AI notes of this book into a single entry
+                if (!notes.isEmpty()) {
+                    filtered.add(mergeNotes(notes));
+                }
+                // Bookmarks newest first
+                Collections.sort(marks, NOTES_FIRST);
+                filtered.addAll(marks);
 
 
             } else {
@@ -388,6 +526,65 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
 
     }
 
+    /** Count how many bookmarks belong to a specific path */
+    private int countBookmarksForPath(List<AppBookmark> all, String path) {
+        int count = 0;
+        for (AppBookmark b : all) {
+            if (b.getPath().equals(path)) {
+                count++;
+            }
+        }
+        return Math.max(count, 1);
+    }
+
+    // Sort within one book: AI notes first (newest first), then bookmarks (newest first)
+    private static final Comparator<AppBookmark> NOTES_FIRST = new Comparator<AppBookmark>() {
+
+        @Override
+        public int compare(AppBookmark o1, AppBookmark o2) {
+            if (o1.isAiNote != o2.isAiNote) {
+                return o1.isAiNote ? -1 : 1;
+            }
+            return Long.compare(o2.getTime(), o1.getTime());
+        }
+    };
+
+    /** Merges all AI notes of one book into a single entry (newest first) */
+    private AppBookmark mergeNotes(List<AppBookmark> notes) {
+        Collections.sort(notes, new Comparator<AppBookmark>() {
+            @Override
+            public int compare(AppBookmark o1, AppBookmark o2) {
+                return Long.compare(o2.getTime(), o1.getTime());
+            }
+        });
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+        StringBuilder content = new StringBuilder();
+        AppBookmark first = notes.get(0);
+        for (AppBookmark n : notes) {
+            if (content.length() > 0) {
+                content.append("\n\n-----------------\n\n");
+            }
+            content.append("[").append(fmt.format(n.getTime())).append("]\n\n");
+            if (TxtUtils.isNotEmpty(n.text)) {
+                content.append(n.text);
+            }
+            if (TxtUtils.isNotEmpty(n.aiAnswer)) {
+                content.append("\n\nAI: ").append(n.aiAnswer);
+            }
+        }
+        AppBookmark merged = new AppBookmark();
+        merged.path = first.path;
+        merged.isAiNote = true;
+        merged.p = 0;
+        merged.t = first.t;
+        merged.text = getString(R.string.reading_note) + " (" + notes.size() + ")";
+        merged.aiAnswer = content.toString();
+        // Carry the per-note entries (newest first) so the dialog can render
+        // each note with a clickable timestamp that jumps to its position.
+        merged.notes = notes;
+        return merged;
+    }
+
     public boolean isPrefixText() {
         String text = bookmarksEditSearch.getText().toString().toLowerCase(Locale.US).trim();
         return text.startsWith(BOOK_PREFIX);
@@ -399,7 +596,8 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             onListGrid.setImageResource(R.drawable.my_glyphicons_114_paragraph_justify);
             bookmarksAdapter.withPageNumber = true;
         } else if (AppState.get().bookmarksMode == AppState.BOOKMARK_MODE_BY_BOOK) {
-            bookmarksAdapter.withPageNumber = false;
+            // In BY_BOOK mode, show page numbers for regular bookmarks but hide them for book headers.
+            // The adapter handles this by checking the item text for "items" suffix.
             onListGrid.setImageResource(R.drawable.glyphicons_159_thumbnails_list);
         }
         if (TxtUtils.isNotEmpty(bookmarksEditSearch.getText().toString().toLowerCase(Locale.US).trim())) {

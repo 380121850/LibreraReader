@@ -109,6 +109,7 @@ import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.BooksService;
 import com.foobnix.ui2.MainTabs2;
 import com.foobnix.ui2.MyContextWrapper;
+import com.foobnix.webdav.WebDavSyncDialog;
 import com.foobnix.work.SearchAllBooksWorker;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.ump.ConsentForm;
@@ -380,11 +381,9 @@ public class PrefFragment2 extends UIFragment {
             @Override public void run() {
                 dragLinearLayout.removeAllViews();
                 for (UITab tab : UITab.getOrdered()) {
-//                    if (tab == UITab.GoogleDrive2Fragment) {//SKIP for all
-//                        continue;
-//                    }
 
-                    if (AppsConfig.IS_FDROID && tab == UITab.GoogleDrive2Fragment) {
+                    // tabs fixed out of the tab bar have no toggle here
+                    if (!tab.isVisible()) {
                         continue;
                     }
 
@@ -457,11 +456,13 @@ public class PrefFragment2 extends UIFragment {
                 handler.postDelayed(ask2, timeout);
                 synchronized (AppState.get().tabsOrder9) {
                     if (isChecked) {
-                        AppState.get().tabsOrder9 = AppState.get().tabsOrder9.replace(UITab.PrefFragment.index + "#1",
-                                UITab.PrefFragment.index + "#0");
-                    } else {
+                        // 勾选"显示动画"时，保持 PrefFragment 可见（1=visible）
                         AppState.get().tabsOrder9 = AppState.get().tabsOrder9.replace(UITab.PrefFragment.index + "#0",
                                 UITab.PrefFragment.index + "#1");
+                    } else {
+                        // 取消勾选时，隐藏 PrefFragment（0=invisible）
+                        AppState.get().tabsOrder9 = AppState.get().tabsOrder9.replace(UITab.PrefFragment.index + "#1",
+                                UITab.PrefFragment.index + "#0");
                     }
                 }
                 dragLinear.run();
@@ -1071,6 +1072,26 @@ public class PrefFragment2 extends UIFragment {
 
                                                  }
                                              });
+
+        // WebDAV reading-data sync: row shows On/Off, click opens the config dialog
+        final TextView webdavSyncValue = inflate.findViewById(R.id.webdavSyncValue);
+        refreshWebdavSyncRow(webdavSyncValue);
+        TxtUtils.underlineTextView(webdavSyncValue);
+        webdavSyncValue.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                WebDavSyncDialog.showDialog(getActivity(), () -> refreshWebdavSyncRow(webdavSyncValue));
+            }
+        });
+
+        // AI 大模型接入: row shows the model name, click opens the config dialog
+        final TextView aiConfigValue = inflate.findViewById(R.id.aiConfigValue);
+        refreshAiConfigRow(aiConfigValue);
+        TxtUtils.underlineTextView(aiConfigValue);
+        aiConfigValue.setOnClickListener(new OnClickListener() {
+            @Override public void onClick(View v) {
+                com.foobnix.ai.AiConfigDialog.showDialog(getActivity(), () -> refreshAiConfigRow(aiConfigValue));
+            }
+        });
 
         final TextView appFontScale = inflate.findViewById(R.id.appFontScale);
         appFontScale.setText(
@@ -2658,6 +2679,30 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
 
     public String getFullDeviceInfo() {
         return "(" + Build.BRAND + ", " + Build.MODEL + ", " + android.os.Build.VERSION.RELEASE + ", " + Dips.screenWidthDP() + "dp" + ")";
+    }
+
+    /** 常规设置 WebDAV 同步行的值：关闭 / 已配置服务器的 host */
+    private void refreshWebdavSyncRow(TextView webdavSyncValue) {
+        if (webdavSyncValue == null) {
+            return;
+        }
+        if (!AppState.get().webdavSyncEnabled || TxtUtils.isEmpty(AppState.get().webdavSyncServer)) {
+            webdavSyncValue.setText(R.string.webdav_sync_state_off);
+            return;
+        }
+        webdavSyncValue.setText(AppState.get().webdavSyncServer);
+    }
+
+    /** 常规设置 AI 大模型行的值：未配置 / 模型名 */
+    private void refreshAiConfigRow(TextView aiConfigValue) {
+        if (aiConfigValue == null) {
+            return;
+        }
+        if (TxtUtils.isEmpty(AppState.get().aiBaseUrl) || TxtUtils.isEmpty(AppState.get().aiModel)) {
+            aiConfigValue.setText(R.string.ai_state_unconfigured);
+            return;
+        }
+        aiConfigValue.setText(AppState.get().aiModel);
     }
 
     public void onTheme() {

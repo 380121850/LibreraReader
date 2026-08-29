@@ -67,18 +67,18 @@
             android:visibility="gone" />
 
 
-        <TextView
-            android:id="@+id/favoritesName"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/wh_button"
-            android:layout_marginLeft="@dimen/panel_title_padding"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:text="@string/bookmarks"
-            android:textColor="@color/white"
-            android:textStyle="normal" />
+           <TextView
+                android:id="@+id/favoritesName"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/wh_button"
+                android:layout_marginLeft="@dimen/panel_title_padding"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:text="@string/bookmarks_and_notes"
+                android:textColor="@color/white"
+                android:textStyle="normal" />
 
         <TextView
             android:id="@+id/importBookmarks"

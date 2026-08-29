@@ -33,56 +33,96 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
     public boolean withPageNumber = true;
     private ResultResponse<AppBookmark> onDeleteClickListener;
 
+    // Marker suffix used to identify book header entries in the list
+    public static final String HEADER_SUFFIX = " items";
+
+    // Formats note timestamps as "yyyy-MM-dd HH:mm"
+    private static final java.text.SimpleDateFormat NOTE_TIME_FORMAT =
+            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US);
+
     @Override
     public BookmarksViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.bookmark_item, parent, false);
         return new BookmarksViewHolder(itemView);
     }
 
+    /** Returns true if this item is a book header entry */
+    private boolean isBookHeader(int position) {
+        AppBookmark item = getItem(position);
+        return item != null && item.text != null && item.text.contains(HEADER_SUFFIX);
+    }
+
     @Override
     public void onBindViewHolder(final BookmarksViewHolder holder, final int position) {
         final AppBookmark item = getItem(position);
+        boolean header = isBookHeader(position);
 
-        holder.page.setText(TxtUtils.percentFormatInt(item.getPercent()));
-        FileMeta m = AppDB.get().load(MyPath.toAbsolute(item.path));
-
-        if (m != null && m.getPages() != null && m.getPages() > 0) {
-            holder.page.setText("" + Math.round(item.getPercent() * m.getPages()));
-        }
-
-
-        holder.title.setText(ExtUtils.getFileName(item.getPath()));
-
-
-        holder.text.setText(item.text);
-        holder.remove.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                onDeleteClickListener.onResultRecive(item);
-            }
-        });
-        holder.remove.setImageResource(withPageNumber ? R.drawable.glyphicons_599_menu_close : R.drawable.glyphicons_578_share);
-        TintUtil.setTintImageNoAlpha(holder.remove, holder.remove.getResources().getColor(R.color.lt_grey_dima));
-
-        if (withTitle) {
-            //holder.title.setVisibility(View.VISIBLE);
-            //holder.title.setVisibility(View.GONE);
-        } else {
-            holder.title.setVisibility(View.GONE);
-        }
-
-        TintUtil.setTintBgSimple(holder.page, 240);
-        holder.page.setTextColor(Color.WHITE);
-        if (withPageNumber) {
-            holder.page.setVisibility(View.VISIBLE);
-            // holder.remove.setVisibility(View.VISIBLE);
-        } else {
+        // For book headers: use a simplified display; for regular bookmarks: full details
+        if (header) {
+            // Book header: show filename in title, hide page number, hide text body
+            String fileName = ExtUtils.getFileName(item.getPath());
+            int countStart = item.text.lastIndexOf("(");
+            int countEnd = item.text.lastIndexOf(" items)");
+            holder.title.setText(countStart > 0 ? item.text.substring(0, countStart).trim() : fileName);
             holder.page.setVisibility(View.GONE);
-            //holder.remove.setVisibility(View.GONE);
+            holder.remove.setVisibility(View.GONE);
+
+            // Book headers use full-height text area for the title
+            holder.text.setVisibility(View.GONE);
+        } else {
+            // Regular bookmark: show page number and all details
+            // Restore visibility in case the view holder was previously bound
+            // to a book header row (RecyclerView reuses view holders).
+            holder.text.setVisibility(View.VISIBLE);
+            holder.remove.setVisibility(View.VISIBLE);
+            if (item.isAiNote) {
+                // AI notes have no page: show a note marker instead of a page number
+                holder.page.setText(R.string.reading_note);
+            } else {
+                holder.page.setText(TxtUtils.percentFormatInt(item.getPercent()));
+                FileMeta m = AppDB.get().load(MyPath.toAbsolute(item.path));
+
+                if (m != null && m.getPages() != null && m.getPages() > 0) {
+                    holder.page.setText("" + Math.round(item.getPercent() * m.getPages()));
+                }
+            }
+
+            holder.title.setText(ExtUtils.getFileName(item.getPath()));
+            if (item.isAiNote) {
+                // AI reading note: show a short title in the list; the full merged
+                // content (all notes, newest first) is shown in a dialog on click.
+                String time = NOTE_TIME_FORMAT.format(item.getTime());
+                holder.text.setText("[" + time + "] " + item.text);
+            } else {
+                holder.text.setText(item.text);
+            }
+            holder.remove.setOnClickListener(new OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    onDeleteClickListener.onResultRecive(item);
+                }
+            });
+            holder.remove.setImageResource(withPageNumber ? R.drawable.glyphicons_599_menu_close : R.drawable.glyphicons_578_share);
+            TintUtil.setTintImageNoAlpha(holder.remove, holder.remove.getResources().getColor(R.color.lt_grey_dima));
+
+            if (withTitle) {
+                //holder.title.setVisibility(View.VISIBLE);
+                //holder.title.setVisibility(View.GONE);
+            } else {
+                holder.title.setVisibility(View.GONE);
+            }
+
+            TintUtil.setTintBgSimple(holder.page, 240);
+            holder.page.setTextColor(Color.WHITE);
+            if (withPageNumber) {
+                holder.page.setVisibility(View.VISIBLE);
+            } else {
+                holder.page.setVisibility(View.GONE);
+            }
         }
 
-        IMG.getCoverPageWithEffect(holder.image.getContext(), item.getPath(),  null).into(holder.image);
+        IMG.getCoverPageWithEffect(holder.image.getContext(), item.getPath(), null).into(holder.image);
 
         Clouds.showHideCloudImage(holder.cloudImage, item.getPath());
 

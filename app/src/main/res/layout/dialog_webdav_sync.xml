@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/panel_padding">
+
+    <CheckBox
+        android:id="@+id/webdavSyncEnabled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/webdav_sync_enable" />
+
+    <EditText
+        android:id="@+id/webdavSyncUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dip"
+        android:hint="@string/webdav_url"
+        android:inputType="textUri"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/webdavSyncLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/webdav_login"
+        android:singleLine="true" />
+
+    <EditText
+        android:id="@+id/webdavSyncPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/password"
+        android:inputType="textPassword"
+        android:singleLine="true" />
+
+    <CheckBox
+        android:id="@+id/webdavSyncTrustCerts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/webdav_trust_cert" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dip"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="110dip"
+            android:text="@string/webdav_sync_remote_dir"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/webdavSyncRemoteValue"
+            style="@style/textLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="/Librera" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dip"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="110dip"
+            android:text="@string/webdav_sync_conflict"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/webdavSyncPolicyValue"
+            style="@style/textLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/webdav_sync_policy_newer" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/webdavSyncTest"
+            style="@style/textLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="110dip"
+            android:text="@string/webdav_sync_test_connection" />
+
+        <TextView
+            android:id="@+id/webdavSyncNow"
+            style="@style/textLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dip"
+            android:minWidth="110dip"
+            android:text="@string/webdav_sync_now" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/webdavSyncStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dip"
+        android:padding="2dip"
+        android:text="@string/webdav_sync_last_never"
+        android:textSize="12sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="2dip"
+        android:text="@string/webdav_sync_independent"
+        android:textSize="11sp" />
+
+    <com.foobnix.pdf.info.view.MyProgressBar
+        android:id="@+id/webdavSyncProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
+</LinearLayout>

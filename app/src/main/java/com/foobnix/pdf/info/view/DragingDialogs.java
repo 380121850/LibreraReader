@@ -1973,6 +1973,22 @@ public class DragingDialogs {
                     });
                 }
 
+                // 发送给AI: selected text (+ user question) goes to the configured LLM
+                View onSendToAi = view.findViewById(R.id.onSendToAi);
+                if (onSendToAi != null) {
+                    onSendToAi.setOnClickListener(new OnClickListener() {
+                        @Override public void onClick(View v) {
+                            closeDialog();
+                            controller.clearSelectedText();
+                            String bookPath = controller.getCurrentBook() != null
+                                    ? controller.getCurrentBook().getPath() : null;
+                            com.foobnix.ai.AiAskDialog.show(controller.getActivity(),
+                                    editText.getText().toString().trim(), bookPath,
+                                    controller.getPercentage());
+                        }
+                    });
+                }
+
                 LinearLayout dictLayout = view.findViewById(R.id.dictionaryLine);
                 dictLayout.removeAllViews();
 
@@ -1998,20 +2014,47 @@ public class DragingDialogs {
                 final List<ResolveInfo> sendList = DictsHelper.resolveInfosList(intentSend, pm);
                 final List<ResolveInfo> customList = DictsHelper.resolveInfosList(intentCustom, pm);
 
+                final SharedPreferences sp = anchor.getContext().getSharedPreferences("lastDict", Context.MODE_PRIVATE);
+                final String lastID = sp.getString("last", "");
+
+                // only ONE external-dictionary icon is shown: the last used
+                // app, or the first available one (the "+" button picks others)
                 final List<ResolveInfo> all = new ArrayList<ResolveInfo>();
                 all.addAll(customList);
-
                 if (Build.VERSION.SDK_INT >= 23) {
                     all.addAll(proccessTextList);
                 }
                 all.addAll(searchList);
                 all.addAll(sendList);
 
-                final SharedPreferences sp = anchor.getContext().getSharedPreferences("lastDict", Context.MODE_PRIVATE);
-                final String lastID = sp.getString("last", "");
+                ResolveInfo lastUsed = null;
+                ResolveInfo first = null;
+                for (final ResolveInfo app : all) {
+                    if (app.activityInfo.name.equals(lastID) || lastID.equals(
+                            "" + DictsHelper.getHash(app.activityInfo))) {
+                        lastUsed = app;
+                        break;
+                    }
+                    if (first == null) {
+                        for (final String pkgKey : AppState.appDictionariesKeys) {
+                            if (app.activityInfo.packageName.toLowerCase(Locale.US).contains(pkgKey)) {
+                                first = app;
+                                break;
+                            }
+                        }
+                    }
+                }
+                List<ResolveInfo> keep = new ArrayList<ResolveInfo>();
+                if (lastUsed != null) {
+                    keep.add(lastUsed);
+                } else if (first != null) {
+                    keep.add(first);
+                } else if (!all.isEmpty()) {
+                    keep.add(all.get(0));
+                }
 
                 List<String> cache = new ArrayList<String>();
-                for (final ResolveInfo app : all) {
+                for (final ResolveInfo app : keep) {
                     for (final String pkgKey : AppState.appDictionariesKeys) {
                         String pkg = app.activityInfo.packageName;
 

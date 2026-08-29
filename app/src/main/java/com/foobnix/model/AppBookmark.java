@@ -3,6 +3,7 @@ package com.foobnix.model;
 import com.foobnix.android.utils.LOG;
 
 import java.io.File;
+import java.util.List;
 
 public class AppBookmark implements MyPath.RelativePath {
     public String path;
@@ -12,7 +13,14 @@ public class AppBookmark implements MyPath.RelativePath {
     public long t;
     public boolean isF = false;
 
+    // AI reading-note fields (reuses the same JSON storage as bookmarks)
+    public boolean isAiNote = false;
+    public String aiAnswer = "";
+
     transient public File file;
+
+    // Per-note list carried by a merged note entry (display only, never serialized)
+    transient public List<AppBookmark> notes;
 
     public AppBookmark() {
 
