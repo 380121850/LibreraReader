@@ -242,4 +242,69 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 - 持久主机无需 restore(它已有 `~/.gradle`);restore-cache.sh 仅用于 fresh 机器。
 - `keystore.pkcs12` 仍不入库。
 
+---
+
+## [2026-08-28] 新增 AI 大模型对话、笔记保存与阅读位置绑定
+
+### 一、AI 大模型对话入口
+
+- `DragingDialogs.java` onSendToAi:从阅读页底部工具栏「发送到 AI」进入对话,传入`controller.getPercentage()`作为当前阅读位置(0..1 小数,与书签一致)
+- `AiAskDialog.java`:
+  - 新增 `void show(Activity a, String text, String bookPath, float percent)` 重载,保存 `savePercent`
+  - 新加 `show(Activity a, String text)` 和 `show(Activity a, String text, String bookPath)` 委托到 4 参重载
+  - 保存笔记时 `note.p = savePercent`(原为 `0`),记录阅读位置
+
+### 二、笔记按书分组、合并展示
+
+- `AppBookmark.java`:新增 `transient public List<AppBookmark> notes;`(transient,不参与 JSON 序列化)
+- `BookmarksFragment2.java`:
+  - `mergeNotes()`:合并同名书籍笔记时,将各条笔记按时间倒序存入 `merged.notes` 列表
+  - `showNoteDialog()`:当 `note.notes` 非空时,改用 `AlertDialogs.showViewDialog` 构建每条笔记的自定义视图——每条笔记包含:
+    - 时间行:蓝色+下划线+粗体,显示 `[yyyy-MM-dd HH:mm]`
+    - 内容行:选中文本 + AI 回答(可选文本)
+    - 分隔线
+  - 点击时间行:dismiss 对话框,若 `getPercent() > 0` 且文件存在,`ExtUtils.showDocumentWithoutDialog2` 跳转到对应阅读位置
+  - 当 `notes` 为空时回退到原有的纯文本 `AlertDialogs.showOkDialog`
+
+### 三、涉及文件
+
+| 文件 | 改动 |
+| --- | --- |
+| `AiAskDialog.java` | 新增 `savePercent` 字段、4 参 `show` 重载、保存时 `note.p = savePercent` |
+| `DragingDialogs.java` | `onSendToAi` 传入 `controller.getPercentage()` |
+| `AppBookmark.java` | 新增 `transient List<AppBookmark> notes` |
+| `BookmarksFragment2.java` | `mergeNotes` 保存笔记列表;`showNoteDialog` 自定义视图+可点击时间跳转 |
+
+---
+
+## [2026-08-29] 三项功能修改:首页 Tab 返回覆盖页、笔记时间跳转加固、备份按书维度
+
+### 一、修复首页 Tab 无法从覆盖页返回
+
+**根因**:最近阅读/书签笔记/我的珍藏/网上书库 4 个页面以 `overlayContainer` 临时覆盖层打开,ViewPager 仍停留在首页(index 0)。点击「首页」Tab 时 `SlidingTabLayout.TabClickListener` 判定 `i == currentReal`(0==0),走重选钩子 `setOnTabReselect`,但该 lambda 只调 `DashboardFragment2.onTabReselect()`(空实现),从不关闭覆盖层。点其他 Tab 因 index≠0 走 `pager.setCurrentItem` → `onPageSelected` → `hideTabOverlay()`,所以能切换。
+
+**修改**:`MainTabs2.java` `setOnTabReselect` lambda 中,在调 `onTabReselect()` 之前先调 `hideTabOverlay()`(该方法自带可见性守卫,不可见时直接 return,无副作用,同时恢复顶栏标题与「继续阅读」悬浮按钮)。
+
+### 二、笔记保存时记录阅读位置、时间可点击跳转(加固)
+
+- `AiAskDialog.java` 保留 2026-08-28 的 `percent` 参数传递
+- `DragingDialogs.java` 保留 `controller.getPercentage()` 传入
+- `BookmarksFragment2.java` `showNoteDialog()` 完善:点击时间 → dismiss 对话框 → 若 `getPercent() > 0` 且文件存在 → `ExtUtils.showDocumentWithoutDialog2` 跳转(与书签点击同一机制);旧笔记 percent=0 时点击时间无跳转
+
+### 三、备份包含书签与笔记,按书籍维度
+
+**原理**:现有导出把 `profile.<名>/device.<机型>/` 整个目录打进 zip(`app-Bookmarks.json` 已在其中,但按时间戳平铺)。新增 `app-BookmarksByBook.json`(结构:`{ 书名: { 时间戳: 书签/笔记对象 } }`),导出时写入、随 zip 打包;导入时合并回 `app-Bookmarks.json`(按时间戳键幂等合并)。
+
+| 文件 | 改动 |
+| --- | --- |
+| `AppProfile.java` | 新增常量 `APP_BOOKMARKS_BY_BOOK_JSON`、字段 `syncBookmarksByBook`、`init()` 中初始化 File |
+| `BookmarksData.java` | 新增 `saveByBook()`:遍历 `getAll()` 按 `ExtUtils.getFileName(path)` 分组写入;`importByBook()`:逐条合并进 `AppProfile.syncBookmarks`(幂等,不覆盖已有键) |
+| `PrefDialogs.java` | `exportDialog.doInBackground`:`zipFolder` 前调用 `saveByBook()`;`importDialog.doInBackground`:`unZipFolder` 后调用 `importByBook()` |
+
+### 四、验证(MI9 真机)
+
+1. **首页 Tab 返回**:首页→书签笔记→点首页 Tab→返回首页(覆盖层关闭,顶栏恢复「首页」);书库/我的文件 Tab 切换正常;最近阅读/我的珍藏/网上书库同理
+2. **笔记位置跳转**:阅读页选文本→发送到 AI→保存笔记→书签笔记→打开合并笔记→点击笔记时间→跳转到对应阅读位置(第一章 2/10,`p=0.06521739`)
+3. **备份按书**:导出后 zip 内含 `app-BookmarksByBook.json`,按书籍分组(3 本书:致命弱点.mobi/没有人给他写信的上校.epub/《驻京办主任3》-王晓方著.epub),书签+笔记完整;导入后恢复 12 条记录、8 条笔记,位置保留,无重复
+
 
