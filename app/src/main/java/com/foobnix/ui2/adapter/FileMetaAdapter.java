@@ -3,6 +3,7 @@ package com.foobnix.ui2.adapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
@@ -288,6 +290,28 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
             holder.starIcon.setVisibility(ExtUtils.isExteralSD(fileMeta.getPath()) ? View.GONE : View.VISIBLE);
 
             holder.imageCloud.setVisibility(View.GONE);
+
+            // My Files root: bigger 书库 folder rows (restored when the same
+            // adapter navigates into a subfolder)
+            if (holder.defTitleSize < 0) {
+                holder.defTitleSize = holder.title.getTextSize();
+                holder.defPathSize = holder.path.getTextSize();
+                holder.defImageSize = holder.image.getLayoutParams().width;
+            }
+            if (myFilesRoot) {
+                holder.title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                holder.path.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                int big = Dips.dpToPx(44);
+                holder.image.getLayoutParams().width = big;
+                holder.image.getLayoutParams().height = big;
+            } else {
+                holder.title.setTextSize(TypedValue.COMPLEX_UNIT_PX, holder.defTitleSize);
+                holder.path.setTextSize(TypedValue.COMPLEX_UNIT_PX, holder.defPathSize);
+                holder.image.getLayoutParams().width = holder.defImageSize;
+                holder.image.getLayoutParams().height = holder.defImageSize;
+            }
+            holder.image.requestLayout();
+
             //holder.imageCloud.setImageResource(R.drawable.glyphicons_sync);
             //TintUtil.setTintImageNoAlpha(holder.imageCloud, TintUtil.color);
 
@@ -958,6 +982,22 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
                 return true;
             }
         });
+        // shelf mode: covers/grid cards go transparent so the wooden bookshelf
+        // of the library page shows through; every bind sets it explicitly so
+        // recycled holders always match the current mode
+        boolean shelfItem = shelfMode && (adapterType == ADAPTER_COVERS || adapterType == ADAPTER_GRID);
+        if (holder.defaultCardElevation < 0) {
+            holder.defaultCardElevation = ((CardView) holder.parent).getCardElevation();
+            holder.defaultCardColor = ((CardView) holder.parent).getCardBackgroundColor();
+        }
+        if (shelfItem) {
+            ((CardView) holder.parent).setCardBackgroundColor(Color.TRANSPARENT);
+            ((CardView) holder.parent).setCardElevation(0);
+        } else {
+            ((CardView) holder.parent).setCardBackgroundColor(holder.defaultCardColor);
+            ((CardView) holder.parent).setCardElevation(holder.defaultCardElevation);
+        }
+
         // The row background must be re-derived from the model on EVERY bind:
         // a recycled view holder would otherwise keep the selection accent of
         // the previously bound book (phantom selection after entering
@@ -965,7 +1005,9 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         if (holder.defaultBackground == null) {
             holder.defaultBackground = holder.parent.getBackground();
         }
-        if (selectionPaths != null && fileMeta.getPath() != null && selectionPaths.contains(fileMeta.getPath())) {
+        boolean selected = selectionPaths != null && fileMeta.getPath() != null
+                && selectionPaths.contains(fileMeta.getPath());
+        if (selected) {
             holder.parent.setBackgroundColor((TintUtil.color & 0x00FFFFFF) | 0x50000000);
         } else if (!AppState.get().isBorderAndShadow) {
             holder.parent.setBackgroundColor(Color.TRANSPARENT);
@@ -973,6 +1015,21 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
             holder.parent.setBackgroundColor(Color.BLACK);
         } else {
             holder.parent.setBackground(holder.defaultBackground);
+        }
+        // the translucent row background hides behind opaque covers, so a
+        // selected book additionally gets an accent overlay + border ON TOP of
+        // its content (card foreground) — visible in every display mode
+        if (selected && Build.VERSION.SDK_INT >= 23) {
+            if (holder.selectionForeground == null) {
+                android.graphics.drawable.GradientDrawable overlay = new android.graphics.drawable.GradientDrawable();
+                overlay.setColor((TintUtil.color & 0x00FFFFFF) | 0x38000000);
+                overlay.setStroke(Dips.dpToPx(3), TintUtil.color | 0xFF000000);
+                holder.selectionForeground = overlay;
+            }
+            holder.selectionForeground.setAlpha(255);
+            ((android.view.ViewGroup) holder.parent).setForeground(holder.selectionForeground);
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            ((android.view.ViewGroup) holder.parent).setForeground(null);
         }
 
         if (tempValue == TEMP_VALUE_SERIES) {
@@ -1084,6 +1141,12 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         // XML ripple background captured on first bind, so the recycled row
         // can always be restored to it (selection accent must not leak)
         public android.graphics.drawable.Drawable defaultBackground;
+        // original card look, so shelf mode (transparent cards on wood) can
+        // be undone when the same holder is reused in a list mode
+        public float defaultCardElevation = -1;
+        public android.content.res.ColorStateList defaultCardColor;
+        // accent overlay drawn over the cover while the book is multi-selected
+        public android.graphics.drawable.Drawable selectionForeground;
 
         public FileMetaViewHolder(View view) {
             super(view);
@@ -1123,10 +1186,20 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         }
     }
 
+    /** Library page shelf mode: covers/grid rows sit transparent on the wood. */
+    public boolean shelfMode = false;
+
+    /** My Files root: the 书库 folder rows render bigger. */
+    public boolean myFilesRoot = false;
+
     public class DirectoryViewHolder extends ContextViewHolder {
         public TextView title, path, play, count;
         public ImageView image, starIcon, imageCloud;
         public View parent;
+        // XML defaults captured on first bind, so the enlarged My-Files-root
+        // rendering can be undone when the same adapter navigates deeper
+        public float defTitleSize = -1, defPathSize = -1;
+        public int defImageSize = -1;
 
         public DirectoryViewHolder(View view) {
             super(view);

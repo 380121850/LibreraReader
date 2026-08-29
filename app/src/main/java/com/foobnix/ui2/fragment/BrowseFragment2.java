@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.foobnix.opds.Entry;
 import com.foobnix.webdav.WebDavCredentials;
 import com.foobnix.webdav.WebDavServer;
 import com.foobnix.webdav.WebDavStore;
@@ -1204,6 +1205,17 @@ import java.util.Map;
                                 }
                             });
                 }
+            }, new OnClickListener() {
+                @Override public void onClick(View v) {
+                    // reuse the add dialog's edit mode (drops the old line, saves the new one)
+                    Entry e = new Entry();
+                    e.appState = cat[2];
+                    String[] seg = cat[2].replace(";", "").split(",");
+                    if (seg.length >= 4) {
+                        e.logo = seg[3];
+                    }
+                    AddCatalogDialog.showDialog(a, rebuild, e, true);
+                }
             }));
         }
 
@@ -1231,6 +1243,11 @@ import java.util.Map;
                                     rebuild.run();
                                 }
                             });
+                }
+            }, new OnClickListener() {
+                @Override public void onClick(View v) {
+                    // edit mode: the dialog prefills and replaces the old entry
+                    AddWebDavDialog.showDialog(a, rebuild, srv);
                 }
             }));
         }
@@ -1360,14 +1377,14 @@ import java.util.Map;
 
         TextView t = new TextView(getActivity());
         t.setText(title);
-        t.setTextSize(16);
+        t.setTextSize(19);
         t.setTypeface(null, Typeface.BOLD);
         t.setTextColor(TintUtil.getColorInDayNighth());
         row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
         TextView add = new TextView(getActivity());
         add.setText("+ " + getString(R.string.add));
-        add.setTextSize(15);
+        add.setTextSize(17);
         add.setTextColor(TintUtil.color);
         add.setOnClickListener(onAdd);
         row.addView(add, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -1376,6 +1393,11 @@ import java.util.Map;
 
     /** Vertical list entry with a leading icon and an optional delete icon. */
     private View netListItem(int iconRes, String text, OnClickListener onClick, OnClickListener onRemove) {
+        return netListItem(iconRes, text, onClick, onRemove, null);
+    }
+
+    /** As above with an optional pencil edit icon (OPDS / WebDAV entries). */
+    private View netListItem(int iconRes, String text, OnClickListener onClick, OnClickListener onRemove, OnClickListener onEdit) {
         LinearLayout row = new LinearLayout(getActivity());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -1386,15 +1408,24 @@ import java.util.Map;
         icon.setImageResource(iconRes);
         icon.setColorFilter(TintUtil.getColorInDayNighth());
         icon.setPadding(0, 0, Dips.dpToPx(10), 0);
-        row.addView(icon, new LinearLayout.LayoutParams(Dips.dpToPx(22), Dips.dpToPx(22)));
+        row.addView(icon, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
 
         TextView t = new TextView(getActivity());
         t.setText(text);
-        t.setTextSize(15);
+        t.setTextSize(18);
         t.setSingleLine(true);
         t.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
         t.setTextColor(TintUtil.getColorInDayNighth());
         row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+
+        if (onEdit != null) {
+            ImageView edit = new ImageView(getActivity());
+            edit.setImageResource(R.drawable.my_glyphicons_pen);
+            edit.setColorFilter(TintUtil.getColorInDayNighth());
+            edit.setPadding(Dips.dpToPx(12), Dips.dpToPx(4), Dips.dpToPx(2), Dips.dpToPx(4));
+            edit.setOnClickListener(onEdit);
+            row.addView(edit, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
+        }
 
         if (onRemove != null) {
             ImageView del = new ImageView(getActivity());
@@ -1402,7 +1433,7 @@ import java.util.Map;
             del.setColorFilter(TintUtil.getColorInDayNighth());
             del.setPadding(Dips.dpToPx(12), Dips.dpToPx(4), Dips.dpToPx(2), Dips.dpToPx(4));
             del.setOnClickListener(onRemove);
-            row.addView(del, new LinearLayout.LayoutParams(Dips.dpToPx(26), Dips.dpToPx(26)));
+            row.addView(del, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
         }
         return row;
     }
@@ -1567,6 +1598,10 @@ import java.util.Map;
         }
         if (netSection != null) {
             netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
+        }
+        // the 书库 folder rows are rendered bigger on the root page only
+        if (searchAdapter != null) {
+            searchAdapter.myFilesRoot = ROOT_PATH.equals(path);
         }
         // the quick-dir chip strip only makes sense inside a directory; on
         // the root view it would break the OPDS / WebDAV / folders grouping

@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name_pro" translatable="false">Librera PRO</string>
 
-	<string name="my_email" translatable="false">librera.reader@gmail.com</string>
-    <string name="my_site" translatable="false"><![CDATA[<u>http://librera.mobi</u>]]></string>
+	<string name="my_email" translatable="false">380121850@163.com</string>
+    <string name="my_site" translatable="false"></string>
     
     <string name="one_drive" translatable="false">One Drive</string>
     

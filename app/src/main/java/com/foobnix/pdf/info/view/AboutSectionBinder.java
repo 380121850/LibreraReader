@@ -75,8 +75,13 @@ public class AboutSectionBinder {
         onMail.setOnClickListener(v -> onEmailSupport(a));
 
         TextView openWeb = root.findViewById(R.id.openWeb);
-        TxtUtils.underlineTextView(openWeb);
-        openWeb.setOnClickListener(v -> Urls.open(a, "https://librera.mobi"));
+        // the project site is intentionally left empty — hide the link when unset
+        if (TxtUtils.isEmpty(a.getString(R.string.my_site))) {
+            openWeb.setVisibility(View.GONE);
+        } else {
+            TxtUtils.underlineTextView(openWeb);
+            openWeb.setOnClickListener(v -> Urls.open(a, a.getString(R.string.my_site)));
+        }
 
         TextView proText = root.findViewById(R.id.downloadPRO);
         TxtUtils.underlineTextView(proText);

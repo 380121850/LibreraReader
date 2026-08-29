@@ -519,6 +519,25 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
     public void onGridList() {
         onGridList(AppState.get().libraryMode, onGridlList, searchAdapter, authorsAdapter);
+        applyBookshelfBackground();
+    }
+
+    /**
+     * Moon+ style wooden bookshelf: covers/grid pages sit on a wood texture.
+     * List pages keep the plain background.
+     */
+    private void applyBookshelfBackground() {
+        if (searchAdapter == null || recyclerView == null) {
+            return;
+        }
+        boolean shelf = AppState.get().libraryMode == AppState.MODE_COVERS
+                || AppState.get().libraryMode == AppState.MODE_GRID;
+        searchAdapter.shelfMode = shelf;
+        if (shelf && getActivity() != null) {
+            recyclerView.setBackground(com.foobnix.ui2.WoodShelf.texture(getActivity()));
+        } else {
+            recyclerView.setBackground(null);
+        }
     }
 
     public void initAutocomplition() {

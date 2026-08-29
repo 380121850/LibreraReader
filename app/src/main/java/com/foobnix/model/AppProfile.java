@@ -60,6 +60,9 @@ public class AppProfile {
     public static final String APP_BOOKMARKS_BY_BOOK_JSON = "app-BookmarksByBook.json";
     public static final String APP_PROGRESS_JSON = "app-Progress.json";
     public static final String APP_BOOK_STATES_JSON = "app-BookStates.json";
+    public static final String APP_STATS_JSON = "app-Stats.json";
+    public static final String APP_AI_JSON = "app-AI.json";
+    public static final String APP_MISC_JSON = "app-Misc.json";
     public static final String APP_TAGS_JSON = "app-Tags.json";
     public static final String APP_TAGS_JSON2 = "app-Tags2.json";
 
@@ -87,6 +90,9 @@ public class AppProfile {
     public static File syncBookStates;
     public static File syncBookmarks;
     public static File syncBookmarksByBook;
+    public static File syncStats;
+    public static File syncAI;
+    public static File syncMisc;
 
     public static File syncFontFolder;
 
@@ -176,6 +182,9 @@ public class AppProfile {
         syncPlaylist = new File(SYNC_FOLDER_DEVICE_PROFILE, "playlists");
         syncBookmarks = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOKMARKS_JSON);
         syncBookmarksByBook = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOKMARKS_BY_BOOK_JSON);
+        syncStats = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_STATS_JSON);
+        syncAI = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_AI_JSON);
+        syncMisc = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_MISC_JSON);
         syncProgress = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_PROGRESS_JSON);
         syncBookStates = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOK_STATES_JSON);
         syncRecent = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_RECENT_JSON);
@@ -498,6 +507,9 @@ public class AppProfile {
         profile = "";
         AppState.get().isLoaded = false;
         syncBookmarksByBook = null;
+        syncStats = null;
+        syncAI = null;
+        syncMisc = null;
         // Fresh latch so awaitDBReady() waits for the next init()'s count
         // instead of falling through a latch that was already counted down.
         DB_READY = new CountDownLatch(1);

@@ -438,4 +438,121 @@ fdroid/pro 不崩:fdroid 不依赖 `libDepFree`(用 `libPro` 桩类,manifest 无
 3. 最近阅读长按 → 多选栏出现、仅选中项高亮 → 取消正常
 4. WebDAV：无服务器环境验证不崩溃、无错误日志；对话框与触发点代码未动
 
+## [2026-08-30] 木纹书架 + 我的文件条目编辑 + 图标文字加大
+
+### 一、书库页面：纹理实木书架（静读天下风格）
+
+| 文件 | 改动 |
+|------|------|
+| `WoodShelf.java`（新增） | 程序化木纹纹理，无图片资源依赖：固定随机种子的 512×512 tile——横向木板拼条、波浪木纹线、板缝深槽+受光边、每板轻微色差、偶发节疤；`BitmapShader(REPEAT)` 平铺，进程内缓存单例 |
+| `SearchFragment2.java` | 封面/网格模式（MODE_COVERS/MODE_GRID）RecyclerView 背景设为木纹；列表/紧凑模式恢复默认 |
+| `FileMetaAdapter.java` | 新增 `shelfMode` 标志（仅书库页）：封面/网格条目 CardView 透明（`setCardBackgroundColor(TRANSPARENT)`+卡片阴影归零），列表模式恢复原卡片色/阴影；每次绑定显式设置，回收复用安全；选中高亮不受影响 |
+
+### 二、我的文件：OPDS / WEBDAV 条目可编辑
+
+两个添加对话框本就内置编辑模式（传入已有条目 = 删旧行+存新行+持久化），我的文件页仅缺入口：
+
+| 文件 | 改动 |
+|------|------|
+| `BrowseFragment2.java` | `netListItem` 增加可选 `onEdit` 参数（行尾铅笔图标 `my_glyphicons_pen`，与删除图标并排）；OPDS 行编辑：构造 `Entry{appState=原始行, logo}` → `AddCatalogDialog`（预填 URL/名称/描述）；WebDAV 行编辑：`AddWebDavDialog.showDialog(a, rebuild, srv)` 直接预填 URL/名称/凭据/信任证书；工具行无编辑图标 |
+
+### 三、我的文件图标文字加大
+
+| 位置 | 现值 → 新值 |
+|------|------------|
+| 条目行图标（OPDS/WEBDAV/工具行） | 22dp → 30dp |
+| 条目行标题 | 15sp → 18sp |
+| 编辑/删除图标 | 26dp → 30dp |
+| 分区标题 / "+ 添加" | 16sp → 19sp / 15sp → 17sp |
+| 书库文件夹行（仅我的文件根页） | FileMetaAdapter 新增 `myFilesRoot` 标志（displayAnyPath 按 ROOT_PATH 置位/复位，进入子目录自动还原）：text1 16→20sp、text2 12→14sp、文件夹图标 36→44dp |
+
+### 四、验证（MI9 真机）
+
+1. 构建 `BUILD SUCCESSFUL`，安装启动无崩溃（logcat 零 AndroidRuntime 错误）
+2. 书库封面模式：木纹背景（板条/纹路/板缝清晰）+ 封面卡片透明直接"坐"在木架上；长按多选高亮在木纹上清晰可见且仅选中项着色（回归通过）
+3. 我的文件：OPDS（Project Gutenberg）与 WebDAV（TestSync）行均出现铅笔编辑图标；点击 TestSync 铅笔弹出对话框且 URL/名称已预填；书库文件夹行图标文字明显变大
+
+## [2026-08-30] 备份/同步状态信息补全 + 真实书架（木板随滚动）
+
+### 一、状态信息审计与补全
+
+**审计结论（本次修改前）**：
+
+| 信息 | 存储 | zip 备份 | WebDAV 同步 |
+|------|------|---------|------------|
+| 书签/笔记、进度、全局配置、OPDS/WebDAV 列表 | profile 下 app-*.json | ✓ | ✓（books/ + global/） |
+| 最近阅读 | app-Recent.json（真相源，DB 只是缓存） | 文件在 zip，但恢复后无主动 JSON→DB 同步 | ✗ 未同步 |
+| 我的珍藏 | app-Favorite.json | 同上 | ✗ 未同步 |
+| 已读/未读覆盖 | app-BookStates.json | ✓ | ✗ 未同步 |
+| 阅读统计（总时长/本月/每日/页数） | **AppSP "AppTemp"**（readTimeMs 等） | ✗ 丢失 | ✗ 丢失 |
+| AI 地址/模型/参数 | app-State.json | ✓ | ✓ |
+| **AI API Key** | **SP "ai"**（AndroidKeyStore 加密） | ✗ 丢失 | ✗ 丢失 |
+
+**补全实现**：
+
+| 文件 | 改动 |
+|------|------|
+| `AppProfile.java` | 新增 `APP_STATS_JSON`/`APP_AI_JSON` 常量与 `syncStats`/`syncAI` 文件字段（clear() 一并置空） |
+| `ProfileStateIO.java`（新增） | 状态文件读写/合并：统计镜像（AppSP read* ↔ app-Stats.json，数值取 max、月/日 bucket 逐 key max）；AI key 镜像（app-AI.json，非空者胜）；SimpleMeta 数组并集（app-Recent/Favorite 按 path 去重取 time 新者） |
+| `PrefDialogs.exportDialog` | 打包前生成 app-Stats.json + app-AI.json 到设备 profile 目录（zipFolder 自动携带） |
+| `PrefDialogs.importDialog` | 解压后：恢复统计/AI key，并**主动触发 JSON→DB**（getAllRecent/getAllFavoriteFiles/TagData.restoreTags），最近阅读、珍藏、统计、AI 配置重启后立即可见 |
+| `WebDavSyncer` | global 组扩展：`app-Recent.json`、`app-Favorite.json`（数组并集）、`app-BookStates.json`（按 key 取 t 新者）、`app-Stats.json`（数值/bucket max）、`app-AI.json`（非空 key 胜，双向回填） |
+
+安全说明：app-AI.json 内为明文 API Key（用户要求 AI 配置可完整恢复）；仅进用户自己的备份 zip / 私有 WebDAV 服务器。WebDAV 登录凭据因 AndroidKeyStore 设备绑定仍不导出。
+
+### 二、真实书架（木板随滚动）
+
+| 文件 | 改动 |
+|------|------|
+| `ShelfRowDecoration.java`（新增） | `RecyclerView.ItemDecoration`：每次布局按可见 child 位置分组画排木板（深木色 + 顶部高光 + 底部深线 + 木纹短线），坐标相对 child → **木板随上下滚动与书籍一起移动** |
+| `SearchFragment2.applyBookshelfBackground()` | 封面/网格模式：木纹背景 + 挂载 ShelfRowDecoration；列表模式：移除 decoration 并还原 |
+
+### 三、验证（MI9 真机）
+
+1. 构建 `BUILD SUCCESSFUL`，安装启动无崩溃
+2. 书库封面/网格模式：每排书下方一条木板（书本"立"在搁板上），滚动半屏后木板精确跟随各自排——真实书架效果达成
+3. 备份/同步链路为编译期改动 + 既有对话框流程，真机冒烟无异常；WebDAV 端到端待服务器环境验证
+
+## [2026-08-30] 备份配置项清单化补全 + 选中可见性 + 软件说明联系方式 + 书架回退
+
+### 一、备份/同步配置项完整清单（现状）
+
+| 类别 | 内容 | 载体 | zip 备份 | WebDAV 同步 |
+|------|------|------|---------|------------|
+| 书签/笔记 | 全部书签 + AI 笔记 | app-Bookmarks.json、app-BookmarksByBook.json | ✓ | ✓（books/按书） |
+| 阅读进度 | 每本书位置 + 视图状态 | app-Progress.json | ✓ | ✓（books/按书） |
+| 已读状态 | 已读/未读/在读覆盖 | app-BookStates.json | ✓ | ✓（global/） |
+| 最近阅读 | 最近列表 | app-Recent.json | ✓ | ✓（global/并集） |
+| 我的珍藏 | 收藏列表 | app-Favorite.json | ✓ | ✓（global/并集） |
+| 阅读统计 | 总时长/今日/页数/月表/日表 | app-Stats.json（镜像 AppSP） | ✓ | ✓（global/取大） |
+| AI 配置 | 协议/地址/模型/参数 | app-State.json | ✓ | ✓ |
+| AI API Key | 密钥 | app-AI.json | ✓ | ✓（非空者胜） |
+| 全局设置 | 主题/排序/过滤/webdav/opds 列表等全部 AppState 字段 | app-State.json | ✓ | ✓（global/较新胜） |
+| 排版样式 | BookCSS 全部字段 + 书库文件夹/SAF 路径 | app-CSS.json | ✓ | ✓（global/较新胜） |
+| 排除列表/标签/替换规则/词典/播放列表 | — | app-Exclude/Tags/Tags2/TextReplacement/WebDict/WebSearch.json | ✓ | 部分（随 profile json，global 未单列） |
+| **AppSP 全量**（最后一本书/阅读模式/同步开关等） | — | **app-Misc.json（新增）** | ✓ | ✓（global/按段并集） |
+| **OPDS 服务器登录凭据** | — | **app-Misc.json（新增）** | ✓ | ✓ |
+| **应用/书籍密码**（PasswordState） | — | **app-Misc.json（新增）** | ✓ | ✓ |
+| **阅读器按钮布局**（DraggingPopups） | — | **app-Misc.json（新增）** | ✓ | ✓ |
+| WebDAV 登录凭据 | SP "webdav"（AndroidKeyStore 设备绑定） | — | ✗ 设计上不导出（密文跨设备不可解） | ✗ |
+
+本轮改动：`app-Misc.json`（ProfileStateIO.exportMisc/importMisc：AppSP 全量快照 + OPDS 登录 + PasswordState + DragingPopups 四段，恢复时逐段写回）；zip 导出/导入与 WebDAV 同步（按段"本地非空优先"并集）均已接入。**仍不备份**：WebDAV 凭据（加密密文设备绑定，无恢复价值）、诊断/缓存类 SP（Errors、lastmodified2 等，非用户配置）。
+
+### 二、软件说明联系方式
+
+- `values/config.xml`：`my_email` → `380121850@163.com`；`my_site` → 留空
+- `AboutSectionBinder`：官网为空时隐藏"网页"链接（邮箱行保留，点击发信到新邮箱）
+
+### 三、多选选中状态可见性修复
+
+选中书籍的半透明底色被不透明封面盖住（尤其封面/网格模式）。`FileMetaAdapter` 绑定时为选中项增加**卡片前景叠加**（`setForeground`，API 23+）：半透明主题色蒙层 + 3dp 描边，绘制在封面之上，任何显示模式下选中一目了然；取消选中恢复无前景。真机验证：长按进入多选后选中书封面整体蒙层+描边清晰可见。
+
+### 四、书架回退
+
+按需求移除上一轮的"每排木板"（ShelfRowDecoration 已删除、SearchFragment2 不再挂载），书库恢复为木纹平铺背景 + 封面卡片透明的效果（修改前状态）。
+
+### 五、验证（MI9 真机）
+
+构建 `BUILD SUCCESSFUL`，安装启动无崩溃；多选选中封面叠加+描边清晰；书架为纯木纹背景。
+
 

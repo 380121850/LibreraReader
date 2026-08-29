@@ -41,7 +41,9 @@ import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
 import com.foobnix.model.MyPath;
+import com.foobnix.model.ProfileStateIO;
 import com.foobnix.model.SimpleMeta;
+import com.foobnix.model.TagData;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExportConverter;
@@ -277,6 +279,16 @@ public class PrefDialogs {
                                 // Merge the per-book bookmarks & notes file back into
                                 // app-Bookmarks.json (idempotent by time key).
                                 BookmarksData.get().importByBook();
+                                // Restore stats / AI key / misc config, then
+                                // eagerly sync the JSON sources into the DB so
+                                // recent / favorites / statistics are visible
+                                // right after the restart
+                                ProfileStateIO.importStats(activity);
+                                ProfileStateIO.importAi(activity);
+                                ProfileStateIO.importMisc(activity);
+                                AppData.get().getAllRecent(false);
+                                AppData.get().getAllFavoriteFiles(false);
+                                TagData.restoreTags();
                             } else {
                                 return false;
                             }
@@ -504,6 +516,13 @@ public class PrefDialogs {
                             // Refresh the per-book bookmarks & notes file so the
                             // backup zip carries them grouped by book.
                             BookmarksData.get().saveByBook();
+                            // Reading statistics + AI key live in SharedPreferences;
+                            // mirror them into profile files so the zip carries them.
+                            ProfileStateIO.exportStats();
+                            ProfileStateIO.exportAi(activity);
+                            // Remaining configurable state (AppSP, OPDS logins,
+                            // passwords, reader button layout)
+                            ProfileStateIO.exportMisc(activity);
                             ExportConverter.zipFolder(AppProfile.SYNC_FOLDER_ROOT, toFile);
                             return true;
                         } catch (ZipException e) {

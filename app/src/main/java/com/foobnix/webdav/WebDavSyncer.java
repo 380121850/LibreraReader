@@ -13,6 +13,7 @@ import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
 import com.foobnix.model.MyPath;
+import com.foobnix.model.ProfileStateIO;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExtUtils;
@@ -21,6 +22,7 @@ import com.thegrizzlylabs.sardineandroid.DavResource;
 import com.thegrizzlylabs.sardineandroid.Sardine;
 
 import org.ebookdroid.common.settings.books.SharedBooks;
+import org.librera.JSONArray;
 import org.librera.LinkedJSONObject;
 
 import java.io.File;
@@ -169,6 +171,20 @@ public class WebDavSyncer {
             syncGlobalFile(s, globalUrl, AppProfile.syncState, true);
             syncGlobalFile(s, globalUrl, AppProfile.syncCSS, false);
 
+            // ---- full reading state: mirror stats / AI key / misc config to
+            // files, then union-merge everything the sync did not cover before
+            ProfileStateIO.exportStats();
+            ProfileStateIO.exportAi(c);
+            ProfileStateIO.exportMisc(c);
+            syncMergedArrayFile(s, globalUrl, AppProfile.syncRecent);
+            syncMergedArrayFile(s, globalUrl, AppProfile.syncFavorite);
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncBookStates, WebDavSyncer::mergeStatesByTime);
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncStats, ProfileStateIO::mergeStats);
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncAI, (l, r) -> ProfileStateIO.mergeAi(c, r));
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncMisc, ProfileStateIO::mergeMisc);
+            ProfileStateIO.importAi(c);
+            ProfileStateIO.importMisc(c);
+
             // ---- local state: progress per book + bookmarks by creation time
             final boolean farther = "farther".equals(AppState.get().webdavSyncPolicy);
             final LinkedJSONObject localP = IO.readJsonObject(AppProfile.syncProgress);
@@ -313,6 +329,104 @@ public class WebDavSyncer {
     }
 
     // ------------------------------------------------------------------ global
+
+    /** Merge callback for the global state files. */
+    interface JsonMerger {
+        LinkedJSONObject merge(LinkedJSONObject local, LinkedJSONObject remote);
+    }
+
+    /** Union by key of the per-book read-state overrides; the newer "t" wins. */
+    static LinkedJSONObject mergeStatesByTime(LinkedJSONObject local, LinkedJSONObject remote) {
+        LinkedJSONObject out = new LinkedJSONObject(local.toString());
+        Iterator<String> keys = remote.keys();
+        while (keys.hasNext()) {
+            String k = keys.next();
+            LinkedJSONObject r = remote.optJSONObject(k);
+            if (r == null) {
+                continue;
+            }
+            LinkedJSONObject l = out.optJSONObject(k);
+            if (l == null || r.optLong("t", 0) > l.optLong("t", 0)) {
+                out.put(k, r);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Two-way union of a SimpleMeta array file (recent / favorite): entries
+     * keyed by path, the newer "time" wins. The merged array is written back
+     * locally and published so every device converges.
+     */
+    static void syncMergedArrayFile(Sardine s, String globalUrl, File local) {
+        try {
+            if (local == null) {
+                return;
+            }
+            final String url = globalUrl + "/" + local.getName();
+            JSONArray localArr = ProfileStateIO.readSimpleMetaArray(local);
+            String remoteText = fetchText(s, url);
+            if (remoteText == null) {
+                if (localArr.length() > 0) {
+                    s.put(url, localArr.toString().getBytes("UTF-8"));
+                }
+                return;
+            }
+            JSONArray remoteArr;
+            try {
+                remoteArr = new JSONArray(remoteText);
+            } catch (Exception badPayload) {
+                remoteArr = new JSONArray();
+            }
+            JSONArray merged = ProfileStateIO.mergeSimpleMetaArrays(localArr, remoteArr);
+            IO.writeObjSync(local, merged);
+            s.put(url, merged.toString().getBytes("UTF-8"));
+        } catch (Exception e) {
+            LOG.e(e, "WebDavSyncer array", local.getName());
+        }
+    }
+
+    /** Two-way merge of a JSON-object state file via the given merger. */
+    static void syncMergedObjectFile(Sardine s, String globalUrl, File local, JsonMerger merger) {
+        try {
+            if (local == null || !local.isFile()) {
+                return;
+            }
+            final String url = globalUrl + "/" + local.getName();
+            LinkedJSONObject localObj = IO.readJsonObject(local);
+            String remoteText = fetchText(s, url);
+            if (remoteText == null) {
+                if (localObj.length() > 0) {
+                    s.put(url, localObj.toString().getBytes("UTF-8"));
+                }
+                return;
+            }
+            LinkedJSONObject remoteObj;
+            try {
+                remoteObj = new LinkedJSONObject(remoteText);
+            } catch (Exception badPayload) {
+                remoteObj = new LinkedJSONObject();
+            }
+            if (remoteObj.length() == 0) {
+                if (localObj.length() > 0) {
+                    s.put(url, localObj.toString().getBytes("UTF-8"));
+                }
+                return;
+            }
+            LinkedJSONObject merged = merger.merge(localObj, remoteObj);
+            if (merged == null || merged.length() == 0) {
+                return;
+            }
+            if (!merged.toString().equals(localObj.toString())) {
+                IO.writeObjSync(local, merged);
+            }
+            if (!merged.toString().equals(remoteObj.toString())) {
+                s.put(url, merged.toString().getBytes("UTF-8"));
+            }
+        } catch (Exception e) {
+            LOG.e(e, "WebDavSyncer object", local.getName());
+        }
+    }
 
     /**
      * Two-way sync of one global config file: identical content = no-op,
