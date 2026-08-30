@@ -1314,13 +1314,15 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
     }
 
-    /** Identity of the shown book list: changes when mode/filter/sort/data change. */
+    /** Identity of the shown book list: changes when mode/filter/sort change.
+     *  Deliberately NOT keyed on the data hash: reading a book bumps it
+     *  (last-read time / read state), and the library must still restore the
+     *  browse position when the user returns from the reader. */
     private String buildLibScrollKey() {
         String txt = searchEditText == null ? "" : searchEditText.getText()
                                                                  .toString()
                                                                  .trim();
-        return AppState.get().libraryMode + "|" + txt + "|" + AppState.get().sortBy + "|" + AppState.get().isSortAsc
-                + "|" + TempHolder.get().listHash;
+        return AppState.get().libraryMode + "|" + txt + "|" + AppState.get().sortBy + "|" + AppState.get().isSortAsc;
     }
 
     /** Persists where the user browsed to, so the library can reopen there. */
