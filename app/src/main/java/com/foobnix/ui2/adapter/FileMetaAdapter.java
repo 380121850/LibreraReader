@@ -1078,7 +1078,22 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
                 // books never opened (0%) show no badge, like Moon+ Reader
                 holder.shelfBadge.setVisibility(shelfPct > 0 ? View.VISIBLE : View.GONE);
                 holder.idPercentText.setText("" + shelfPct + "%");
-                holder.idPercentText.setTextColor(Color.WHITE);
+                // finished books stand out in green on the badge
+                holder.idPercentText.setTextColor(shelfPct >= 100 ? Color.parseColor("#4CAF50") : Color.WHITE);
+            }
+            if (holder.shelfStar != null) {
+                holder.shelfStar.setVisibility(View.VISIBLE);
+                holder.shelfStar.setImageResource(fileMeta.getIsStar() != null && fileMeta.getIsStar()
+                        ? R.drawable.glyphicons_49_star : R.drawable.glyphicons_50_star_empty);
+                holder.shelfStar.setOnClickListener(new OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        if (onStarClickListener != null) {
+                            onStarClickListener.onResultRecive(fileMeta, FileMetaAdapter.this);
+                        }
+                    }
+                });
             }
             if (holder.shelfMenu != null) {
                 holder.shelfMenu.setOnClickListener(new OnClickListener() {
@@ -1178,6 +1193,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         public View gridProgressLayout, gridProgressFill, gridProgressRest;
         // Moon+ bookshelf extras (present only in browse_item_shelf.xml)
         public View shelfBadge, shelfMenu;
+        public ImageView shelfStar;
         // XML ripple background captured on first bind, so the recycled row
         // can always be restored to it (selection accent must not leak)
         public android.graphics.drawable.Drawable defaultBackground;
@@ -1218,6 +1234,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
             gridProgressRest = view.findViewById(R.id.gridProgressRest);
             shelfBadge = view.findViewById(R.id.shelfBadge);
             shelfMenu = view.findViewById(R.id.shelfMenu);
+            shelfStar = (ImageView) view.findViewById(R.id.shelfStar);
 
             menu = (ImageView) view.findViewById(R.id.itemMenu);
             remove = view.findViewById(R.id.delete);

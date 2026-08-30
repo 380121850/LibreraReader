@@ -76,6 +76,12 @@
         <item name="android:padding">4dip</item>
     </style>
 
+    <!-- reader panel icon rows: wider inter-icon gap (3dip → 8dip) -->
+    <style name="buttonWhiteSpaced" parent="buttonWhite">
+        <item name="android:layout_marginLeft">4dip</item>
+        <item name="android:layout_marginRight">4dip</item>
+    </style>
+
     <style name="textLink">
         <item name="android:padding">5dip</item>
         <item name="android:minEms">4</item>

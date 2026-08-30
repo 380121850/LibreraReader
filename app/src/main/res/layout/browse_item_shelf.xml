@@ -62,6 +62,18 @@
             </FrameLayout>
 
             <ImageView
+                android:id="@+id/shelfStar"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_margin="3dip"
+                android:background="@drawable/shelf_badge_bg"
+                android:contentDescription="@string/add_to_favorites"
+                android:padding="5dip"
+                android:src="@drawable/glyphicons_50_star_empty"
+                android:tint="@color/white" />
+
+            <ImageView
                 android:id="@+id/shelfMenu"
                 android:layout_width="26dip"
                 android:layout_height="26dip"

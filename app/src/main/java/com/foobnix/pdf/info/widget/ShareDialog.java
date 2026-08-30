@@ -298,10 +298,8 @@ public class ShareDialog {
         items.add(iconText(a, "⎘", R.string.open_with));
         items.add(iconText(a, "➥", R.string.send_file));
 
-        final boolean isExternalOrCloud = ExtUtils.isExteralSD(file.getPath()) || Clouds.isCloud(file.getPath());
         boolean canDelete1 =
                 ExtUtils.isExteralSD(file.getPath()) || Clouds.isCloud(file.getPath()) ? true : file.canWrite();
-        final boolean canCopy = !ExtUtils.isExteralSD(file.getPath()) && !Clouds.isCloud(file.getPath());
         final boolean isShowInfo = !ExtUtils.isExteralSD(file.getPath());
 
         final boolean isRemovedFromLibrary = AppData.get()
@@ -319,19 +317,11 @@ public class ShareDialog {
                 //items.add(a.getString(R.string.delete));
                 items.add(iconText(a, "⊗", R.string.delete));
             }
-            if (canCopy) {
-                //items.add(a.getString(R.string.copy));
-                items.add(iconText(a, "⧉", R.string.copy));
-            }
             if (!isRemovedFromLibrary) {
                 items.add(iconText(a,"-",R.string.remove_from_library));
             } else {
                 items.add(iconText(a,"+",R.string.add_to_library));
             }
-        }
-
-        if (!isExternalOrCloud) {
-            items.add(iconText(a, "#", R.string.add_tags));
         }
 
         if (AppsConfig.isCloudsEnable) {
@@ -343,24 +333,11 @@ public class ShareDialog {
             items.add(iconText(a, "\uD834\uDD1E", R.string.add_to_playlist));
         }
 
-        final boolean isSyncronized = AppsConfig.IS_FDROID || Clouds.isLibreraSyncFile(file);
-        if (!isSyncronized) {
-            //items.add(a.getString(R.string.sync_book));
-            items.add(iconText(a, "↻", R.string.sync_book));
-        }
-
         if (isMainTabs) {
-            //items.add(a.getString(R.string.delete_reading_progress));
-            items.add(iconText(a, "↶", R.string.delete_reading_progress));
-
             // explicit reading-status setters (Moon+ style)
             items.add(iconText(a, "✓", R.string.moon_mark_read));
             items.add(iconText(a, "◌", R.string.moon_mark_unread));
             items.add(iconText(a, "◐", R.string.moon_mark_reading));
-            if (getCurrentSearchFragment(a) != null) {
-                items.add(iconText(a, "☑", R.string.moon_multi_select));
-            }
-
         }
 
         if (isShowInfo) {
@@ -455,12 +432,6 @@ public class ShareDialog {
                     ExtUtils.sendFileTo(a, file);
                 } else if (isMainTabs && canDelete && which == i++) {
                     FileInformationDialog.dialogDelete(a, file, onDeleteAction);
-                } else if (isMainTabs && canCopy && which == i++) {
-                    TempHolder.get().copyFromPath = file.getPath();
-                    Toast.makeText(a, R.string.copy, Toast.LENGTH_SHORT)
-                         .show();
-                    EventBus.getDefault()
-                            .post(new UpdateAllFragments());
                 } else if (isMainTabs && which == i++) {
                     if (isRemovedFromLibrary) {
 
@@ -496,68 +467,10 @@ public class ShareDialog {
 
                     EventBus.getDefault()
                             .post(new UpdateAllFragments());
-                } else if (!isExternalOrCloud && which == i++) {
-                    Dialogs.showTagsDialog(a, file, false, new Runnable() {
-                        @Override public void run() {
-                            Tags2.updateTagsDB();
-
-                        }
-                    });
                 } else if (AppsConfig.isCloudsEnable && which == i++) {
                     showAddToCloudDialog(a, file);
                 } else if (!isPlaylist && which == i++) {
                     DialogsPlaylist.showPlaylistsDialog(a, null, file);
-                } else if (!isSyncronized && which == i++) {
-                    final File to = new File(AppProfile.SYNC_FOLDER_BOOKS, file.getName());
-                    boolean result = IO.copyFile(file, to);
-                    if (result && AppSP.get().isEnableSync) {
-
-                        AppDB.get()
-                             .setIsSearchBook(file.getPath(), false);
-                        FileMetaCore.createMetaIfNeed(to.getPath(), true);
-
-                        //String tags = TagData.getTags(file.getPath());
-                        //TagData.saveTags(to.getPath(), tags);
-
-                        boolean isRecent = AppData.contains(AppData.get()
-                                                                   .getAllRecent(false), file.getPath());
-                        LOG.d("isRecent", isRecent, file.getPath());
-
-                        if (isRecent) {
-                            AppData.get()
-                                   .removeRecent(new FileMeta(file.getPath()));
-
-                            final FileMeta load = AppDB.get()
-                                                       .load(file.getPath());
-                            if (load != null && load.getIsRecentTime() != null) {
-                                AppData.get()
-                                       .addRecent(new SimpleMeta(to.getPath(), load.getIsRecentTime()));
-                            } else {
-                                AppData.get()
-                                       .addRecent(new SimpleMeta(to.getPath()));
-                            }
-                        }
-
-                        final List<AppBookmark> bookmarks = BookmarksData.get()
-                                                                         .getBookmarksByBook(file.getPath());
-                        for (AppBookmark appBookmark : bookmarks) {
-                            appBookmark.path = MyPath.toRelative(to.getPath());
-                            BookmarksData.get()
-                                         .add(appBookmark);
-                        }
-
-                        GFile.runSyncService(a);
-                    }
-
-                    TempHolder.listHash++;
-                    EventBus.getDefault()
-                            .post(new UpdateAllFragments());
-
-                } else if (isMainTabs && which == i++) {
-                    SharedBooks.deleteProgress(file.getPath());
-                    EventBus.getDefault()
-                            .post(new UpdateAllFragments());
-
                 } else if (isMainTabs && which == i++) {
                     BookStateStore.markRead(file.getPath());
                     Toast.makeText(a, R.string.moon_state_applied, Toast.LENGTH_SHORT).show();
@@ -573,10 +486,6 @@ public class ShareDialog {
                     Toast.makeText(a, R.string.moon_state_applied, Toast.LENGTH_SHORT).show();
                     EventBus.getDefault()
                             .post(new UpdateAllFragments());
-                } else if (isMainTabs && getCurrentSearchFragment(a) != null && which == i++) {
-                    SearchFragment2 shelf = getCurrentSearchFragment(a);
-                    shelf.startSelection(file.getPath());
-
                 } else if (isShowInfo && which == i++) {
                     FileInformationDialog.showFileInfoDialog(a, file, onDeleteAction);
                 }
@@ -602,20 +511,6 @@ public class ShareDialog {
 //        menu.getMenu(R.drawable.glyphicons_2_book_open, R.string.open_with, () -> ExtUtils.openPDFInTextReflow(a, file, page + 1, dc));
 //
 //        menu.show();
-    }
-
-    /**
-     * The library shelf instance currently shown in MainTabs2, or null when
-     * the user is on any other tab (multi-select only targets the shelf).
-     */
-    private static SearchFragment2 getCurrentSearchFragment(Activity a) {
-        if (a instanceof MainTabs2) {
-            UIFragment current = ((MainTabs2) a).getCurrentFragment();
-            if (current instanceof SearchFragment2) {
-                return (SearchFragment2) current;
-            }
-        }
-        return null;
     }
 
     public static void showAddToCloudDialog(final Activity a, final File file) {

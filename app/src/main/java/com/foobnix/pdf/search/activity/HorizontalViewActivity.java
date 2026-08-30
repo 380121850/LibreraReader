@@ -26,6 +26,7 @@ import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.Window;
 import android.view.WindowManager;
@@ -483,6 +484,11 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         seekBar.getProgressDrawable().mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
         seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+
+        // the shared reader footer is simplified for the vertical-paging panel;
+        // this scroll mode still uses the play/TTS/recent/goto-page controls,
+        // so bring them back before wiring their listeners
+        restoreFooterControls();
 
         onPageFlip1 = findViewById(R.id.autoScroll);
         onPageFlip1.setOnClickListener(new OnClickListener() {
@@ -1466,6 +1472,33 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         Android6.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
+    }
+
+    // the shared reader footer is simplified for the vertical-paging panel;
+    // this scroll mode still uses the play/TTS/recent/goto-page controls,
+    // so bring them back before wiring their listeners
+    private void restoreFooterControls() {
+        ViewGroup iconRow = findViewById(R.id.footerIconRow);
+        if (iconRow == null) {
+            return;
+        }
+        Views.visible(findViewById(R.id.onRecent), true);
+        Views.visible(findViewById(R.id.thumbnail), true);
+        int insertAt = iconRow.indexOfChild(findViewById(R.id.lockUnlock));
+        if (insertAt < 0) {
+            insertAt = iconRow.getChildCount();
+        }
+        int[] fromHiddenRow = { R.id.autoScroll, R.id.textToSpeach };
+        for (int id : fromHiddenRow) {
+            View v = findViewById(id);
+            ViewGroup parent = v == null ? null : (ViewGroup) v.getParent();
+            if (v == null || parent == iconRow) {
+                continue;
+            }
+            parent.removeView(v);
+            v.setVisibility(View.VISIBLE);
+            iconRow.addView(v, Math.min(insertAt++, iconRow.getChildCount()));
+        }
     }
 
     public void updateLockMode() {

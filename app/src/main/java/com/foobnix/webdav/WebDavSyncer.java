@@ -174,6 +174,9 @@ public class WebDavSyncer {
             mkDirs(s, root, globalUrl, booksUrl);
 
             // ---- global config: two-way, newer file wins (volatile fields excluded)
+            // capture the locally-configured network sources FIRST: a newer
+            // remote app-State.json would otherwise overwrite them below
+            ProfileStateIO.exportNetworkSources();
             syncGlobalFile(s, globalUrl, AppProfile.syncState, true);
             syncGlobalFile(s, globalUrl, AppProfile.syncCSS, false);
 
@@ -199,6 +202,17 @@ public class WebDavSyncer {
             // running app; AppState.save() at the end would otherwise write
             // the stale in-memory state back over the synced file
             ProfileStateIO.importAppState();
+
+            // ---- network sources (OPDS catalogs, WebDAV servers, 书库文件夹):
+            // dedicated union-merged file, applied AFTER the global files so a
+            // newer-wins app-State.json / app-CSS.json can never drop entries;
+            // the merged state is persisted and re-published immediately so
+            // every device converges within this single sync
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncNetworkSources, ProfileStateIO::mergeNetworkSources);
+            ProfileStateIO.importNetworkSources();
+            AppProfile.save(c);
+            syncGlobalFile(s, globalUrl, AppProfile.syncState, true);
+            syncGlobalFile(s, globalUrl, AppProfile.syncCSS, false);
 
             // ---- local state: progress per book + bookmarks by creation time
             final boolean farther = "farther".equals(AppState.get().webdavSyncPolicy);

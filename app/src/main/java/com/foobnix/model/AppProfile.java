@@ -63,6 +63,7 @@ public class AppProfile {
     public static final String APP_STATS_JSON = "app-Stats.json";
     public static final String APP_AI_JSON = "app-AI.json";
     public static final String APP_MISC_JSON = "app-Misc.json";
+    public static final String APP_NETWORK_SOURCES_JSON = "app-NetworkSources.json";
     public static final String APP_TAGS_JSON = "app-Tags.json";
     public static final String APP_TAGS_JSON2 = "app-Tags2.json";
 
@@ -93,6 +94,7 @@ public class AppProfile {
     public static File syncStats;
     public static File syncAI;
     public static File syncMisc;
+    public static File syncNetworkSources;
 
     public static File syncFontFolder;
 
@@ -185,6 +187,7 @@ public class AppProfile {
         syncStats = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_STATS_JSON);
         syncAI = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_AI_JSON);
         syncMisc = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_MISC_JSON);
+        syncNetworkSources = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_NETWORK_SOURCES_JSON);
         syncProgress = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_PROGRESS_JSON);
         syncBookStates = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOK_STATES_JSON);
         syncRecent = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_RECENT_JSON);

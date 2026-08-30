@@ -82,6 +82,7 @@ import com.foobnix.pdf.info.view.MyProgressBar;
 import com.foobnix.pdf.info.wrapper.UITab;
 import com.foobnix.pdf.info.widget.ShareDialog;
 import com.foobnix.pdf.info.widget.AddCatalogDialog;
+import com.foobnix.pdf.search.activity.msg.UpdateAllFragments;
 import com.foobnix.pdf.info.widget.ChooserDialogFragment;
 import com.foobnix.webdav.AddWebDavDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
@@ -99,6 +100,7 @@ import com.foobnix.ui2.fast.FastScrollRecyclerView;
 import org.ebookdroid.BookType;
 import org.ebookdroid.droids.FolderContext;
 import org.ebookdroid.droids.MdContext;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1177,6 +1179,9 @@ import java.util.Map;
         final Runnable rebuild = new Runnable() {
             @Override public void run() {
                 buildNetSections();
+                // the home screen mirrors these entries (filesRow / netRow);
+                // bump the global hash so the dashboard reloads on next select
+                EventBus.getDefault().post(new UpdateAllFragments());
             }
         };
 
@@ -1408,7 +1413,7 @@ import java.util.Map;
         icon.setImageResource(iconRes);
         icon.setColorFilter(TintUtil.getColorInDayNighth());
         icon.setPadding(0, 0, Dips.dpToPx(10), 0);
-        row.addView(icon, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
+        row.addView(icon, new LinearLayout.LayoutParams(Dips.dpToPx(40), Dips.dpToPx(40)));
 
         TextView t = new TextView(getActivity());
         t.setText(text);

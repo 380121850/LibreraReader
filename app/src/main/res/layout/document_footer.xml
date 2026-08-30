@@ -63,13 +63,14 @@
             android:padding="5dip"
             android:visibility="gone"></androidx.recyclerview.widget.RecyclerView>
         <LinearLayout
+            android:id="@+id/footerIconRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:gravity="center"
+            android:gravity="end"
             android:paddingLeft="2dip"
             android:paddingTop="2dip"
-            android:paddingRight="2dip"
+            android:paddingRight="6dip"
             android:visibility="visible">
 
             <ImageView

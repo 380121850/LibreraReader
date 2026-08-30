@@ -247,16 +247,17 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="right"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:paddingTop="2dip"
                 android:paddingLeft="2dip"
-                android:paddingRight="2dip"
+                android:paddingRight="6dip"
                 android:paddingBottom="6dip">
 
                 <ImageView
                     android:id="@+id/moveCenter"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -265,7 +266,7 @@
 
                 <ImageView
                     android:id="@+id/onMove"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -275,7 +276,7 @@
 
                 <com.foobnix.pdf.info.view.UnderlineImageView
                     android:id="@+id/onBC"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -285,7 +286,7 @@
 
                 <com.foobnix.pdf.info.view.UnderlineImageView
                     android:id="@+id/onCrop"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -295,7 +296,7 @@
 
                 <ImageView
                     android:id="@+id/bookNight"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -304,7 +305,7 @@
 
                 <ImageView
                     android:id="@+id/onFullScreen"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -313,7 +314,7 @@
 
                 <ImageView
                     android:id="@+id/onTextReplacement"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -322,7 +323,7 @@
 
                 <ImageView
                     android:id="@+id/bookPref"
-                    style="@style/buttonWhite"
+                    style="@style/buttonWhiteSpaced"
                     android:layout_width="@dimen/wh_button"
                     android:layout_height="@dimen/wh_button"
                     android:layout_weight="0"
@@ -355,7 +356,7 @@
 
         <ImageView
             android:id="@+id/ttsActive1"
-            style="@style/buttonWhite"
+            style="@style/buttonWhiteSpaced"
             android:layout_width="@dimen/wh_button"
             android:layout_height="@dimen/wh_button"
             android:layout_alignParentLeft="true"

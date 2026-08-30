@@ -14,7 +14,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_alignParentRight="true"
             android:layout_marginLeft="@dimen/wh_button_big"
             android:layout_marginRight="@dimen/wh_button_big"
             android:gravity="center"
@@ -27,7 +27,7 @@
 
             <ImageView
                 android:id="@+id/goToPage1"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -36,7 +36,7 @@
 
             <ImageView
                 android:id="@+id/moveLeft"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -45,7 +45,7 @@
 
             <ImageView
                 android:id="@+id/moveCenter"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -54,7 +54,7 @@
 
             <ImageView
                 android:id="@+id/moveRight"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -63,7 +63,7 @@
 
             <ImageView
                 android:id="@+id/zoomMinus"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -72,7 +72,7 @@
 
             <ImageView
                 android:id="@+id/zoomPlus"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -81,7 +81,7 @@
 
             <com.foobnix.pdf.info.view.UnderlineImageView
                 android:id="@+id/onBC"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -90,7 +90,7 @@
 
             <ImageView
                 android:id="@+id/brightness"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -99,7 +99,7 @@
 
             <com.foobnix.pdf.info.view.UnderlineImageView
                 android:id="@+id/crop"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -107,7 +107,7 @@
 
             <com.foobnix.pdf.info.view.UnderlineImageView
                 android:id="@+id/cut"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -117,7 +117,7 @@
 
             <ImageView
                 android:id="@+id/fullscreen"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -126,7 +126,7 @@
 
             <ImageView
                 android:id="@+id/onTextReplacement"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
@@ -135,7 +135,7 @@
 
             <ImageView
                 android:id="@+id/prefTop"
-                style="@style/buttonWhite"
+                style="@style/buttonWhiteSpaced"
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"

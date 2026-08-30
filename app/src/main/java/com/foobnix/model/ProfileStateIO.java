@@ -4,8 +4,10 @@ import android.content.Context;
 
 import com.foobnix.ai.AiCredentials;
 import com.foobnix.android.utils.IO;
+import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.pdf.info.model.BookCSS;
 
 import org.librera.JSONArray;
 import org.librera.LinkedJSONObject;
@@ -13,7 +15,9 @@ import org.librera.LinkedJSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Read/write/merge helpers for the state files that complete the backup and
@@ -376,6 +380,138 @@ public class ProfileStateIO {
         } catch (Exception e) {
             LOG.e(e);
         }
+    }
+
+    // ------------------------------------------------- network sources (OPDS / WebDAV / 书库文件夹)
+
+    private static final String SEC_NET_OPDS = "opds";
+    private static final String SEC_NET_WEBDAV = "webdav";
+    private static final String SEC_NET_FOLDERS = "folders";
+
+    /**
+     * Snapshot the user-configured network sources into app-NetworkSources.json:
+     * the raw OPDS catalog entries, the raw WebDAV server entries and the
+     * 书库文件夹 paths. Passwords are not included here — OPDS logins ride
+     * with app-Misc.json and WebDAV passwords stay device-bound.
+     */
+    public static void exportNetworkSources() {
+        try {
+            if (AppProfile.syncNetworkSources == null) {
+                return;
+            }
+            LinkedJSONObject root = new LinkedJSONObject();
+            root.put(SEC_NET_OPDS, rawLines(AppState.get().allOPDSLinks));
+            root.put(SEC_NET_WEBDAV, rawLines(AppState.get().allWebDavLinks));
+            JSONArray folders = new JSONArray();
+            for (String path : JsonDB.get(BookCSS.get().searchPathsJson)) {
+                if (TxtUtils.isNotEmpty(path)) {
+                    folders.put(path);
+                }
+            }
+            root.put(SEC_NET_FOLDERS, folders);
+            IO.writeObjSync(AppProfile.syncNetworkSources, root);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Non-empty ';'-separated segments of one app-state link string. */
+    private static JSONArray rawLines(String links) {
+        JSONArray out = new JSONArray();
+        for (String line : (links == null ? "" : links).split(";")) {
+            if (TxtUtils.isNotEmpty(line)) {
+                out.put(line);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Union merge of two network-source snapshots: entries are keyed by the
+     * URL / path before the first comma, local order comes first and unknown
+     * remote entries are appended.
+     */
+    public static LinkedJSONObject mergeNetworkSources(LinkedJSONObject local, LinkedJSONObject remote) {
+        LinkedJSONObject out = new LinkedJSONObject();
+        out.put(SEC_NET_OPDS, unionLines(local, remote, SEC_NET_OPDS));
+        out.put(SEC_NET_WEBDAV, unionLines(local, remote, SEC_NET_WEBDAV));
+        out.put(SEC_NET_FOLDERS, unionLines(local, remote, SEC_NET_FOLDERS));
+        return out;
+    }
+
+    private static JSONArray unionLines(LinkedJSONObject local, LinkedJSONObject remote, String section) {
+        JSONArray out = new JSONArray();
+        Set<String> seen = new HashSet<String>();
+        JSONArray[] sources = { local.optJSONArray(section), remote.optJSONArray(section) };
+        for (JSONArray arr : sources) {
+            if (arr == null) {
+                continue;
+            }
+            for (int i = 0; i < arr.length(); i++) {
+                String line = arr.optString(i);
+                if (TxtUtils.isEmpty(line) || !seen.add(entryKey(line))) {
+                    continue;
+                }
+                out.put(line);
+            }
+        }
+        return out;
+    }
+
+    /** Union key of a raw entry line: the URL / path before the first comma. */
+    private static String entryKey(String line) {
+        int comma = line.indexOf(',');
+        return comma < 0 ? line : line.substring(0, comma);
+    }
+
+    /**
+     * Apply the merged network-source snapshot back into the live AppState /
+     * BookCSS (in memory); the caller persists them afterwards.
+     */
+    public static void importNetworkSources() {
+        try {
+            if (AppProfile.syncNetworkSources == null || !AppProfile.syncNetworkSources.isFile()) {
+                return;
+            }
+            LinkedJSONObject root = IO.readJsonObject(AppProfile.syncNetworkSources);
+            if (root.length() == 0) {
+                return;
+            }
+            String mergedOpds = joinLines(root.optJSONArray(SEC_NET_OPDS));
+            if (TxtUtils.isNotEmpty(mergedOpds)) {
+                AppState.get().allOPDSLinks = mergedOpds;
+            }
+            String mergedWebDav = joinLines(root.optJSONArray(SEC_NET_WEBDAV));
+            if (TxtUtils.isNotEmpty(mergedWebDav)) {
+                AppState.get().allWebDavLinks = mergedWebDav;
+            }
+            JSONArray folders = root.optJSONArray(SEC_NET_FOLDERS);
+            if (folders != null) {
+                for (int i = 0; i < folders.length(); i++) {
+                    String path = folders.optString(i);
+                    if (TxtUtils.isNotEmpty(path) && !JsonDB.contains(BookCSS.get().searchPathsJson, path)) {
+                        BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, path);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Rebuild one ';'-joined app-state string from a merged snapshot array. */
+    private static String joinLines(JSONArray arr) {
+        if (arr == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < arr.length(); i++) {
+            String line = arr.optString(i);
+            if (TxtUtils.isNotEmpty(line)) {
+                sb.append(line).append(";");
+            }
+        }
+        return sb.toString();
     }
 
     // ------------------------------------------------------------------ simple-meta arrays (recent / favorite)

@@ -886,3 +886,35 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
   - 图标行移除"书架"（onRecent）、"前往页面"（thumbnail）、"页序"（nextTypeBootom），隐藏后 lockUnlock（锁）与 bookMenu（⋮）自第四行上移至图标行右端。
   - 第四行（播放 autoScroll、TTS textToSpeach、"上下翻页" modeName）整行隐藏；autoScroll/textToSpeach 等 view 保留（HorizontalViewActivity 横屏模式仍绑定这些 id，避免 NPE）。
 - 验证：release 覆盖安装 MI9，横幅 32sp 单行居中；长按选中文字 → 弹窗"笔记"项 → 全屏编辑器预填所选文字 + 时间页码首行 → 保存 Toast 成功；单击面板仅剩图标行（搜索/笔记/书签/目录/锁/⋮）+ 进度条行。
+
+## [0.9.0] 2026-08-30（第二轮）
+### 检视修复（面板精简的遗留问题）
+- 修复横向滚动模式（左右翻页/书本模式）面板功能连带隐藏的回归：document_footer.xml 图标行新增 id=footerIconRow；HorizontalViewActivity 初始化时调用 restoreFooterControls()，把 autoScroll（自动翻页）与 textToSpeach（TTS）从已隐藏行 reparent 到图标行并恢复显示，同时恢复 onRecent/thumbnail 显示；竖屏翻页模式不受影响，保持精简两行。
+- DialogsPlaylist.dispalyPlaylist 精简为无操作（入参判空后直接返回）：播放列表条随面板精简退役，清除 updateVisible/监听器/缩略图适配器等死逻辑，方法保留仅为调用方兼容。
+- DragingPopup.initState 位置缓存边界校正：缓存记录宽高 <50dp 或超出屏幕范围时回退到默认居中放置，避免浮动弹窗被旧缓存摆到屏幕外/零尺寸而"长按后看不到弹窗"。
+- 验证：release 覆盖安装 MI9；竖屏面板仍为图标行+进度条行；切到左右翻页模式，图标行恢复为 搜索/最近/前往页面/书签/目录/单双页/播放/TTS/锁/⋮ 且自动翻页对话框、长按选字弹窗（含"笔记"项）均正常；logcat 无崩溃；偏好"单击"模式已恢复为上下翻页。
+
+## [0.9.0] 2026-08-30（第三轮）
+### 阅读面板：图标行间距与对齐
+- 单击面板底部图标行与顶部工具栏图标行加大间距（3dip→8dip，新增 buttonWhiteSpaced 样式）并统一**靠右对齐**：
+  - 竖屏（上下翻页）：顶部图标行 alignParentRight；底部图标行 gravity=end，代码中（VerticalViewActivity.spaceFooterIcons）加宽间距——横屏底部 10 键已占满行宽，保持紧凑防裁剪。
+  - 横屏（左右翻页）：顶部图标行 layout_gravity=right；底部仅右对齐。
+- 验证：PDF 竖屏/横屏面板均右对齐、间距明显加大，无图标裁剪。
+
+### 书库（书架模式）
+- 阅读进度 100% 的进度角标文字改绿色（#4CAF50），未读完仍白色。
+- 封面下边沿新增**收藏键**（shelfStar：进度角标与 ⋮ 之间，半透明圆底）：实心星=已收藏，点击即切换（复用 onStarClickListener，与网格模式星标同一逻辑）。
+- 书籍菜单（⋮）移除五项：复制、添加标签、同步书籍、重置进度、多选模式（ShareDialog 条目与 handler 分支成对删除；书架长按进多选手势不受影响）。
+- 验证：书架 100% 绿色角标 ✓；点星键变实心 ✓；菜单仅剩 文本重排/打开方式/发送文件/删除/移出书库/加入播放列表/标记已读/未读/在读/文件信息 ✓。
+
+### 首页 / 我的文件
+- 首页「我的文件」行改为显示真实配置：逐项列出「我的文件」里添加的 WebDAV 服务器（点击直达该服务器网络页）与书库文件夹（点击直达文件夹页），末尾保留"我的文件"总入口；**移除 Dropbox / GDrive 占位**；行支持横向滚动；添加/删除后即时刷新（BrowseFragment2 rebuild 追发 UpdateAllFragments，DashboardFragment2 每次刷新重建该行）。
+- 首页「网上书库」行：点击某个 OPDS 书库直接打开该书库（openNetworkPage），不再只切 tab。
+- 「我的文件」页 OPDS / WebDAV 条目图标加大（30dp→40dp）。
+- 验证：首页显示 LeeStation（WebDAV）、DSfile（书库文件夹）、我的文件入口，Dropbox/GDrive 消失 ✓；点条目直达网络页 ✓；我的文件页图标明显变大 ✓。
+
+### WebDAV 同步：网络配置纳入备份/恢复
+- 新增 app-NetworkSources.json（AppProfile.syncNetworkSources + ProfileStateIO export/import/merge）：备份 **OPDS 书库条目、WebDAV 服务器列表、书库文件夹路径** 三段，按 URL/路径取并集（本地顺序优先，远端新条目追加）。
+- WebDavSyncer.doSync：全局 app-State/app-CSS 同步**前**先导出（防 newer-wins 覆盖本地新配置），同步**后**合并回写并再次发布全局文件，双端一次同步即收敛。
+- 说明：OPDS 登录已随 app-Misc.json 同步；WebDAV 密码因 AndroidKeyStore 设备绑定不参与跨设备同步（恢复后需重输）。
+- 验证：MI9 后台同步后 app-NetworkSources.json 生成，内容含 Gutenberg OPDS、LeeStation、/sdcard/DSfile 三段；logcat 无同步异常。

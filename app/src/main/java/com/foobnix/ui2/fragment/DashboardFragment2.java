@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.Dips;
+import com.foobnix.android.utils.JsonDB;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
 import com.foobnix.model.AppBookmark;
@@ -35,14 +36,16 @@ import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.IMG;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
-import com.foobnix.pdf.search.activity.msg.OpenDirMessage;
+import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.wrapper.UITab;
 import com.foobnix.pdf.info.view.MonthlyBarsView;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.AppRecycleAdapter;
 import com.foobnix.ui2.MainTabs2;
+import com.foobnix.webdav.WebDavServer;
+import com.foobnix.webdav.WebDavStore;
 
-import org.greenrobot.eventbus.EventBus;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -83,6 +86,10 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
     CoverAdapter favAdapter;
     SourceAdapter netAdapter;
     BookmarkAdapter bookmarkAdapter;
+
+    // kept between layout passes: the 我的文件 quick sources are rebuilt on
+    // every refresh so newly added WebDAV servers / library folders show up
+    LinearLayout filesRowView;
 
     @Override
     public Pair<Integer, Integer> getNameAndIconRes() {
@@ -140,7 +147,8 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         bindRow((RecyclerView) view.findViewById(R.id.netRow), netAdapter);
         bindRow((RecyclerView) view.findViewById(R.id.bookmarkRow), bookmarkAdapter);
 
-        buildFileSources((LinearLayout) view.findViewById(R.id.filesRow));
+        filesRowView = (LinearLayout) view.findViewById(R.id.filesRow);
+        buildFileSources(filesRowView);
 
         populate();
         return view;
@@ -230,25 +238,36 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             return;
         }
 
-        addSource(row, getString(R.string.moon_file_dropbox), R.drawable.dropbox, Color.parseColor("#007ee5"), new Runnable() {
-            @Override
-            public void run() {
-                openCloudDir(Clouds.PREFIX_CLOUD_DROPBOX + "/");
+        // the sources actually configured in 我的文件: every added WebDAV
+        // server opens its own network page …
+        for (final WebDavServer srv : WebDavStore.load()) {
+            addSource(row, srv.title, R.drawable.glyphicons_544_cloud, Color.parseColor("#80cbc4"), new Runnable() {
+                @Override
+                public void run() {
+                    if (a instanceof MainTabs2) {
+                        ((MainTabs2) a).openNetworkPage(true, srv.url, srv.title);
+                    }
+                }
+            });
+        }
+        // … followed by the 书库文件夹 entries
+        for (final String folder : JsonDB.get(BookCSS.get().searchPathsJson)) {
+            if (TxtUtils.isEmpty(folder)) {
+                continue;
             }
-        });
-        addSource(row, getString(R.string.moon_file_gdrive), R.drawable.gdrive, Color.parseColor("#f9ab00"), new Runnable() {
-            @Override
-            public void run() {
-                openCloudDir(Clouds.PREFIX_CLOUD_GDRIVE + "/");
-            }
-        });
-        addSource(row, getString(R.string.moon_file_webdav), R.drawable.glyphicons_544_cloud, Color.parseColor("#80cbc4"), new Runnable() {
-            @Override
-            public void run() {
-                goToTab(UITab.OpdsFragment);
-            }
-        });
-        addSource(row, getString(R.string.moon_file_books), R.drawable.glyphicons_145_folder_open, Color.parseColor("#bdbdbd"), new Runnable() {
+            File f = new File(folder);
+            String name = TxtUtils.isEmpty(f.getName()) ? folder : f.getName();
+            addSource(row, name, R.drawable.glyphicons_145_folder_open, Color.parseColor("#bdbdbd"), new Runnable() {
+                @Override
+                public void run() {
+                    if (a instanceof MainTabs2) {
+                        ((MainTabs2) a).openFolderPage(folder);
+                    }
+                }
+            });
+        }
+        // catch-all entry into the full files tab
+        addSource(row, getString(R.string.moon_my_files), R.drawable.glyphicons_145_folder_open, Color.parseColor("#757575"), new Runnable() {
             @Override
             public void run() {
                 goToTab(UITab.BrowseFragment);
@@ -280,11 +299,6 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             }
         });
         row.addView(item);
-    }
-
-    private void openCloudDir(String path) {
-        goToTab(UITab.BrowseFragment);
-        EventBus.getDefault().post(new OpenDirMessage(path));
     }
 
     // ------------------------------------------------------------------ nav
@@ -521,6 +535,12 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             bookmarkAdapter.notifyDataSetChanged();
         }
 
+        // the quick sources mirror the 我的文件 configuration; rebuild so
+        // newly added WebDAV servers / library folders appear immediately
+        if (filesRowView != null) {
+            buildFileSources(filesRowView);
+        }
+
         if (statTotalValue != null) {
             statTotalValue.setText(String.valueOf(totalBooks));
         }
@@ -617,7 +637,13 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    goToTab(UITab.OpdsFragment);
+                    Activity a = getActivity();
+                    if (a instanceof MainTabs2) {
+                        // open the tapped catalog directly, not just the tab
+                        ((MainTabs2) a).openNetworkPage(false, entry.homeUrl, entry.title);
+                    } else {
+                        goToTab(UITab.OpdsFragment);
+                    }
                 }
             });
         }

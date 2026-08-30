@@ -17,8 +17,11 @@ import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Intents;
@@ -153,6 +156,11 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
         setContentView(R.layout.activity_vertical_view);
         DocumentController.applyEdgeToEdge(this);
 
+        // the shared footer icon row keeps the tight XML margins for the
+        // horizontal mode (its 10 icons already fill the width there); the
+        // vertical mode has room for the wider right-aligned spacing
+        spaceFooterIcons();
+
 //        if (!Android6.canWrite(this)) {
 //            Android6.checkPermissions(this, true);
 //            return;
@@ -187,6 +195,22 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
             }
         });
 
+    }
+
+    /** Widen the inter-icon gap of the footer icon row (vertical mode only). */
+    private void spaceFooterIcons() {
+        ViewGroup row = (ViewGroup) findViewById(R.id.footerIconRow);
+        if (row == null) {
+            return;
+        }
+        int gap = Dips.dpToPx(4);
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) child.getLayoutParams();
+            lp.leftMargin = gap;
+            lp.rightMargin = gap;
+            child.setLayoutParams(lp);
+        }
     }
 
     @Override

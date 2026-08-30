@@ -172,21 +172,26 @@ public abstract class DragingPopup {
     public void initState() {
         try {
             String tag = getTAG() + Dips.screenWidth();
-            if (cache.containsKey(tag)) {
-                Place place = cache.get(tag);
+            Place place = cache.get(tag);
+            // a stale cache entry (0 size or parked off screen) would render
+            // the popup invisible; fall back to the default placement instead
+            boolean valid = place != null
+                    && place.width >= MIN_WH && place.height >= MIN_WH
+                    && place.x >= 0 && place.y >= 0
+                    && place.x + place.width <= Dips.screenWidth()
+                    && place.y + place.height <= Dips.screenHeight();
+            if (valid) {
                 AnchorHelper.setXY(anchor, place.x, place.y);
                 popupView.getLayoutParams().width = place.width;
                 popupView.getLayoutParams().height = place.height;
 
                 LOG.d("Anchor Load", tag, place.x, place.y, place.width, place.height);
-
-                popupView.requestLayout();
             } else {
                 AnchorHelper.setXY(anchor, Dips.dpToPx(Dips.screenWidthDP() - width) / 2, (Dips.screenHeight() - heigth) / 2);
                 popupView.getLayoutParams().width = Dips.dpToPx(width);
                 popupView.getLayoutParams().height = heigth;// Dips.dpToPx(heigth);
-                popupView.requestLayout();
             }
+            popupView.requestLayout();
         } catch (Exception e) {
             LOG.e(e);
         }
