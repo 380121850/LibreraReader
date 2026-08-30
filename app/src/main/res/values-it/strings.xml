@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Ritaglia i bordi simmetricamente</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Visualizzazione dell\'autore e del titolo del libro PDF dai meta tag</string>
    <string name="meta_tags">Meta tags</string>
-   <string name="librera_pro">Librera pro: questa app ma senza pubblicità</string>
+   <string name="librera_pro">HowRead Pro: questa app ma senza pubblicità</string>
    <string name="annotation">Annotazione</string>
    <string name="book">Libro</string>
    <string name="information">Informazione</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Cloud non connesso</string>
    <string name="cloud_sync_folder">Cartella di sincronizzazione cloud</string>
    <string name="clouds">Cloud</string>
-   <string name="librera_cloud">Cloud di Librera</string>
+   <string name="librera_cloud">Cloud di HowRead</string>
    <string name="hide_search_bar">Nascondi la barra di ricerca</string>
    <string name="show_search_bar">Mostra barra di ricerca</string>
    <string name="never">Mai</string>

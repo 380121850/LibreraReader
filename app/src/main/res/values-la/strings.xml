@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">The most convenient PDF Reader for reading electronic documents</string>
    <string name="books">Libri</string>
    <string name="reading_out_loud">Recitatio</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (no ads) Leading Book and PDF Reader</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (no ads) Leading Book and PDF Reader</string>
    <string name="custom_text">Custom text</string>
    <string name="cd_search_books_in_the_library">Search books in the library</string>
    <string name="cd_clear_search_reasult">Clear search result</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Seiuncta nubem</string>
    <string name="cloud_sync_folder">Nubes sync folder</string>
    <string name="clouds">Nubes</string>
-   <string name="librera_cloud">Nubes Librera</string>
+   <string name="librera_cloud">Nubes HowRead</string>
    <string name="hide_search_bar">Investigationis occultare vectes</string>
    <string name="show_search_bar">Show quaero talea</string>
    <string name="never">Numquam</string>

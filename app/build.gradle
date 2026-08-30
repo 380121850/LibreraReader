@@ -123,7 +123,7 @@ android {
         fdroid {
             minSdk = libs.versions.minSdk.get().toInteger()
             dimension = "version"
-            applicationId = "com.foobnix.pro.pdf.reader"
+            applicationId = "com.howread.reader.pro"
             manifestPlaceholders = [
                     appName      : "Librera FD",
                     appIcon      : "@mipmap/icon_pdf_pro",
@@ -139,7 +139,7 @@ android {
         }
         librera {
             dimension = "version"
-            applicationId = "com.foobnix.pdf.reader"
+            applicationId = "com.howread.reader"
             manifestPlaceholders = [
                     appName      : "Librera",
                     appIcon      : "@mipmap/icon_pdf_reader",
@@ -155,7 +155,7 @@ android {
 
         pro {
             dimension = "version"
-            applicationId = "com.foobnix.pro.pdf.reader"
+            applicationId = "com.howread.reader.pro"
             manifestPlaceholders = [
                     appName      : "Librera",
                     appIcon      : "@mipmap/icon_pdf_pro",
@@ -170,7 +170,7 @@ android {
         }
         pdf_classic {
             dimension = "version"
-            applicationId = "classic.pdf.reader.viewer.djvu.epub.fb2.txt.mobi.book.reader.lirbi.libri"
+            applicationId = "com.howread.reader.classic"
             manifestPlaceholders = [
                     appName      : "PDF Reader",
                     appIcon      : "@mipmap/icon_pdf_classic",
@@ -185,7 +185,7 @@ android {
         }
         ebooka {
             dimension = "version"
-            applicationId = "droid.reader.book.epub.mobi.pdf.djvu.fb2.txt.azw.azw3"
+            applicationId = "com.howread.reader.book"
             manifestPlaceholders = [
                     appName      : "Book Reader",
                     appIcon      : "@mipmap/icon_pdf_droid",
@@ -200,7 +200,7 @@ android {
         }
         pdf_v2 {
             dimension = "version"
-            applicationId = "pdf.pdf.reader"
+            applicationId = "com.howread.reader.pdf"
             manifestPlaceholders = [
                     appName      : "PDF Reader",
                     appIcon      : "@mipmap/icon_pdf_2",
@@ -215,7 +215,7 @@ android {
         }
         tts_reader {
             dimension = "version"
-            applicationId = "tts.reader"
+            applicationId = "com.howread.reader.tts"
             manifestPlaceholders = [
                     appName      : "TTS Reader",
                     appIcon      : "@mipmap/icon_tts_reader_app",
@@ -230,7 +230,7 @@ android {
         }
         epub_reader {
             dimension = "version"
-            applicationId = "epub.reader"
+            applicationId = "com.howread.reader.epub"
             manifestPlaceholders = [
                     appName      : "Epub Reader",
                     appIcon      : "@mipmap/icon_epub_reader",
@@ -270,13 +270,13 @@ android {
                 output.versionCodeOverride = code
                 //def fullName = "Librera ${flavor}-${versionNumber}-c${code}-d${db}-${abiName}.apk"
 
-                def fullName = "Librera ${flavor}-${versionNumber}-${abiName}.apk"
+                def fullName = "HowRead ${flavor}-${versionNumber}-${abiName}.apk"
 
                 output.outputFileName = fullName
             } else {
                 //def fullName = "Librera ${flavor}-${versionNumber}-c${codeNumber}-d${db}-universal.apk"
                 //def fullName = "Librera ${flavor}-${versionNumber}-universal.apk"
-                def fullName = "Librera ${flavor}-${versionNumber}-uni.apk"
+                def fullName = "HowRead ${flavor}-${versionNumber}-uni.apk"
                 output.versionCodeOverride = codeNumber
                 output.outputFileName = fullName
             }

@@ -30,8 +30,8 @@ public class AppsConfig {
 
     public static final DecodeFormat CURRENT_BITMAP = DecodeFormat.PREFER_ARGB_8888;
     public static final Bitmap.Config CURRENT_BITMAP_ARGB = Bitmap.Config.ARGB_8888;
-    public static final String PRO_LIBRERA_READER = "com.foobnix.pro.pdf.reader";
-    public static final String LIBRERA_READER = "com.foobnix.pdf.reader";
+    public static final String PRO_LIBRERA_READER = "com.howread.reader.pro";
+    public static final String LIBRERA_READER = "com.howread.reader";
     public static final boolean ADS_ON_PAGE = false;
     public static final boolean
             IS_FDROID =

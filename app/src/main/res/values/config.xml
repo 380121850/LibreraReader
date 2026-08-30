@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name_pro" translatable="false">Librera PRO</string>
+    <string name="app_name">HowRead</string>
+    <string name="app_name_pro" translatable="false">HowRead Pro</string>
 
 	<string name="my_email" translatable="false">380121850@163.com</string>
     <string name="my_site" translatable="false"></string>
-    
+
     <string name="one_drive" translatable="false">One Drive</string>
-    
+
     <string name="google_drive" translatable="false">Google Drive</string>
-    
+
     <string name="dropbox" translatable="false">Dropbox</string>
 
 
-    <string name="wiki_url" translatable="false">http://librera.mobi/wiki#menu</string>
+    <string name="wiki_url" translatable="false">https://howread.app/wiki</string>
 
     <string name="no_tint" translatable="false">no_tint</string>
-	
+
 </resources>

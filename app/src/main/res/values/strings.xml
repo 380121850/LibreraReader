@@ -357,7 +357,7 @@
    <string name="on">On</string>
    <string name="open_in_browser">Open in browser</string>
    <string name="press_color_to_apply">Select color</string>
-   <string name="pro_pdf_description_ads_free">No-ads Librera</string>
+   <string name="pro_pdf_description_ads_free">No-ads HowRead</string>
    <string name="rotate">Rotate</string>
    <string name="split_pages_in_two">Split page</string>
    <string name="save_changes">Save changes?</string>
@@ -388,7 +388,7 @@
    <string name="banner_slogan_PDF_READER">The most comfortable reader for PDF and DjVu documents</string>
    <string name="books">Books</string>
    <string name="reading_out_loud">TTS Reading</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (ad-free): A Leading ePUB and PDF Reader</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (ad-free): A Leading ePUB and PDF Reader</string>
    <string name="custom_text">Title</string>
    <string name="cd_search_books_in_the_library">Search books in Library</string>
    <string name="cd_clear_search_reasult">Clear search results</string>
@@ -428,7 +428,7 @@
    <string name="number">Pages</string>
    <string name="percent">Percent</string>
    <string name="awards">Awards</string>
-   <string name="close_book_and_application">Exit Librera</string>
+   <string name="close_book_and_application">Exit HowRead</string>
    <string name="percent_and_number">Both</string>
    <string name="current_page">Progress indicator</string>
    <string name="backup_folder">Backup</string>
@@ -465,7 +465,7 @@
    <string name="crop_borders_symmetrically">Mirrored crop</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Extract authors\' names and book titles from meta-data (PDF)</string>
    <string name="meta_tags">Meta tags</string>
-   <string name="librera_pro">Librera PRO: This app but without ads</string>
+   <string name="librera_pro">HowRead Pro: This app but without ads</string>
    <string name="annotation">Annotation</string>
    <string name="book">Book</string>
    <string name="information">File Info</string>
@@ -478,7 +478,7 @@
    <string name="cloud_not_connected">Cloud is not connected</string>
    <string name="cloud_sync_folder">Cloud sync folder</string>
    <string name="clouds">Clouds</string>
-   <string name="librera_cloud">Librera Cloud</string>
+   <string name="librera_cloud">HowRead Cloud</string>
    <string name="hide_search_bar">Hide search bar</string>
    <string name="show_search_bar">Show search bar</string>
    <string name="never">Never</string>

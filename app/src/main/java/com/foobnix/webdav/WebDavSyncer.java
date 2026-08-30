@@ -184,6 +184,11 @@ public class WebDavSyncer {
             syncMergedObjectFile(s, globalUrl, AppProfile.syncMisc, ProfileStateIO::mergeMisc);
             ProfileStateIO.importAi(c);
             ProfileStateIO.importMisc(c);
+            // re-apply the merged reading statistics AFTER importMisc: the
+            // misc import restores the whole AppSP object from app-Misc.json,
+            // which was exported BEFORE the stats merge and would otherwise
+            // overwrite the synced-in statistics with stale local values
+            ProfileStateIO.importStats(c);
             // apply the synced global settings (AI model config, …) to the
             // running app; AppState.save() at the end would otherwise write
             // the stale in-memory state back over the synced file

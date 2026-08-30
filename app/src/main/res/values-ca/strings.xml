@@ -353,7 +353,7 @@
    <string name="on">Encén</string>
    <string name="open_in_browser">Obre al navegador</string>
    <string name="press_color_to_apply">Selecciona el color</string>
-   <string name="pro_pdf_description_ads_free">Librera sense anuncis</string>
+   <string name="pro_pdf_description_ads_free">HowRead sense anuncis</string>
    <string name="rotate">Gira</string>
    <string name="split_pages_in_two">Divideix la pàgina</string>
    <string name="save_changes">Voleu desar els canvis?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">El lector més còmode per a documents PDF i DjVu</string>
    <string name="books">Llibres</string>
    <string name="reading_out_loud">Lectura TTS</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (sense anuncis): Un dels principals lectors d\'ePUB i PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (sense anuncis): Un dels principals lectors d\'ePUB i PDF</string>
    <string name="custom_text">Títol</string>
    <string name="cd_search_books_in_the_library">Cerca llibres a la Biblioteca</string>
    <string name="cd_clear_search_reasult">Esborra els resultats de la cerca</string>
@@ -424,7 +424,7 @@
    <string name="number">Pàgines</string>
    <string name="percent">Percentatge</string>
    <string name="awards">Premis</string>
-   <string name="close_book_and_application">Surt de Librera</string>
+   <string name="close_book_and_application">Surt de HowRead</string>
    <string name="percent_and_number">Ambdós</string>
    <string name="current_page">Indicador de progrés</string>
    <string name="backup_folder">Còpia de seguretat</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Retall simètric</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Extreu els noms dels autors i els títols dels llibres de les meta-dades (PDF)</string>
    <string name="meta_tags">Meta etiquetes</string>
-   <string name="librera_pro">Librera PRO: Aquesta aplicació però sense anuncis</string>
+   <string name="librera_pro">HowRead Pro: Aquesta aplicació però sense anuncis</string>
    <string name="annotation">Anotació</string>
    <string name="book">Llibre</string>
    <string name="information">Informació del fitxer</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">No connectat al núvol</string>
    <string name="cloud_sync_folder">Carpeta de sincronització del núvol</string>
    <string name="clouds">Núvols</string>
-   <string name="librera_cloud">Librera Cloud</string>
+   <string name="librera_cloud">HowRead Cloud</string>
    <string name="hide_search_bar">Amaga la barra de cerca</string>
    <string name="show_search_bar">Mostra la barra de cerca</string>
    <string name="never">Mai</string>

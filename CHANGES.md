@@ -760,3 +760,49 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
 - 新增 `ProfileStateIO.importAppState`:同步完成后把合并后的 app-State.json 原位加载进运行中的 AppState(`Objects.loadFromJson`),配置立即生效,并避免同步末尾的回写覆盖。
 
 涉及:`ui2/WoodShelf.java`、`ui2/ShelfBoardsDecoration.java`、`model/ProfileStateIO.java`、`webdav/WebDavSyncer.java`。真机验证:书架纹理视觉已核对;WebDAV AI 同步请在用户自己的服务器上按"重置 → 配 WebDAV → 同步 → 查看 AI 配置"流程确认。
+
+## [2026-08-30] 修复 WebDAV 同步后阅读统计未应用到本机
+
+**问题**:统计数据(总阅读时长/页数/月度与日度桶,存于 AppSP)的同步链路在服务器侧是对的(`mergeStats` 按字段取最大值合并、合并结果写回本地并上传),但每台设备同步完后看到的仍是自己的旧统计:合并刚写入内存后,`importMisc`(恢复杂项配置)会用 app-Misc.json 里的 AppSP 整体快照覆盖内存——而该快照导出于统计合并**之前**;且 `importStats`(重新应用合并后的 app-Stats.json 并持久化)在同步流程中从未被调用(仅手动备份还原使用)。
+
+**修复**:`WebDavSyncer.doSync` 在 `importMisc` 之后调用 `ProfileStateIO.importStats(c)`,重新应用合并后的 app-Stats.json(applyStats 为幂等的最大值合并)并 `AppSP.get().save()` 持久化。重置场景同样覆盖:重置后本机统计为零,同步即取回服务器上的累计统计。
+
+涉及:`webdav/WebDavSyncer.java`(一行调用 + 注释)。请在用户自己的 WebDAV 服务器上按"重置 → 配 WebDAV → 同步 → 查看首页阅读统计"流程确认。
+
+## [2026-08-30] 应用品牌更名 HowRead(好好读)+ 更换包名与签名
+
+### 品牌定稿
+- 中文主品牌:好好读;英文主品牌:HowRead("How"=好(谐音)+ How(如何)——如何好好读一篇文字);
+- 免费版 HowRead(好好读);专业版 HowRead Pro(好好读 Pro);
+- Android 包名 com.howread.reader;域名 howread.app / github.com/howread。
+
+### 1. 显示名资源化(支持中英双语显示)
+- Manifest 3 处 label(application + 2 widget)由 `${appName}` 占位符改为 `@string/app_name`;
+- main 资源:values="HowRead"、values-zh-rCN="好好读"、values-zh-rTW="好好讀";
+- 新增各 flavor 覆盖资源 app/src/<flavor>/res/values[-zh]/strings.xml:pro="HowRead Pro"(好好读 Pro)、fdroid="HowRead FD"(好好读 FD)、pdf_classic/pdf_v2="PDF Reader"、ebooka="Book Reader"、tts_reader="TTS Reader"、epub_reader="Epub Reader";
+- build.gradle 中 appName 占位符定义保留(已无引用)。
+
+### 2. 包名 applicationId(8 处,app/build.gradle)
+- librera→com.howread.reader;pro/fdroid→com.howread.reader.pro(同包,与原布局一致);pdf_classic→com.howread.reader.classic;ebooka→com.howread.reader.book;pdf_v2→com.howread.reader.pdf;tts_reader→com.howread.reader.tts;epub_reader→com.howread.reader.epub;
+- 连改硬编码:AppsConfig.java(PRO_LIBRERA_READER/LIBRERA_READER 常量值,常量名不变)、Urls.java openPdfPro 商店链接;
+- 代码 namespace(com.foobnix.*)、LibreraApp 类名、org.librera 包、meta-data、deep-link 全部不动。
+
+### 3. 签名(新 keystore)
+- 新增 `howread.keystore`(PKCS12,别名 howread,密码 850318@Hz,有效期 10000 天);
+- `~/.gradle/gradle.properties` 四项指向新 keystore;旧 keystore.pkcs12 保留;代码零改动。
+
+### 4. 界面文案(只改值不改 key,44 个语言目录)
+- 5 个品牌 key 中 "Librera"→"HowRead"(librera_pro/librera_cloud/close_book_and_application/librera_pro_no_ads_leading_book_book_reader_and_pdf/pro_pdf_description_ads_free);
+- **保留** msg_migration/msg_sync 的"[Librera]"(指向真实本地目录名)、dialog_proxy_server"Dowloads/Librera"、dialog_webdav_sync"/Librera";
+- URL 换新域:about_section.xml(librera.mobi/beta/faq → howread.app)、config.xml wiki_url、Urls.java rateIT GitHub 链接 → github.com/howread;
+- 清理调试残留 fragment_preferences.xml"Librera_111"→"HowRead"。
+
+### 5. 构建元数据
+- APK 文件名前缀 "Librera " → "HowRead "(build.gradle 输出名两处);
+- settings.gradle.kts rootProject.name → "HowRead"。
+
+### 验证(MI9 真机)
+- 新包 com.howread.reader 9.4.24 安装成功(MIUI 首装被 INSTALL_FAILED_USER_RESTRICTED 拦截,`pm install -i com.android.vending` 绕过);
+- 桌面图标显示**好好读**(中文),与旧版 Librera 并存;应用启动、首页/书库正常;
+- 构建产物名:HowRead Librera-9.4.24-arm64.apk。
+- 待办提醒:release 正式包请先用新签名试装一次;howread.app 网站内容需自行部署。

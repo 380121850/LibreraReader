@@ -279,6 +279,7 @@
    <string name="grid">表格</string>
    <string name="cover">封面</string>
    <string name="shelf">書架</string>
+   <string name="app_name">好好讀</string>
    <string name="author">作者</string>
    <string name="genre">流派</string>
    <string name="serie">叢書</string>
@@ -388,7 +389,7 @@
    <string name="banner_slogan_PDF_READER">方便閱讀PDF文檔</string>
    <string name="books">書籍</string>
    <string name="reading_out_loud">大聲朗讀</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO專業領先無廣告的電子書及PDF閱讀器</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro專業領先無廣告的電子書及PDF閱讀器</string>
    <string name="custom_text">自定義標題</string>
    <string name="cd_search_books_in_the_library">書架搜索</string>
    <string name="cd_clear_search_reasult">清除記錄</string>
@@ -465,7 +466,7 @@
    <string name="crop_borders_symmetrically">裁剪邊界對稱</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">從PDF元標籤顯示作者和書名</string>
    <string name="meta_tags">元標籤</string>
-   <string name="librera_pro">Librera pro：這個應用程序但沒有廣告</string>
+   <string name="librera_pro">HowRead Pro：這個應用程序但沒有廣告</string>
    <string name="annotation">簡介</string>
    <string name="book">書名</string>
    <string name="information">資訊</string>
@@ -478,7 +479,7 @@
    <string name="cloud_not_connected">雲未連接</string>
    <string name="cloud_sync_folder">雲同步檔夾</string>
    <string name="clouds">雲盤</string>
-   <string name="librera_cloud">Librera雲</string>
+   <string name="librera_cloud">HowRead雲</string>
    <string name="hide_search_bar">隱藏搜索欄</string>
    <string name="show_search_bar">顯示搜索欄</string>
    <string name="never">從不</string>

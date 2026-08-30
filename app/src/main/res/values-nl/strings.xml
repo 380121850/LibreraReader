@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">De meest handige "PDF Reader" voor het lezen van elektronische documenten</string>
    <string name="books">Boeken</string>
    <string name="reading_out_loud">Hardop lezen</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (geen advertenties) Leidende boeklezer en PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (geen advertenties) Leidende boeklezer en PDF</string>
    <string name="custom_text">Aangepaste tekst</string>
    <string name="cd_search_books_in_the_library">Zoek boeken in de bibliotheek</string>
    <string name="cd_clear_search_reasult">Verwijder zoekresultaat</string>
@@ -424,7 +424,7 @@
    <string name="number">Nummer</string>
    <string name="percent">Procent</string>
    <string name="awards">Awards</string>
-   <string name="close_book_and_application">Librera sluiten</string>
+   <string name="close_book_and_application">HowRead sluiten</string>
    <string name="percent_and_number">Percentage en nummer</string>
    <string name="current_page">Huidige pagina</string>
    <string name="backup_folder">Back-upmap</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Snijd de randen symmetrisch bij</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">De auteur en de titel van het PDF-boek van de metatags weergeven</string>
    <string name="meta_tags">Meta-tags</string>
-   <string name="librera_pro">Librera pro: deze app maar zonder advertenties</string>
+   <string name="librera_pro">HowRead Pro: deze app maar zonder advertenties</string>
    <string name="annotation">Aantekening</string>
    <string name="book">Boek</string>
    <string name="information">Informatie</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Cloud niet verbonden</string>
    <string name="cloud_sync_folder">Cloud synchronisatie-map</string>
    <string name="clouds">Wolken</string>
-   <string name="librera_cloud">Librera cloud</string>
+   <string name="librera_cloud">HowRead cloud</string>
    <string name="hide_search_bar">Zoekbalk verbergen</string>
    <string name="show_search_bar">Toon zoekbalk</string>
    <string name="never">Nooit</string>

@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">PDF ve DjVu belgelerini rahatça okumak için en uygun program</string>
    <string name="books">Kitaplar</string>
    <string name="reading_out_loud">Sesli okuma</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (reklamsız) Öncü kitap okuyucu ve PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (reklamsız) Öncü kitap okuyucu ve PDF</string>
    <string name="custom_text">Başlık</string>
    <string name="cd_search_books_in_the_library">Kütüphanede kitap ara</string>
    <string name="cd_clear_search_reasult">Arama sonuçlarını temizle</string>
@@ -424,7 +424,7 @@
    <string name="number">Sayfa</string>
    <string name="percent">Yüzde</string>
    <string name="awards">Ödüller</string>
-   <string name="close_book_and_application">Librera\'dan çık</string>
+   <string name="close_book_and_application">HowRead\'dan çık</string>
    <string name="percent_and_number">İkisi de</string>
    <string name="current_page">Okuma belirteci</string>
    <string name="backup_folder">Yedekleme</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Simetrik olarak kenar sınırları</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Meta kitabından yazarı ve PDF kitabının başlığını görüntüleme</string>
    <string name="meta_tags">Meta etiketleri</string>
-   <string name="librera_pro">Librera pro: bu uygulama ancak reklamsız</string>
+   <string name="librera_pro">HowRead Pro: bu uygulama ancak reklamsız</string>
    <string name="annotation">Not</string>
    <string name="book">Kitap</string>
    <string name="information">Bilgi</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Bulut bağlı değil</string>
    <string name="cloud_sync_folder">Bulut senkronizasyon klasörü</string>
    <string name="clouds">Bulutlar</string>
-   <string name="librera_cloud">Librera bulut</string>
+   <string name="librera_cloud">HowRead bulut</string>
    <string name="hide_search_bar">Arama çubuğunu gizle</string>
    <string name="show_search_bar">Arama çubuğunu göster</string>
    <string name="never">Asla</string>

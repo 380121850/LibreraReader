@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Bequemster PDF-Reader</string>
    <string name="books">Bücher</string>
    <string name="reading_out_loud">Text-zu-Sprache-Vorlesen</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (ohne Werbung): Führende App für eBooks und PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (ohne Werbung): Führende App für eBooks und PDF</string>
    <string name="custom_text">Kundenspezifischer Text</string>
    <string name="cd_search_books_in_the_library">Dokumente in der Bibliothek suchen</string>
    <string name="cd_clear_search_reasult">Suchergebnisse löschen</string>
@@ -424,7 +424,7 @@
    <string name="number">Seiten</string>
    <string name="percent">Prozent</string>
    <string name="awards">Auszeichnungen</string>
-   <string name="close_book_and_application">Librera schließen</string>
+   <string name="close_book_and_application">HowRead schließen</string>
    <string name="percent_and_number">Beides</string>
    <string name="current_page">Fortschrittsanzeige</string>
    <string name="backup_folder">Backup-Ordner</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Ränder symmetrisch beschneiden</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Autors und Titel aus den Dokument-Metadaten extrahieren (PDF)</string>
    <string name="meta_tags">Meta-Tags</string>
-   <string name="librera_pro">Librera Pro: Diese App, aber ohne Werbung</string>
+   <string name="librera_pro">HowRead Pro: Diese App, aber ohne Werbung</string>
    <string name="annotation">Anmerkung</string>
    <string name="book">Buch</string>
    <string name="information">Dateiinformation</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Cloud nicht verbunden</string>
    <string name="cloud_sync_folder">Cloud-Synchronisierungsordner</string>
    <string name="clouds">Clouds</string>
-   <string name="librera_cloud">Librera-Cloud</string>
+   <string name="librera_cloud">HowRead-Cloud</string>
    <string name="hide_search_bar">Suchleiste ausblenden</string>
    <string name="show_search_bar">Suchleiste anzeigen</string>
    <string name="never">Nie</string>

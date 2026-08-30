@@ -353,7 +353,7 @@
    <string name="on">Be</string>
    <string name="open_in_browser">Megnyitás a böngészőben</string>
    <string name="press_color_to_apply">Válasszon színt</string>
-   <string name="pro_pdf_description_ads_free">Hirdetésmentes Librera</string>
+   <string name="pro_pdf_description_ads_free">Hirdetésmentes HowRead</string>
    <string name="rotate">Elforgatás</string>
    <string name="split_pages_in_two">Oldal felosztása</string>
    <string name="save_changes">Menti a módosításokat?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">A legkényelmesebb PDF olvasó elektronikus dokumentumok olvasására</string>
    <string name="books">Könyvek</string>
    <string name="reading_out_loud">TTS-olvasás</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (hirdetésmentes): A vezető ePUB és PDF-olvasó</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (hirdetésmentes): A vezető ePUB és PDF-olvasó</string>
    <string name="custom_text">Egyéni szöveg</string>
    <string name="cd_search_books_in_the_library">Könyvek keresése a könyvtárban</string>
    <string name="cd_clear_search_reasult">Keresési eredmények törlése</string>
@@ -424,7 +424,7 @@
    <string name="number">Szám</string>
    <string name="percent">Százalék</string>
    <string name="awards">Díjak</string>
-   <string name="close_book_and_application">Könyv bezárása és kilépés a Librera alkalmazásból</string>
+   <string name="close_book_and_application">Könyv bezárása és kilépés a HowRead alkalmazásból</string>
    <string name="percent_and_number">Mindkettő</string>
    <string name="current_page">Olvasási folyamat</string>
    <string name="backup_folder">Mentési mappa</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Tükrözött körülvágás</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">A könyv szerzőjének és címének kiolvasása a metaadatokból (PDF)</string>
    <string name="meta_tags">Meta-címkék</string>
-   <string name="librera_pro">Librera pro: ez az alkalmazás, de hirdetések nélkül</string>
+   <string name="librera_pro">HowRead Pro: ez az alkalmazás, de hirdetések nélkül</string>
    <string name="annotation">Széljegyzet</string>
    <string name="book">Könyv</string>
    <string name="information">Fájlinformációk</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">A felhőtár nincs csatlakoztatva</string>
    <string name="cloud_sync_folder">Felhő mappa szinkronizálása</string>
    <string name="clouds">Felhőtárak</string>
-   <string name="librera_cloud">Librera felhő</string>
+   <string name="librera_cloud">HowRead felhő</string>
    <string name="hide_search_bar">Keresősáv elrejtése</string>
    <string name="show_search_bar">Keresősáv megjelenítése</string>
    <string name="never">Soha</string>

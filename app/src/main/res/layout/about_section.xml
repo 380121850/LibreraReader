@@ -134,7 +134,7 @@
             style="@style/textLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="http://librera.mobi" />
+            android:text="https://howread.app" />
     </LinearLayout>
 
     <LinearLayout
@@ -154,7 +154,7 @@
             style="@style/textLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="http://beta.librera.mobi" />
+            android:text="https://howread.app/beta" />
     </LinearLayout>
 
     <LinearLayout
@@ -174,7 +174,7 @@
             style="@style/textLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="http://librera.mobi/faq" />
+            android:text="https://howread.app/faq" />
     </LinearLayout>
 
     <TextView

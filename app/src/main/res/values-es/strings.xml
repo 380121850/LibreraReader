@@ -353,7 +353,7 @@
    <string name="on">Activado</string>
    <string name="open_in_browser">Abrir en el Navegador</string>
    <string name="press_color_to_apply">Seleccionar color</string>
-   <string name="pro_pdf_description_ads_free">Librera sin anuncios</string>
+   <string name="pro_pdf_description_ads_free">HowRead sin anuncios</string>
    <string name="rotate">Rotar</string>
    <string name="split_pages_in_two">Dividir página</string>
    <string name="save_changes">¿Guardar cambios?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">El lector más cómodo para leer documentos PDF y DjVu</string>
    <string name="books">Libros</string>
    <string name="reading_out_loud">Lectura texto a voz</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (sin anuncios) Lector líder de ePUB y PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (sin anuncios) Lector líder de ePUB y PDF</string>
    <string name="custom_text">Título</string>
    <string name="cd_search_books_in_the_library">Buscar libros en la biblioteca</string>
    <string name="cd_clear_search_reasult">Borrar resultados de búsqueda</string>
@@ -424,7 +424,7 @@
    <string name="number">Número</string>
    <string name="percent">Por ciento</string>
    <string name="awards">Premios</string>
-   <string name="close_book_and_application">Cerrar Librera</string>
+   <string name="close_book_and_application">Cerrar HowRead</string>
    <string name="percent_and_number">Ambos</string>
    <string name="current_page">Progreso</string>
    <string name="backup_folder">Copia de seguridad</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Recortar bordes simétricamente</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Mostrar el autor y el título del libro de las metaetiquetas</string>
    <string name="meta_tags">Metaetiquetas</string>
-   <string name="librera_pro">Librera pro: esta app pero sin anuncios</string>
+   <string name="librera_pro">HowRead Pro: esta app pero sin anuncios</string>
    <string name="annotation">Anotación</string>
    <string name="book">Libro</string>
    <string name="information">Información</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">La nube no está conectada</string>
    <string name="cloud_sync_folder">Carpeta de sincronización de la nube</string>
    <string name="clouds">Nubes</string>
-   <string name="librera_cloud">Nube de Librera</string>
+   <string name="librera_cloud">Nube de HowRead</string>
    <string name="hide_search_bar">Ocultar barra de búsqueda</string>
    <string name="show_search_bar">Mostrar barra de búsqueda</string>
    <string name="never">Nunca</string>

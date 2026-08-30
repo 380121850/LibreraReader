@@ -353,7 +353,7 @@
    <string name="on">Allutu</string>
    <string name="open_in_browser">Aberi in su navigadore</string>
    <string name="press_color_to_apply">Seletziona su colore</string>
-   <string name="pro_pdf_description_ads_free">Librera chene publitzidade</string>
+   <string name="pro_pdf_description_ads_free">HowRead chene publitzidade</string>
    <string name="rotate">Gira</string>
    <string name="split_pages_in_two">Partzi in duos sa pàgisa</string>
    <string name="save_changes">Sarvare sas modìficas?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Su leghidore prus discansosu pro sos documentos PDF e DjVu</string>
    <string name="books">Libros</string>
    <string name="reading_out_loud">Leghidura vocale TTS</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (chene publitzidade): unu leghidore de ePUB e PDF innovativu</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (chene publitzidade): unu leghidore de ePUB e PDF innovativu</string>
    <string name="custom_text">Tìtulu</string>
    <string name="cd_search_books_in_the_library">Chirca libros in sa biblioteca</string>
    <string name="cd_clear_search_reasult">Isbòida sos resurtados de chirca</string>
@@ -424,7 +424,7 @@
    <string name="number">Pàginas</string>
    <string name="percent">Pertzentuale</string>
    <string name="awards">Prèmios</string>
-   <string name="close_book_and_application">Essi dae Librera</string>
+   <string name="close_book_and_application">Essi dae HowRead</string>
    <string name="percent_and_number">Ambos</string>
    <string name="current_page">Indicadore de progressu</string>
    <string name="backup_folder">Còpia de seguresa</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Mutzinadura de oros simmètrica</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Estrai sos nùmenes de sos autores e sos tìtulos de sos libros dae sos metadatos (PDF)</string>
    <string name="meta_tags">Etichetas meta</string>
-   <string name="librera_pro">Librera pro: this app but without ads</string>
+   <string name="librera_pro">HowRead Pro: this app but without ads</string>
    <string name="annotation">Annotatzione</string>
    <string name="book">Libru</string>
    <string name="information">Informatziones de su documentu</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Sa nue no est connessa</string>
    <string name="cloud_sync_folder">Cartella de sincronizatzione in sa nue</string>
    <string name="clouds">Nues</string>
-   <string name="librera_cloud">Nue de Librera</string>
+   <string name="librera_cloud">Nue de HowRead</string>
    <string name="hide_search_bar">Cua sa barra de chirca</string>
    <string name="show_search_bar">Ammustra sa barra de chirca</string>
    <string name="never">Mai</string>

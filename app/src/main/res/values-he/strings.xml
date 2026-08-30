@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">את "קורא PDF" הנוח ביותר עבור קריאת מסמכים אלקטרוניים</string>
    <string name="books">ספרים</string>
    <string name="reading_out_loud">קורא בקול רם</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (ללא מודעות) קורא ספרים מובילים PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (ללא מודעות) קורא ספרים מובילים PDF</string>
    <string name="custom_text">טקסט מותאם אישית</string>
    <string name="cd_search_books_in_the_library">חיפוש בספריה</string>
    <string name="cd_clear_search_reasult">נקה חיפוש חוזר</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">חתוך גבולות באופן סימטרי</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">הצגת המחבר והכותרת של ספר ה- PDF מתוך המטא-תגים</string>
    <string name="meta_tags">מטא תגים</string>
-   <string name="librera_pro">Librera pro: אפליקציה זו אך ללא מודעות</string>
+   <string name="librera_pro">HowRead Pro: אפליקציה זו אך ללא מודעות</string>
    <string name="annotation">ביאור</string>
    <string name="book">ספר</string>
    <string name="information">מידע</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">ענן לא מחובר</string>
    <string name="cloud_sync_folder">תיקיית סינכרון ענן</string>
    <string name="clouds">עננים</string>
-   <string name="librera_cloud">ענן Librera</string>
+   <string name="librera_cloud">ענן HowRead</string>
    <string name="hide_search_bar">הסתר את סרגל החיפוש</string>
    <string name="show_search_bar">הצג סרגל חיפוש</string>
    <string name="never">לעולם לא</string>

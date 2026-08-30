@@ -353,7 +353,7 @@
    <string name="on">Activado</string>
    <string name="open_in_browser">Abrir no navegador</string>
    <string name="press_color_to_apply">Seleccionar cor</string>
-   <string name="pro_pdf_description_ads_free">Librera sen anuncios</string>
+   <string name="pro_pdf_description_ads_free">HowRead sen anuncios</string>
    <string name="rotate">Xirar</string>
    <string name="split_pages_in_two">Dividir páxina</string>
    <string name="save_changes">Gardar cambios?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">O lector máis cómodo para documentos PDF e DjVu</string>
    <string name="books">Libros</string>
    <string name="reading_out_loud">Lectura en voz alta</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (sen anuncios): lector líder de ePUB e PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (sen anuncios): lector líder de ePUB e PDF</string>
    <string name="custom_text">Título</string>
    <string name="cd_search_books_in_the_library">Buscar libros na biblioteca</string>
    <string name="cd_clear_search_reasult">Limpar resultados da busca</string>
@@ -424,7 +424,7 @@
    <string name="number">Páxinas</string>
    <string name="percent">Porcentaxe</string>
    <string name="awards">Premios</string>
-   <string name="close_book_and_application">Saír de Librera</string>
+   <string name="close_book_and_application">Saír de HowRead</string>
    <string name="percent_and_number">Ambos</string>
    <string name="current_page">Indicador de progreso</string>
    <string name="backup_folder">Copia de seguridade</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Recorte simétrico</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Extraer autores e títulos dos metadatos (PDF)</string>
    <string name="meta_tags">Metadatos</string>
-   <string name="librera_pro">Librera PRO: Esta aplicación sen anuncios</string>
+   <string name="librera_pro">HowRead Pro: Esta aplicación sen anuncios</string>
    <string name="annotation">Anotación</string>
    <string name="book">Libro</string>
    <string name="information">Información do ficheiro</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">A nube non está conectada</string>
    <string name="cloud_sync_folder">Cartafol de sincronización na nube</string>
    <string name="clouds">Nubes</string>
-   <string name="librera_cloud">Librera Cloud</string>
+   <string name="librera_cloud">HowRead Cloud</string>
    <string name="hide_search_bar">Ocultar barra de busca</string>
    <string name="show_search_bar">Amosar barra de busca</string>
    <string name="never">Xamais</string>

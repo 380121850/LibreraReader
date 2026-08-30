@@ -353,7 +353,7 @@
    <string name="on">Aktibatuta</string>
    <string name="open_in_browser">Irekin nabigatzailean</string>
    <string name="press_color_to_apply">Hautatu kolorea</string>
-   <string name="pro_pdf_description_ads_free">Librera iragarkirik gabe</string>
+   <string name="pro_pdf_description_ads_free">HowRead iragarkirik gabe</string>
    <string name="rotate">Biratu</string>
    <string name="split_pages_in_two">Zatitu orria</string>
    <string name="save_changes">¿Aldaketak gorde?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">PDF eta DjVu dokumentuak irakurgailurik erosoena</string>
    <string name="books">Liburuak</string>
    <string name="reading_out_loud">Testutik ahotsera</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (iragarkirik gabe) ePUB eta PDF irakurgailu nagusia</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (iragarkirik gabe) ePUB eta PDF irakurgailu nagusia</string>
    <string name="custom_text">Izenburua</string>
    <string name="cd_search_books_in_the_library">Bilatu liburuak liburutegian</string>
    <string name="cd_clear_search_reasult">Ezabatu bilaketaren emaitzak</string>
@@ -424,7 +424,7 @@
    <string name="number">Zenbakia</string>
    <string name="percent">Ehunekoa</string>
    <string name="awards">Sariak</string>
-   <string name="close_book_and_application">Itxi Librera</string>
+   <string name="close_book_and_application">Itxi HowRead</string>
    <string name="percent_and_number">Biak</string>
    <string name="current_page">Aurrerapena</string>
    <string name="backup_folder">Babeskopia</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Moztu ertzak simetrikoki</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Erakutsi egilea eta liburuaren izenburua meta-etiketetatik</string>
    <string name="meta_tags">Metaetiketak</string>
-   <string name="librera_pro">Librera pro: aplikazio hau baina iragarkirik gabe</string>
+   <string name="librera_pro">HowRead Pro: aplikazio hau baina iragarkirik gabe</string>
    <string name="annotation">Oharra</string>
    <string name="book">Liburua</string>
    <string name="information">Informazioa</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Hodeia ez dago konektatuta</string>
    <string name="cloud_sync_folder">Hodeia sinkronizatzeko karpeta</string>
    <string name="clouds">Hodeiak</string>
-   <string name="librera_cloud">Libreraren hodeia</string>
+   <string name="librera_cloud">HowReadren hodeia</string>
    <string name="hide_search_bar">Ezkutatu bilaketa barra</string>
    <string name="show_search_bar">Erakutsi bilaketa barra</string>
    <string name="never">Inoiz ez</string>

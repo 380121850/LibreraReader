@@ -109,10 +109,10 @@ public class Urls {
 
     public static void openPdfPro(Context a) {
         try {
-            open(a, "market://details?id=com.foobnix.pro.pdf.reader");
+            open(a, "market://details?id=com.howread.reader.pro");
         } catch (Exception e) {
             // android 1.6
-            open(a, "https://play.google.com/store/apps/details?id=com.foobnix.pro.pdf.reader");
+            open(a, "https://play.google.com/store/apps/details?id=com.howread.reader.pro");
         }
     }
 
@@ -128,7 +128,7 @@ public class Urls {
     public static void rateIT(Context a) {
         try {
             if (AppsConfig.IS_FDROID) {
-                Urls.open(a, "https://github.com/foobnix/LibreraReader");
+                Urls.open(a, "https://github.com/howread");
             } else {
                 Urls.open(a, "market://details?id=" + a.getPackageName());
             }

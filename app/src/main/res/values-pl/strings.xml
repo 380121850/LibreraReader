@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Najwygodniejszy czytnik dokumentów PDF i DjVu</string>
    <string name="books">Książki</string>
    <string name="reading_out_loud">Czytanie na głos</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (bez reklam): Wiodący czytnik ePUB i PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (bez reklam): Wiodący czytnik ePUB i PDF</string>
    <string name="custom_text">Własny tekst</string>
    <string name="cd_search_books_in_the_library">Szukaj książek w bibliotece</string>
    <string name="cd_clear_search_reasult">Wyczyść wyniki wyszukiwania</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Przytnij marginesy symetrycznie</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Wyodrębnij nazwiska autorów i tytuły książek z metadanych (PDF)</string>
    <string name="meta_tags">Metatagi</string>
-   <string name="librera_pro">Librera pro: ta aplikacja, ale bez reklam</string>
+   <string name="librera_pro">HowRead Pro: ta aplikacja, ale bez reklam</string>
    <string name="annotation">Adnotacja</string>
    <string name="book">Książka</string>
    <string name="information">Informacja</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Chmura nie jest podłączona</string>
    <string name="cloud_sync_folder">Katalog synchronizacji w chmurze</string>
    <string name="clouds">Chmury</string>
-   <string name="librera_cloud">Chmura Librera</string>
+   <string name="librera_cloud">Chmura HowRead</string>
    <string name="hide_search_bar">Ukryj pasek wyszukiwania</string>
    <string name="show_search_bar">Pokaż pasek wyszukiwania</string>
    <string name="never">Nigdy</string>

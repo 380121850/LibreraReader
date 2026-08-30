@@ -353,7 +353,7 @@
    <string name="on">Zap.</string>
    <string name="open_in_browser">Otvoriť v prehliadači</string>
    <string name="press_color_to_apply">Vybrať farbu</string>
-   <string name="pro_pdf_description_ads_free">Librera bez reklám</string>
+   <string name="pro_pdf_description_ads_free">HowRead bez reklám</string>
    <string name="rotate">Otočiť</string>
    <string name="split_pages_in_two">Rozdeliť stranu</string>
    <string name="save_changes">Uložiť zmeny?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Najpohodlnejšia čítačka dokumentov PDF a DjVu</string>
    <string name="books">Knihy</string>
    <string name="reading_out_loud">Čítanie nahlas</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (bez reklamy): Popredná čítačka ePUB a PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (bez reklamy): Popredná čítačka ePUB a PDF</string>
    <string name="custom_text">Nadpis</string>
    <string name="cd_search_books_in_the_library">Vyhľadať knihy v knižnici</string>
    <string name="cd_clear_search_reasult">Vymazať výsledky vyhľadávania</string>
@@ -424,7 +424,7 @@
    <string name="number">Strany</string>
    <string name="percent">Percentá</string>
    <string name="awards">Ocenenia</string>
-   <string name="close_book_and_application">Ukončiť Librera</string>
+   <string name="close_book_and_application">Ukončiť HowRead</string>
    <string name="percent_and_number">Obe</string>
    <string name="current_page">Priebeh postupu</string>
    <string name="backup_folder">Záloha</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Zrkadlové orezanie</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Získať mená autorov a názvy kníh z metaúdajov PDF</string>
    <string name="meta_tags">Metaznačky</string>
-   <string name="librera_pro">Librera PRO: táto aplikácia, ale bez reklám</string>
+   <string name="librera_pro">HowRead Pro: táto aplikácia, ale bez reklám</string>
    <string name="annotation">Anotácia</string>
    <string name="book">Kniha</string>
    <string name="information">Informácie o súbore</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Cloud nie je pripojený</string>
    <string name="cloud_sync_folder">Priečinok na synchronizáciu s cloudom</string>
    <string name="clouds">Cloudy</string>
-   <string name="librera_cloud">Librera Cloud</string>
+   <string name="librera_cloud">HowRead Cloud</string>
    <string name="hide_search_bar">Skryť panel vyhľadávania</string>
    <string name="show_search_bar">Zobraziť panel vyhľadávania</string>
    <string name="never">Nikdy</string>

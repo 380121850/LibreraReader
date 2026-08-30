@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Rahisi zaidi "PDF Reader" kwa kusoma hati za elektroniki</string>
    <string name="books">Vitabu</string>
    <string name="reading_out_loud">Kusoma kwa sauti kubwa</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (hakuna matangazo) Msomaji wa kitabu cha kuongoza na PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (hakuna matangazo) Msomaji wa kitabu cha kuongoza na PDF</string>
    <string name="custom_text">Maandishi maalum</string>
    <string name="cd_search_books_in_the_library">Tafuta vitabu kwenye maktaba</string>
    <string name="cd_clear_search_reasult">Futa utafutaji upya</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Mipaka ya mimea ya usawa</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Inaonyesha mwandishi na kichwa cha kitabu cha PDF kutoka kwa meta tags</string>
    <string name="meta_tags">Lebo za meta</string>
-   <string name="librera_pro">Librera pro: programu hii lakini bila matangazo</string>
+   <string name="librera_pro">HowRead Pro: programu hii lakini bila matangazo</string>
    <string name="annotation">Maelezo</string>
    <string name="book">Kitabu</string>
    <string name="information">Taarifa</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Wingu halijaunganishwa</string>
    <string name="cloud_sync_folder">Faili ya usawazishaji wa wingu</string>
    <string name="clouds">Mawingu</string>
-   <string name="librera_cloud">Librera wingu</string>
+   <string name="librera_cloud">HowRead wingu</string>
    <string name="hide_search_bar">Ficha bar ya utafutaji</string>
    <string name="show_search_bar">Onyesha bar ya utafutaji</string>
    <string name="never">Kamwe</string>

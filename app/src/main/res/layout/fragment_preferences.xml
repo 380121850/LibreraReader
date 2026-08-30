@@ -1399,7 +1399,7 @@
                     style="@style/textLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Librera_111" />
+                    android:text="HowRead" />
             </LinearLayout>
 
             <LinearLayout

@@ -353,7 +353,7 @@
    <string name="on">Zapnuto</string>
    <string name="open_in_browser">Otevřít v prohlížeči</string>
    <string name="press_color_to_apply">Vybrat barvu</string>
-   <string name="pro_pdf_description_ads_free">Librera bez reklam</string>
+   <string name="pro_pdf_description_ads_free">HowRead bez reklam</string>
    <string name="rotate">Otočit</string>
    <string name="split_pages_in_two">Rozdělit stránku</string>
    <string name="save_changes">Uložit změny?</string>
@@ -384,7 +384,7 @@
    <string name="banner_slogan_PDF_READER">Nejvíce přizpůsobitelná čtečka PDF a DjVu dokumentů</string>
    <string name="books">Knihy</string>
    <string name="reading_out_loud">Čtení TTS (převod textu na řeč)</string>
-   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">Librera PRO (bez reklam): Přední čtečka ePUB a PDF</string>
+   <string name="librera_pro_no_ads_leading_book_reader_and_pdf">HowRead Pro (bez reklam): Přední čtečka ePUB a PDF</string>
    <string name="custom_text">Název</string>
    <string name="cd_search_books_in_the_library">Vyhledávání knih v knihovně</string>
    <string name="cd_clear_search_reasult">Vymazat výsledky vyhledávání</string>
@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">Zrcadlové oříznutí</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">Extrahovat jména autorů a názvy knih z metadat (PDF)</string>
    <string name="meta_tags">Meta tagy</string>
-   <string name="librera_pro">Librera PRO: tato aplikace, ale bez reklam</string>
+   <string name="librera_pro">HowRead Pro: tato aplikace, ale bez reklam</string>
    <string name="annotation">Poznámka</string>
    <string name="book">Kniha</string>
    <string name="information">Informace o souboru</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">Cloud není připojen</string>
    <string name="cloud_sync_folder">Složka synchronizace v cloudu</string>
    <string name="clouds">Cloudy</string>
-   <string name="librera_cloud">Librera Cloud</string>
+   <string name="librera_cloud">HowRead Cloud</string>
    <string name="hide_search_bar">Skrýt panel vyhledávání</string>
    <string name="show_search_bar">Zobrazit panel vyhledávání</string>
    <string name="never">Nikdy</string>

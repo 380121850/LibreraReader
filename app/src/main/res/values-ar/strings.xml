@@ -461,7 +461,7 @@
    <string name="crop_borders_symmetrically">حدود المحاصيل متناظرة</string>
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">عرض المؤلف وعنوان كتاب PDF من العلامات الوصفية</string>
    <string name="meta_tags">العلامات الفوقية</string>
-   <string name="librera_pro">Librera pro: هذا التطبيق ولكن بدون إعلانات</string>
+   <string name="librera_pro">HowRead Pro: هذا التطبيق ولكن بدون إعلانات</string>
    <string name="annotation">حاشية</string>
    <string name="book">كتاب</string>
    <string name="information">معلومات</string>
@@ -474,7 +474,7 @@
    <string name="cloud_not_connected">السحابة غير متصلة</string>
    <string name="cloud_sync_folder">مجلد مزامنة السحابة</string>
    <string name="clouds">سحاب</string>
-   <string name="librera_cloud">Librera سحابة</string>
+   <string name="librera_cloud">HowRead سحابة</string>
    <string name="hide_search_bar">إخفاء شريط البحث</string>
    <string name="show_search_bar">إظهار شريط البحث</string>
    <string name="never">أبدا</string>
