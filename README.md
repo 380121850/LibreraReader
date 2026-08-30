@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/foobnix/LirbiReader/master/logo.jpg)
+![Logo](https://github.com/380121850/howread/blob/master/logo.jpg)
 
 
 # HowRead · 好好读
@@ -13,13 +13,14 @@
 - Uses MuPDF under AGPL-3.0
 
 ## Changes from upstream
-- Renamed to HowRead (好好读)
-- New applicationId: com.howread.reader / com.howread.reader.pro
-- Removed all Google Play Services, Firebase, AdMob
-- Removed pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader flavors
-- Added lightweight local-file preview mode
+- 调整了UI布局，去掉了很多配置参数，更加专注阅读本身
+- 增加了WebDAV文件浏览、以及WebDAV同步支持，降低对商用网盘的依赖
+- 增加了AI大模型接入（兼容openAI标准，由用户自己配置AI KEY)，阅读时可以随时与AI交互
+- 增加了笔记功能，并且阅读时与AI交互内容，可以方便的一键加到笔记中
+- 增加了阅读统计，可以记录阅读时间、速度等信息
+- 做了性能优化，懒加载 + 并行模式，优化电子书文件打开速率
+- 与原功能相比变更较大，APP改名为HowRead (好好读)，意在于：值得读的，好好读
 - TODO
-
 
 **The development and support of Librera is frozen for an unpredictable time, there is a big war in my country
 Ukraine.**
