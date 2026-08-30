@@ -1989,6 +1989,19 @@ public class DragingDialogs {
                     });
                 }
 
+                // 笔记: open the full-screen note editor prefilled with the selected text
+                View onNoteToEdit = view.findViewById(R.id.onNoteToEdit);
+                if (onNoteToEdit != null) {
+                    onNoteToEdit.setOnClickListener(new OnClickListener() {
+                        @Override public void onClick(View v) {
+                            closeDialog();
+                            controller.clearSelectedText();
+                            NoteEditDialog.show(controller.getActivity(), controller,
+                                    editText.getText().toString().trim());
+                        }
+                    });
+                }
+
                 LinearLayout dictLayout = view.findViewById(R.id.dictionaryLine);
                 dictLayout.removeAllViews();
 

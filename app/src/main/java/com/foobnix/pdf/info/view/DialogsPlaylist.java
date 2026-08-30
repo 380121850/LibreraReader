@@ -373,21 +373,18 @@ public class DialogsPlaylist {
         final View playListParent = a.findViewById(R.id.playListParent);
         final ImageView closePlaylist = a.findViewById(R.id.closePlaylist);
 
+        // the playlist strip was retired from the reader footer; the views stay
+        // only because their ids are still bound elsewhere
         playListName.setVisibility(View.VISIBLE);
 
         playListNameEdit.setVisibility(View.GONE);
-        playlistRecycleView.setVisibility(View.VISIBLE);
-        playListParent.setVisibility(View.VISIBLE);
+        playlistRecycleView.setVisibility(View.GONE);
+        playListParent.setVisibility(View.GONE);
 
         Runnable updateVisible = new Runnable() {
             @Override public void run() {
-                if (AppState.get().isPlayListVisible) {
-                    playlistRecycleView.setVisibility(View.VISIBLE);
-                    closePlaylist.setVisibility(View.VISIBLE);
-                } else {
-                    playlistRecycleView.setVisibility(View.GONE);
-                    closePlaylist.setVisibility(View.GONE);
-                }
+                playlistRecycleView.setVisibility(View.GONE);
+                closePlaylist.setVisibility(View.GONE);
             }
         };
         closePlaylist.setOnClickListener(new OnClickListener() {

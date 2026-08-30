@@ -4,7 +4,7 @@
     <string name="app_name_pro" translatable="false">HowRead Pro</string>
 
 	<string name="my_email" translatable="false">380121850@163.com</string>
-    <string name="my_site" translatable="false"></string>
+	<string name="my_site" translatable="false">https://github.com/380121850/howread.git</string>
 
     <string name="one_drive" translatable="false">One Drive</string>
 

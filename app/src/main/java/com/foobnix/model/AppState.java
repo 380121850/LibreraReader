@@ -497,7 +497,7 @@ public class AppState {
     public String toLang = Urls.getLangCode();
     @IgnoreHashCode public int orientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     public int previousLibraryMode = MODE_GRID;
-    public int libraryMode = MODE_GRID;
+    public int libraryMode = MODE_SHELF;
     public int broseMode = MODE_LIST;
     public int recentMode = MODE_LIST;
     public int cloudMode = MODE_LIST_COMPACT;

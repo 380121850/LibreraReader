@@ -829,5 +829,8 @@
    <string name="note_empty">Nothing to save: get an AI answer first</string>
    <string name="note_count">%1$d items</string>
    <string name="reading_note">Note</string>
+   <string name="note_edit_save">Save note</string>
+   <string name="note_edit_hint">Enter note text…</string>
+   <string name="note_edit_page_fmt">Page %1$d / %2$d</string>
    <string name="bookmarks_and_notes">Bookmarks &amp; Notes</string>
 </resources>

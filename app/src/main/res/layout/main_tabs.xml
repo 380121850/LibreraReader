@@ -175,6 +175,23 @@
                             android:layout_height="170dip"
                             android:scaleType="centerCrop"
                             android:src="@drawable/drawer_banner" />
+
+                        <!-- brand tagline, centered on the banner -->
+                        <TextView
+                            android:id="@+id/drawerTagline"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text="值得读的，好好读"
+                            android:textColor="#FFFFFF"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            android:shadowColor="#88000000"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="4" />
                     </FrameLayout>
 
                     <!-- scrollable nav area: keeps the bottom action bar reachable

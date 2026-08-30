@@ -134,7 +134,7 @@
             style="@style/textLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="https://github.com/380121850/LibreraReader" />
+            android:text="howread.git" />
     </LinearLayout>
 
     <LinearLayout

@@ -830,5 +830,8 @@
    <string name="note_empty">请先获取 AI 回答再保存</string>
    <string name="note_count">%1$d 条</string>
    <string name="reading_note">笔记</string>
+   <string name="note_edit_save">保存笔记</string>
+   <string name="note_edit_hint">输入笔记内容…</string>
+   <string name="note_edit_page_fmt">第 %1$d / %2$d 页</string>
    <string name="bookmarks_and_notes">书签笔记</string>
 </resources>

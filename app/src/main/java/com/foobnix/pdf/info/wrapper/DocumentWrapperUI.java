@@ -62,6 +62,7 @@ import com.foobnix.pdf.info.view.DrawView;
 import com.foobnix.pdf.info.view.HorizontallSeekTouchEventListener;
 import com.foobnix.pdf.info.view.HypenPanelHelper;
 import com.foobnix.pdf.info.view.MyPopupMenu;
+import com.foobnix.pdf.info.view.NoteEditDialog;
 import com.foobnix.pdf.info.view.ProgressDraw;
 import com.foobnix.pdf.info.view.UnderlineImageView;
 import com.foobnix.pdf.info.widget.DraggbleTouchListener;
@@ -348,14 +349,11 @@ public class DocumentWrapperUI {
         public void onClick(final View arg0) {
             if (AppSP.get().isCrop) {
                 onCrop.onClick(null);
+                return;
             }
-
-            DragingDialogs.dialogEditColors(anchor, dc, drawView, false, new Runnable() {
-                @Override
-                public void run() {
-                    hideShowAnnotationLine();
-                }
-            });
+            // the toolbar pencil icon is the note entry now: it opens the
+            // full-screen note editor instead of the old draw-colors panel
+            NoteEditDialog.show(a, dc);
         }
     };
     SeekBar.OnSeekBarChangeListener onSpeed = new SeekBar.OnSeekBarChangeListener() {
@@ -1961,22 +1959,16 @@ public class DocumentWrapperUI {
     }
 
     public void hideShowEditIcon() {
-        if (dc != null && !BookType.PDF.is(dc.getCurrentBook().getPath())) {
+        if (dc != null && (AppSP.get().isCrop || AppSP.get().isCut)) {
+            // in crop / cut modes the icon keeps its crop short-cut role
             editTop2.setVisibility(View.GONE);
-        } else if (AppSP.get().isCrop || AppSP.get().isCut) {
+        } else if (dc != null && dc.isPasswordProtected()) {
             editTop2.setVisibility(View.GONE);
         } else {
-            boolean passwordProtected = dc.isPasswordProtected();
-            LOG.d("passwordProtected", passwordProtected);
-            if (dc != null && passwordProtected) {
-                editTop2.setVisibility(View.GONE);
-            } else {
-                if (AppsConfig.MUPDF_FZ_VERSION.equals(AppsConfig.MUPDF_1_11)) {
-                    editTop2.setVisibility(View.VISIBLE);
-                } else {
-                    editTop2.setVisibility(View.VISIBLE);
-                }
-            }
+            // the pencil icon is the note entry now: notes are plain
+            // bookmarks, so the icon is available for every book format,
+            // not only the (PDF) annotation-draw formats
+            editTop2.setVisibility(View.VISIBLE);
         }
 
     }

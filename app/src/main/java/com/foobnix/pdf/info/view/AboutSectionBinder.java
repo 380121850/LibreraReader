@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
@@ -13,12 +12,10 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.foobnix.LibreraBuildConfig;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.pdf.info.AndroidWhatsNew;
-import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.Urls;
@@ -40,7 +37,6 @@ public class AboutSectionBinder {
         View content = LayoutInflater.from(a).inflate(R.layout.dialog_about, null);
         bind(a, content);
         new AlertDialog.Builder(a)
-                .setTitle(R.string.moon_drawer_about)
                 .setView(content)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
@@ -49,13 +45,12 @@ public class AboutSectionBinder {
     public static void bind(final Activity a, View root) {
         try {
             PackageInfo packageInfo = a.getPackageManager().getPackageInfo(a.getPackageName(), 0);
-            String version = packageInfo.versionName + " (" + AppsConfig.MUPDF_FZ_VERSION + "-" + LibreraBuildConfig.FLAVOR + ")";
+            String version = packageInfo.versionName + "";
             ((TextView) root.findViewById(R.id.pVersion)).setText(
                     String.format("%s: %s", a.getString(R.string.version), version));
             TextView section6 = root.findViewById(R.id.section6);
             section6.setText(
-                    String.format("%s: %s %s %s", Apps.getApplicationName(a), version,
-                            "SDK: " + Build.VERSION.SDK_INT, Build.MANUFACTURER));
+                    String.format("%s: %s", Apps.getApplicationName(a), version));
             TintUtil.setBackgroundFillColor(section6, TintUtil.color);
         } catch (PackageManager.NameNotFoundException e) {
             LOG.e(e);

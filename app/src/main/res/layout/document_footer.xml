@@ -15,7 +15,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/playListName"
@@ -61,7 +62,6 @@
             android:tag="no_tint"
             android:padding="5dip"
             android:visibility="gone"></androidx.recyclerview.widget.RecyclerView>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -98,7 +98,8 @@
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
                 android:contentDescription="@string/recent"
-                android:src="@drawable/glyphicons_422_book_library" />
+                android:src="@drawable/glyphicons_422_book_library"
+                android:visibility="gone" />
 
             <ImageView
                 android:id="@+id/editTop2"
@@ -106,7 +107,7 @@
                 android:layout_width="@dimen/wh_button"
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
-                android:contentDescription="@string/annotations_draw"
+                android:contentDescription="@string/reading_note"
                 android:src="@drawable/glyphicons_151_square_edit" />
 
             <ImageView
@@ -116,7 +117,8 @@
                 android:layout_height="@dimen/wh_button"
                 android:layout_weight="0"
                 android:contentDescription="@string/go_to_page_dialog"
-                android:src="@drawable/glyphicons_37_file" />
+                android:src="@drawable/glyphicons_37_file"
+                android:visibility="gone" />
 
             <ImageView
                 android:id="@+id/onBookmarks"
@@ -160,7 +162,26 @@
                 android:text="@string/by_screans"
                 android:textAllCaps="true"
                 android:textColor="#ffffff"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/lockUnlock"
+                style="@style/buttonWhite"
+                android:layout_width="@dimen/wh_button"
+                android:layout_height="@dimen/wh_button"
+                android:layout_weight="0"
+                android:contentDescription="@string/block_page_movement_horizontally"
+                android:src="@drawable/glyphicons_217_lock" />
+
+            <ImageView
+                android:id="@+id/bookMenu"
+                style="@style/buttonWhite"
+                android:layout_width="@dimen/wh_button"
+                android:layout_height="@dimen/wh_button"
+                android:layout_weight="0"
+                android:contentDescription="@string/menu"
+                android:src="@drawable/glyphicons_498_more_vertical" />
         </LinearLayout>
 
         <LinearLayout
@@ -222,7 +243,8 @@
             android:orientation="horizontal"
             android:paddingLeft="2dip"
             android:paddingRight="2dip"
-            android:paddingBottom="2dip">
+            android:paddingBottom="2dip"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/autoScroll"
@@ -262,24 +284,6 @@
                 android:textColor="#ffffff"
                 android:textSize="13sp"
                 android:textStyle="normal" />
-
-            <ImageView
-                android:id="@+id/bookMenu"
-                style="@style/buttonWhite"
-                android:layout_width="@dimen/wh_button"
-                android:layout_height="@dimen/wh_button"
-                android:layout_weight="0"
-                android:contentDescription="@string/menu"
-                android:src="@drawable/glyphicons_498_more_vertical" />
-
-            <ImageView
-                android:id="@+id/lockUnlock"
-                style="@style/buttonWhite"
-                android:layout_width="@dimen/wh_button"
-                android:layout_height="@dimen/wh_button"
-                android:layout_weight="0"
-                android:contentDescription="@string/block_page_movement_horizontally"
-                android:src="@drawable/glyphicons_217_lock" />
         </LinearLayout>
     </LinearLayout>
 

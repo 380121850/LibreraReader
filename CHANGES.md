@@ -835,3 +835,54 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
 ## 影响与注意
 - 本机目录换新 → 书库重新扫描一次（全新安装本就如此）；旧 `/sdcard/Librera`、`Download/Librera` 文件不自动删除，可手动清理。
 - WebDAV 首次同步会多一步旧目录导入；升级路径 versionCode 已保持单调，0.9.0 可直接覆盖安装 9.4.x 之后的构建。
+# 2026-08-30 0.9.0 界面打磨（书架默认/关于弹窗/官网/配置文件/横幅标语）
+
+## 1. 书库显示模式默认书架
+- `AppState.libraryMode` 默认值 `MODE_GRID` → `MODE_SHELF`：新安装/重置后书库直接进书架；已手动选过显示模式的设备保持其选择。
+
+## 2. 软件说明弹窗精简（AboutSectionBinder，侧边栏与偏好两处入口共用）
+- 去掉弹窗顶部"软件说明"标题（`setTitle` 移除）。
+- 蓝色版本行由 `好好读: 0.9.0 (1.23.7-librera) SDK: 30 Xiaomi` 精简为 **`好好读: 0.9.0`**（不再展示 MuPDF 引擎串/SDK/厂商；native 库未动）；`pVersion` 行同步用纯版本号；清理不再使用的 import。
+
+## 3. 官网项展示 howread.git 超链接
+- `values/config.xml` `my_site` 由空改为 `https://github.com/380121850/howread.git`（官网行原本因空值隐藏）；
+- `about_section.xml` openWeb 显示文本 `howread.git`，点击打开完整链接。
+
+## 4. 配置文件默认 HowRead
+- `AppSP` 默认 profile `"Librera"` → `"HowRead"`；`init()` 一次性迁移把存量 `currentProfile=="Librera"` 自动改为 `"HowRead"`。
+- 影响：库 DB 文件名含 profile → 重建后自动重扫（真机已验证 72 本书扫回）；根目录旧 `profile.Librera` 文件夹保留在配置文件切换列表中，可手动删除。
+
+## 5. 侧边栏横幅标语
+- `main_tabs.xml` 顶部 banner（170dip 夜空图）内新增顶部居中 TextView `drawerTagline`：**"值得读的，好好读"**（白字+半透明阴影）；底部随机名言 drawerQuote 保留。
+
+## 验证（MI9，release 覆盖安装）
+- 同签名 release `pm install -r` 直接升级成功；
+- 真机截图核验：横幅标语 ✓；软件说明弹窗无标题/版本行精简/官网 howread.git ✓；偏好页配置文件 "H HowRead" ✓；书库书架视图 ✓。
+# 2026-08-30 横幅标语调整 + 阅读笔记入口（全屏笔记编辑器）
+
+## 1. 侧边栏横幅标语居中 + 字号放大一倍
+- `main_tabs.xml` drawerTagline：横幅正中显示（水平+垂直居中）、17sp → **34sp**、单行。
+
+## 2. 阅读界面"注释和手写"图标 → 笔记入口
+- 单击阅读页呼出的底栏中，写字板图标（editTop2）原来弹出画笔颜色面板（注释和手写）；现改为打开**全屏笔记编辑器**，图标保留。
+- 原逻辑仅 PDF 显示该图标 → 现在全格式显示（笔记是纯文本，不依赖 PDF 绘图）；裁剪/切边模式与密码保护文档下仍隐藏。
+- 绘图注释功能本身保留（点按已画注释、手势入口仍可打开画笔面板）。
+
+## 3. 新增全屏笔记编辑器 NoteEditDialog
+- 新类 `com.foobnix.pdf.info.view.NoteEditDialog` + 布局 `dialog_note_edit.xml`（仿 AI 全屏对话框，MATCH_PARENT² 大页面方便输入）。
+- 首行：创建时间（yyyy-MM-dd HH:mm）+ 当前位置"第 X / Y 页"；中间大尺寸多行输入框（自动聚焦）；底部 [取消] [保存笔记]。
+- 保存为 `AppBookmark`（path/内容/当前进度百分比 p/时间 t，isAiNote=true），进首页"书签笔记"卡片（显示内容与进度%，点击跳回保存时位置），并随 WebDAV 书签同步。
+- 新字符串：note_edit_save=保存笔记、note_edit_hint=输入笔记内容…、note_edit_page_fmt=第 %1$d / %2$d 页（values + zh-rCN；标题复用已有 reading_note=笔记）。
+
+## 验证（MI9，release 覆盖安装）
+- 横幅标语居中放大 ✓；PDF 底栏写字板图标 → 全屏笔记编辑器（首行"2026-08-30 17:40 · 第 7 / 22 页"）✓；输入保存 → Toast"好好读: 笔记已保存" ✓；首页书签笔记出现"HiFB开发指南.pdf / hello_howread_note / 32%" ✓。
+
+## [0.9.0] 2026-08-30
+### 交互打磨（阅读面板 / 选中菜单 / 横幅）
+- 侧边栏横幅标语"值得读的，好好读"由 34sp 缩至 32sp（部分真机单行溢出）。
+- 选中文字弹窗在"发送给AI"下方新增"笔记"入口（onNoteToEdit）：点击后关闭选区并打开全屏笔记编辑器，自动把所选文字预填进编辑框（光标在末尾）；NoteEditDialog 增加三参 show(a, dc, prefill) 重载。
+- 阅读界面单击面板由四行精简为两行（图标行 + 进度条行，document_footer.xml）：
+  - 移除底部"☰ 最近"播放列表行（playListParent/playlistRecycleView 固定 GONE，DialogsPlaylist.dispalyPlaylist 相应改为不再显示，view 保留仅因 id 仍被绑定）。
+  - 图标行移除"书架"（onRecent）、"前往页面"（thumbnail）、"页序"（nextTypeBootom），隐藏后 lockUnlock（锁）与 bookMenu（⋮）自第四行上移至图标行右端。
+  - 第四行（播放 autoScroll、TTS textToSpeach、"上下翻页" modeName）整行隐藏；autoScroll/textToSpeach 等 view 保留（HorizontalViewActivity 横屏模式仍绑定这些 id，避免 NPE）。
+- 验证：release 覆盖安装 MI9，横幅 32sp 单行居中；长按选中文字 → 弹窗"笔记"项 → 全屏编辑器预填所选文字 + 时间页码首行 → 保存 Toast 成功；单击面板仅剩图标行（搜索/笔记/书签/目录/锁/⋮）+ 进度条行。

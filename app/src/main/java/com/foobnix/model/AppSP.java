@@ -93,6 +93,12 @@ public class AppSP {
             LOG.d("migration", "rootPath1", rootPath1, "to", getRootDir());
             rootPath1 = getRootDir();
         }
+        // the default profile follows the rebrand; the old profile folder
+        // stays on disk and remains switchable from the profile picker
+        if ("Librera".equals(currentProfile)) {
+            LOG.d("migration", "currentProfile Librera to HowRead");
+            currentProfile = "HowRead";
+        }
     }
 
     public String getTempDir(Context c){
@@ -113,7 +119,7 @@ public class AppSP {
                 instance.currentProfile = "Demo";
             } else {
                 instance.rootPath1 =getRootDir();
-                instance.currentProfile = AppsConfig.IS_LOG ? "BETA" : "Librera";
+                instance.currentProfile = AppsConfig.IS_LOG ? "BETA" : "HowRead";
             }
 
         }
