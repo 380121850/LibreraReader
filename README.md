@@ -1,4 +1,4 @@
-![Logo](https://raw.githubusercontent.com/foobnix/LirbiReader/master/logo.jpg)
+![Logo](https://github.com/380121850/howread/edit/master/logo.jpg)
 
 
 # HowRead · 好好读
