@@ -769,10 +769,14 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                                 if (TempHolder.get().loadingCancelled.get()) {
                                     return;
                                 }
-                                final Page firstNewPage = dm.getPageObject(knownCount);
-                                if (dm.appendPages(fullCount) && firstNewPage != null) {
+                                // Marker = last page of the first phase; it
+                                // re-stacks itself plus every appended page.
+                                // (Fetching the first NEW page here would
+                                // return null: the array is not grown yet.)
+                                final Page marker = dm.getPageObject(Math.max(0, knownCount - 1));
+                                if (dm.appendPages(fullCount) && marker != null) {
                                     getDocumentController().invalidatePageSizes(
-                                            IViewController.InvalidateSizeReason.PAGE_LOADED, firstNewPage);
+                                            IViewController.InvalidateSizeReason.PAGE_LOADED, marker);
                                     currentPageChanged(dm.getCurrentIndex().docIndex, -1);
                                     wrapperControlls.refreshPageCount();
                                 }

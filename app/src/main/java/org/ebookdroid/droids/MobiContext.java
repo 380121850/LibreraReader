@@ -36,28 +36,28 @@ public class MobiContext extends PdfContext {
 
         LOG.d("Context", "MobiContext", fileName);
 
-        if (!AppsConfig.IS_LOG && cacheFile.isFile()) {
-            fileNameEpub = cacheFile.getPath();
-            LOG.d("Context", "MobiContext cache", fileNameEpub);
-
-        } else {
+        if (!cacheFile.isFile()) {
             try {
-                int outName = BookCSS.get().isAutoHypens ? "temp".hashCode() : originalHashCode;
-
-                FooterNote extract = MobiExtract.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath(), outName + "");
-                fileNameEpub = extract.path;
-                LOG.d("Context", "MobiContext outName", outName, extract.path);
                 if (BookCSS.get().isAutoHypens) {
-
-                    EpubExtractor.proccessHypens(fileNameEpub, cacheFile.getPath(), null);
-                    fileNameEpub = cacheFile.getPath();
+                    // Convert to a temporary name first, then rewrite with
+                    // hyphenation/replacements into the cached file.
+                    FooterNote extract = MobiExtract.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath(), "temp");
+                    EpubExtractor.proccessHypens(extract.path, cacheFile.getPath(), null);
+                } else {
+                    // Convert straight into the cached file name (the
+                    // extractor appends ".epub"). The old code wrote a
+                    // differently-named file, so the cached branch below
+                    // never triggered and every open re-converted the book.
+                    final String base = cacheFile.getName();
+                    MobiExtract.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath(),
+                            base.substring(0, base.length() - ".epub".length()));
                 }
-                LOG.d("Context", "MobiContext extract", fileNameEpub);
-
             } catch (Exception e) {
                 LOG.e(e);
             }
         }
+        fileNameEpub = cacheFile.getPath();
+        LOG.d("Context", "MobiContext file", fileNameEpub);
 
         final MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, fileNameEpub, password);
 

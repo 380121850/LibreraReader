@@ -95,7 +95,7 @@ public abstract class AbstractCodecContext implements CodecContext {
         if (!BookType.ODT.is(fileNameOriginal)) {
             // Keep the most recent conversion products (incl. the current
             // book) instead of wiping all other books on every open.
-            CacheZipUtils.trimFiles(CacheZipUtils.CACHE_BOOK_DIR.listFiles(), cacheFileName, 4);
+            CacheZipUtils.trimFiles(CacheZipUtils.CACHE_BOOK_DIR.listFiles(), cacheFileName, 8);
             CacheZipUtils.removeDirs(CacheZipUtils.CACHE_BOOK_DIR.listFiles(), new File(cacheFileName + "-source"));
         }
 
