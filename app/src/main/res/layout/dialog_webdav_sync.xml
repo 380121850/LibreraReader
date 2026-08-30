@@ -90,6 +90,29 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dip"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="110dip"
+            android:text="@string/webdav_sync_interval"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/webdavSyncIntervalValue"
+            style="@style/textLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/webdav_sync_interval_15" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="10dip"
         android:orientation="horizontal">
 

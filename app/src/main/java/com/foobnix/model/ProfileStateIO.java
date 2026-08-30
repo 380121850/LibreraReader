@@ -170,8 +170,21 @@ public class ProfileStateIO {
             }
             LinkedJSONObject sp = root.optJSONObject(SEC_APPSP);
             if (sp != null && sp.length() > 0) {
-                com.foobnix.android.utils.Objects.loadFromJson(AppSP.get(), sp);
-                AppSP.get().save();
+                // the AppSP snapshot carries the source device's identity:
+                // its storage root, profile and last-read book never migrate
+                final AppSP app = AppSP.get();
+                final String rootPath = app.rootPath1;
+                final String profile = app.currentProfile;
+                final String syncRoot = app.syncRootID;
+                final String lastBook = app.lastBookPath;
+                final int lastPage = app.lastBookPage;
+                com.foobnix.android.utils.Objects.loadFromJson(app, sp);
+                app.rootPath1 = rootPath;
+                app.currentProfile = profile;
+                app.syncRootID = syncRoot;
+                app.lastBookPath = lastBook;
+                app.lastBookPage = lastPage;
+                app.save();
             }
             restorePrefs(c, SEC_OPDS, root.optJSONObject(SEC_OPDS));
             restorePrefs(c, SEC_PASSWORD, root.optJSONObject(SEC_PASSWORD));
@@ -587,6 +600,51 @@ public class ProfileStateIO {
                 dst.put(src.get(i));
             } catch (Exception ignored) {
             }
+        }
+    }
+
+    /**
+     * After a backup-zip restore the global config files (app-State /
+     * app-CSS / app-Misc) may only exist under the source device's
+     * directory: they are read from device.&lt;model&gt;/ of the current
+     * model only, so a restore on a different device would silently skip
+     * every setting. Adopt the most recent copy of each missing file from
+     * the other device directories (a local copy always wins).
+     */
+    public static void adoptForeignDeviceConfigs() {
+        try {
+            final File profileDir = AppProfile.SYNC_FOLDER_PROFILE;
+            final File deviceDir = AppProfile.SYNC_FOLDER_DEVICE_PROFILE;
+            if (profileDir == null || deviceDir == null || !profileDir.isDirectory()) {
+                return;
+            }
+            final String[] names = { AppProfile.APP_STATE_JSON, AppProfile.APP_CSS_JSON, AppProfile.APP_MISC_JSON };
+            for (final String name : names) {
+                if (new File(deviceDir, name).isFile()) {
+                    continue;
+                }
+                File best = null;
+                final File[] dirs = profileDir.listFiles();
+                if (dirs == null) {
+                    continue;
+                }
+                for (final File dir : dirs) {
+                    if (!dir.isDirectory() || !dir.getName().startsWith(AppProfile.DEVICE_PREFIX)
+                            || dir.getName().equals(AppProfile.DEVICE_MODEL)) {
+                        continue;
+                    }
+                    final File candidate = new File(dir, name);
+                    if (candidate.isFile() && (best == null || candidate.lastModified() > best.lastModified())) {
+                        best = candidate;
+                    }
+                }
+                if (best != null) {
+                    IO.copyFile(best, new File(deviceDir, name));
+                    LOG.d("ProfileStateIO", "adopted", name, "from", best.getParent());
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
         }
     }
 }

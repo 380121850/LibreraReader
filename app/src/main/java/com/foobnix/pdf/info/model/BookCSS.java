@@ -324,6 +324,9 @@ public class BookCSS {
             LOG.d("Objects-save", "SAVE BookCSS");
             hashCode = currentHash;
             IO.writeObj(AppProfile.syncCSS, instance);
+            // the styling really changed: run one WebDAV sync for it
+            // (no-op unless sync is configured; coalesced/debounced there)
+            com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(c);
         }
     }
 

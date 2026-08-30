@@ -276,6 +276,10 @@ public class PrefDialogs {
                                 ExportConverter.covertJSONtoNew(activity, new File(result1));
                             } else if (result1.endsWith(EXPORT_BACKUP_ZIP)) {
                                 ExportConverter.unZipFolder(new File(result1), AppProfile.SYNC_FOLDER_ROOT);
+                                // the zip may only carry settings of another
+                                // device model; adopt them for this one so a
+                                // cross-model restore keeps theme/styling too
+                                ProfileStateIO.adoptForeignDeviceConfigs();
                                 // Merge the per-book bookmarks & notes file back into
                                 // app-Bookmarks.json (idempotent by time key).
                                 BookmarksData.get().importByBook();
@@ -523,6 +527,9 @@ public class PrefDialogs {
                             // Remaining configurable state (AppSP, OPDS logins,
                             // passwords, reader button layout)
                             ProfileStateIO.exportMisc(activity);
+                            // OPDS / WebDAV servers + library folders, fresh
+                            // even when no WebDAV sync has ever run
+                            ProfileStateIO.exportNetworkSources();
                             ExportConverter.zipFolder(AppProfile.SYNC_FOLDER_ROOT, toFile);
                             return true;
                         } catch (ZipException e) {

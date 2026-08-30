@@ -4,19 +4,24 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.FileHash;
 import com.foobnix.android.utils.IO;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
+import com.foobnix.LibreraApp;
 import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppProfile;
+import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.model.MyPath;
 import com.foobnix.model.ProfileStateIO;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExtUtils;
+import com.foobnix.pdf.info.R;
+import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.ui2.AppDB;
 import com.thegrizzlylabs.sardineandroid.DavResource;
 import com.thegrizzlylabs.sardineandroid.Sardine;
@@ -39,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
 
 import javax.net.ssl.SSLException;
 
@@ -81,6 +87,41 @@ public class WebDavSyncer {
     private static final String STATE_FILE = "app-State.json";
     private static final String CSS_FILE = "app-CSS.json";
 
+    /**
+     * Device-bound app-State.json fields (screen metrics, absolute paths,
+     * session residue, per-device credentials): excluded from the sync
+     * comparison, stripped from the uploaded copy and re-applied locally
+     * after a download, so devices never overwrite each other with values
+     * that only make sense on one machine.
+     */
+    private static final Set<String> STATE_DEVICE_FIELDS = new HashSet<String>(Arrays.asList(
+            "displayPath", "installationDate",
+            "statusBarTextSizeAdv", "statusBarTextSizeEasy", "progressLineHeight",
+            "tapzoneSize", "coverBigSize", "isReverseKeys", "pageQuality",
+            "isCutRTL", "isRTLByDefault", "selectingByLetters",
+            "fileToDelete", "myAutoCompleteDb",
+            "bgImageDayPath", "bgImageNightPath",
+            "proxyEnable", "proxyServer", "proxyPort", "proxyUser", "proxyPassword",
+            "selectedText", "searchQuery", "isAutoScroll",
+            "hashCode", "webdavLastSyncTime", "webdavLastSyncInfo"));
+
+    /** Device-bound app-CSS.json fields (absolute paths and the SAF URI). */
+    private static final Set<String> CSS_DEVICE_FIELDS = new HashSet<String>(Arrays.asList(
+            "searchPathsJson", "cachePath", "downlodsPath", "ttsSpeakPath", "backupPath",
+            "dictPath", "fontFolder", "dirLastPath", "pathSAF", "mp3BookPathJson",
+            "syncDropboxPath", "syncGdrivePath", "syncOneDrivePath",
+            "hashCode"));
+
+    /**
+     * The sync setup fields: setting them is what ENABLES the first sync on
+     * a fresh device, so "just configured sync" must not make that device
+     * look personalized — they are ignored by the default-config detection
+     * and kept local when the server copy is adopted.
+     */
+    private static final Set<String> SYNC_CONFIG_FIELDS = new HashSet<String>(Arrays.asList(
+            "webdavSyncEnabled", "webdavSyncServer", "webdavSyncRemoteDir",
+            "webdavSyncPolicy", "webdavSyncIntervalMin"));
+
     public static class SyncResult {
         public boolean ok = false;
         /** "", "auth", "ssl", "network", "no_server", "other" */
@@ -100,18 +141,88 @@ public class WebDavSyncer {
         void onFinish(SyncResult result);
     }
 
+    /** True while a doSync runs on the worker thread: the lastSync stamps
+     * that doSync itself writes through AppState.save must never trigger
+     * another automatic sync (that would never stop). */
+    private static volatile boolean syncingNow;
+
+    private static final Handler SYNC_SCHEDULER = new Handler(Looper.getMainLooper());
+    private static final long CONFIG_SYNC_DEBOUNCE_MS = 10 * 1000;
+    private static Runnable pendingConfigSync;
+    private static Runnable pendingPeriodicSync;
+
     /** Run the sync on a background thread; callbacks arrive on the main thread. */
     public static void syncAsync(final Context c, final Listener listener) {
         final Handler main = new Handler(Looper.getMainLooper());
         AppsConfig.executorServiceSingle.execute(() -> {
-            if (listener != null) {
-                main.post(() -> listener.onStep("sync"));
-            }
-            final SyncResult result = doSync(c);
-            if (listener != null) {
-                main.post(() -> listener.onFinish(result));
+            syncingNow = true;
+            try {
+                if (listener != null) {
+                    main.post(() -> listener.onStep("sync"));
+                }
+                final SyncResult result = doSync(c);
+                if (listener != null) {
+                    main.post(() -> listener.onFinish(result));
+                }
+            } finally {
+                syncingNow = false;
             }
         });
+    }
+
+    /**
+     * The local configuration changed (AppState.save / BookCSS.save): run one
+     * silent sync shortly after, coalescing a burst of saves into a single
+     * run. Dropped while a sync is in progress — the only saves made inside
+     * doSync are its own lastSync stamps — so periodic/manual syncs stay the
+     * safety net for anything changed during those few seconds.
+     */
+    public static void notifyConfigChanged(final Context c) {
+        try {
+            if (syncingNow) {
+                return;
+            }
+            if (pendingConfigSync != null) {
+                SYNC_SCHEDULER.removeCallbacks(pendingConfigSync);
+            }
+            pendingConfigSync = () -> {
+                pendingConfigSync = null;
+                if (syncingNow) {
+                    return;
+                }
+                if (AppState.get().webdavSyncEnabled && TxtUtils.isNotEmpty(AppState.get().webdavSyncServer)) {
+                    syncAsync(c.getApplicationContext(), null);
+                }
+            };
+            SYNC_SCHEDULER.postDelayed(pendingConfigSync, CONFIG_SYNC_DEBOUNCE_MS);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * Periodic background sync while the app is alive. The interval is
+     * re-read on every cycle, so a new value picked in the dialog (or synced
+     * from another device) applies from the next cycle on;
+     * webdavSyncIntervalMin &lt;= 0 disables the periodic sync.
+     */
+    public static void scheduleNextPeriodic(final Context c) {
+        if (pendingPeriodicSync != null) {
+            SYNC_SCHEDULER.removeCallbacks(pendingPeriodicSync);
+        }
+        final int min = AppState.get().webdavSyncIntervalMin;
+        if (min <= 0) {
+            return;
+        }
+        pendingPeriodicSync = () -> {
+            pendingPeriodicSync = null;
+            final Context app = c.getApplicationContext();
+            if (AppState.get().webdavSyncEnabled && TxtUtils.isNotEmpty(AppState.get().webdavSyncServer)) {
+                syncAsync(app, null);
+            }
+            scheduleNextPeriodic(app);
+        };
+        SYNC_SCHEDULER.postDelayed(pendingPeriodicSync, min * 60 * 1000L);
     }
 
     /**
@@ -187,7 +298,7 @@ public class WebDavSyncer {
             ProfileStateIO.exportMisc(c);
             syncMergedArrayFile(s, globalUrl, AppProfile.syncRecent);
             syncMergedArrayFile(s, globalUrl, AppProfile.syncFavorite);
-            syncMergedObjectFile(s, globalUrl, AppProfile.syncBookStates, WebDavSyncer::mergeStatesByTime);
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncBookStates, WebDavSyncer::mergeStatesMaxWins);
             syncMergedObjectFile(s, globalUrl, AppProfile.syncStats, ProfileStateIO::mergeStats);
             syncMergedObjectFile(s, globalUrl, AppProfile.syncAI, (l, r) -> ProfileStateIO.mergeAi(c, r));
             syncMergedObjectFile(s, globalUrl, AppProfile.syncMisc, ProfileStateIO::mergeMisc);
@@ -364,18 +475,22 @@ public class WebDavSyncer {
         LinkedJSONObject merge(LinkedJSONObject local, LinkedJSONObject remote);
     }
 
-    /** Union by key of the per-book read-state overrides; the newer "t" wins. */
-    static LinkedJSONObject mergeStatesByTime(LinkedJSONObject local, LinkedJSONObject remote) {
+    /**
+     * Union by key of the per-book read-state overrides (0 unread, 1 reading,
+     * 2 read); the "further along" state wins, so marks converge on every
+     * device instead of each device overwriting the server with its own copy.
+     */
+    static LinkedJSONObject mergeStatesMaxWins(LinkedJSONObject local, LinkedJSONObject remote) {
         LinkedJSONObject out = new LinkedJSONObject(local.toString());
         Iterator<String> keys = remote.keys();
         while (keys.hasNext()) {
             String k = keys.next();
-            LinkedJSONObject r = remote.optJSONObject(k);
-            if (r == null) {
+            int r = remote.optInt(k, -1);
+            if (r < 0) {
                 continue;
             }
-            LinkedJSONObject l = out.optJSONObject(k);
-            if (l == null || r.optLong("t", 0) > l.optLong("t", 0)) {
+            int l = out.optInt(k, -1);
+            if (l < 0 || r > l) {
                 out.put(k, r);
             }
         }
@@ -458,73 +573,90 @@ public class WebDavSyncer {
     }
 
     /**
-     * Two-way sync of one global config file: identical content = no-op,
-     * otherwise the newer file (remote modified vs local lastModified) wins.
-     * Volatile fields (webdavLastSync*) are excluded from the comparison so
-     * per-sync status stamps never echo back and forth between devices.
+     * Two-way sync of one global config file: identical personal content =
+     * no-op, otherwise the newer file (remote modified vs local lastModified)
+     * wins. Device-bound fields (STATE_DEVICE_FIELDS / CSS_DEVICE_FIELDS)
+     * never take part: they are excluded from the comparison, stripped from
+     * the uploaded copy and re-applied locally after a download.
+     *
+     * A local file that still equals the out-of-the-box defaults never wins
+     * the mtime race: a fresh install would otherwise overwrite the server
+     * (and every other device) with default values.
      *
      * For app-State.json the AI model config fields are additionally union
      * merged (ProfileStateIO.mergeAiState): after a reset the freshly created
      * local file is always "newer" and plain newer-wins would clobber the
      * server copy with empty AI fields.
      */
-    static void syncGlobalFile(Sardine s, String globalUrl, File local, boolean stripVolatile) {
+    static void syncGlobalFile(Sardine s, String globalUrl, File local, boolean stateFile) {
         try {
             if (local == null || !local.isFile()) {
                 return;
             }
+            final Set<String> deviceFields = stateFile ? STATE_DEVICE_FIELDS : CSS_DEVICE_FIELDS;
+            final String url = globalUrl + "/" + local.getName();
             final String localFull = readText(local);
-            final String localText = stripVolatile
-                    ? withoutVolatile(new LinkedJSONObject(localFull)).toString()
-                    : localFull;
-            final String remoteText = fetchText(s, globalUrl + "/" + local.getName());
-            // both sides compared without the volatile fields
+            final String localCmp = withoutFields(new LinkedJSONObject(localFull), deviceFields).toString();
+            final String remoteText = fetchText(s, url);
             final String remoteCmp = remoteText == null
                     ? null
-                    : (stripVolatile ? withoutVolatile(new LinkedJSONObject(remoteText)).toString() : remoteText);
-            if (remoteCmp != null && normalize(remoteCmp).equals(normalize(localText))) {
+                    : withoutFields(new LinkedJSONObject(remoteText), deviceFields).toString();
+            if (remoteCmp != null && normalize(remoteCmp).equals(normalize(localCmp))) {
                 return;
             }
-            final long remoteMod = remoteModified(s, globalUrl + "/" + local.getName());
+            final long remoteMod = remoteModified(s, url);
             if (remoteText == null) {
-                s.put(globalUrl + "/" + local.getName(), localFull.getBytes("UTF-8"));
-                return;
-            }
-            if (!stripVolatile) {
-                if (remoteMod > local.lastModified()) {
-                    IO.writeObjSync(local, new LinkedJSONObject(remoteText));
-                } else {
-                    s.put(globalUrl + "/" + local.getName(), localFull.getBytes("UTF-8"));
-                }
+                // initial upload; the server copy never stores device-bound fields
+                s.put(url, withoutFields(new LinkedJSONObject(localFull), deviceFields).toString().getBytes("UTF-8"));
                 return;
             }
             final LinkedJSONObject localObj = new LinkedJSONObject(localFull);
             final LinkedJSONObject remoteObj = new LinkedJSONObject(remoteText);
-            final boolean remoteNewer = remoteMod > local.lastModified();
-            final LinkedJSONObject merged = ProfileStateIO.mergeAiState(localObj, remoteObj, remoteNewer);
-            final boolean localChanged = !merged.toString().equals(localFull);
-            final boolean remoteChanged = !merged.toString().equals(remoteText);
+            // a never-personalized local config must never overwrite the
+            // server: a fresh install would otherwise win the mtime race
+            // with default values (configuring the sync itself does not
+            // count as personalization)
+            final Set<String> defaultIgnore;
+            if (stateFile) {
+                defaultIgnore = new HashSet<String>(STATE_DEVICE_FIELDS);
+                defaultIgnore.addAll(SYNC_CONFIG_FIELDS);
+            } else {
+                defaultIgnore = deviceFields;
+            }
+            final boolean localIsDefault = isDefaultConfig(localFull, defaultIgnore, stateFile);
+            final boolean remoteNewer = remoteMod > local.lastModified() || localIsDefault;
+            final LinkedJSONObject merged = stateFile
+                    ? ProfileStateIO.mergeAiState(localObj, remoteObj, remoteNewer)
+                    : (remoteNewer ? remoteObj : localObj);
+            final boolean remoteChanged = !normalize(withoutFields(merged, deviceFields).toString())
+                    .equals(normalize(remoteCmp));
             if (remoteNewer) {
-                // remote wins: write through, keeping the local volatile fields
-                keepLocalVolatile(merged);
-                IO.writeObjSync(local, merged);
-            } else if (localChanged) {
+                // remote wins: write through, keeping the local device-bound fields
+                keepLocalFields(merged, localObj, deviceFields);
+                if (localIsDefault) {
+                    // the sync setup was just typed on this device: keep it
+                    // while everything personal comes from the server
+                    keepLocalFields(merged, localObj, SYNC_CONFIG_FIELDS);
+                }
+            }
+            if (!normalize(merged.toString()).equals(normalize(localFull))) {
                 IO.writeObjSync(local, merged);
             }
-            if (remoteChanged || remoteNewer) {
-                s.put(globalUrl + "/" + local.getName(), merged.toString().getBytes("UTF-8"));
+            if (remoteChanged) {
+                s.put(url, withoutFields(merged, deviceFields).toString().getBytes("UTF-8"));
             }
         } catch (Exception e) {
             LOG.e(e, "WebDavSyncer global", local.getName());
         }
     }
 
-    private static LinkedJSONObject withoutVolatile(LinkedJSONObject obj) {
+    /** Copy of the object without the device-bound (and volatile) fields. */
+    private static LinkedJSONObject withoutFields(LinkedJSONObject obj, Set<String> fields) {
         LinkedJSONObject copy = new LinkedJSONObject();
         Iterator<String> keys = obj.keys();
         while (keys.hasNext()) {
             String k = keys.next();
-            if ("webdavLastSyncTime".equals(k) || "webdavLastSyncInfo".equals(k)) {
+            if (fields.contains(k)) {
                 continue;
             }
             try {
@@ -535,16 +667,80 @@ public class WebDavSyncer {
         return copy;
     }
 
-    private static void keepLocalVolatile(LinkedJSONObject remote) {
-        try {
-            if (AppState.get().webdavLastSyncTime > 0) {
-                remote.put("webdavLastSyncTime", AppState.get().webdavLastSyncTime);
+    /** Re-apply the local device-bound fields over an object won by the server. */
+    private static void keepLocalFields(LinkedJSONObject merged, LinkedJSONObject localObj, Set<String> fields) {
+        for (String k : fields) {
+            try {
+                if (localObj.has(k)) {
+                    merged.put(k, localObj.get(k));
+                } else {
+                    merged.remove(k);
+                }
+            } catch (Exception ignored) {
             }
-            if (TxtUtils.isNotEmpty(AppState.get().webdavLastSyncInfo)) {
-                remote.put("webdavLastSyncInfo", AppState.get().webdavLastSyncInfo);
-            }
-        } catch (Exception ignored) {
         }
+    }
+
+    /**
+     * True when the local file still equals the out-of-the-box defaults in
+     * every personal (non device-bound) field: the user has never customized
+     * this device, so the server copy must win the first sync instead of
+     * being clobbered by freshly generated defaults.
+     */
+    static boolean isDefaultConfig(String localText, Set<String> deviceFields, boolean stateFile) {
+        try {
+            final LinkedJSONObject def;
+            if (stateFile) {
+                def = new LinkedJSONObject(com.foobnix.android.utils.Objects.toJSONString(defaultAppState()));
+            } else {
+                BookCSS css = new BookCSS();
+                String hyphenLang = AppSP.get().hypenLang;
+                css.resetToDefault(null);
+                AppSP.get().hypenLang = hyphenLang; // resetToDefault touches the global AppSP
+                def = new LinkedJSONObject(com.foobnix.android.utils.Objects.toJSONString(css));
+            }
+            return normalize(withoutFields(def, deviceFields).toString())
+                    .equals(normalize(withoutFields(new LinkedJSONObject(localText), deviceFields).toString()));
+        } catch (Exception e) {
+            LOG.e(e, "WebDavSyncer isDefaultConfig");
+            return false;
+        }
+    }
+
+    /**
+     * A fresh AppState as defaults() writes it on first run: the localized
+     * mode labels, the theme following the system dark mode, the rebrand
+     * day/night colors and the What's-New default. The accessibility and
+     * e-ink adjustments of defaults() are deliberately not reproduced (they
+     * mutate global singletons): on such devices default detection simply
+     * stays false and the classic mtime rule applies.
+     */
+    private static AppState defaultAppState() {
+        AppState st = new AppState();
+        final Context a = LibreraApp.context;
+        if (a != null) {
+            st.nameVerticalMode = a.getString(R.string.mode_vertical);
+            st.nameHorizontalMode = a.getString(R.string.mode_horizontally);
+            st.nameMusicianMode = a.getString(R.string.mode_musician);
+            st.musicText = a.getString(R.string.musician);
+            final String pkg = com.foobnix.android.utils.Apps.getPackageName(a);
+            if (!AppsConfig.LIBRERA_READER.equals(pkg) && !AppsConfig.PRO_LIBRERA_READER.equals(pkg)) {
+                st.isShowWhatIsNewDialog = false;
+            }
+        }
+        st.appTheme = Dips.isDarkThemeOn() ? AppState.THEME_DARK : AppState.THEME_LIGHT;
+        // first-run migration in loadInit() flips this once (the tab merge);
+        // the saved default file always carries the migrated value
+        st.networkTabMerged = true;
+        st.colorDayText = AppState.COLOR_BLACK;
+        st.isUseBGImageDay = true;
+        st.colorDayBg = AppState.COLOR_WHITE;
+        st.colorDayForeground = AppState.COLOR_DAY_FG;
+        st.isUseBGImageNight = true;
+        st.colorNigthText = AppState.COLOR_WHITE;
+        st.colorNigthBg = AppState.COLOR_BLACK;
+        st.colorNigthForeground = AppState.COLOR_NIGHT_FG;
+        return st;
     }
 
     private static String normalize(String json) {

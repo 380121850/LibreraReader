@@ -761,6 +761,9 @@ public class MainTabs2 extends AdsFragmentActivity {
                 }
             }, 4000);
         }
+        // …and arm the periodic background sync (no-op while the configured
+        // interval is 0/"off")
+        WebDavSyncer.scheduleNextPeriodic(MainTabs2.this);
 
         // Warm the MuPDF accelerator for the last-read book shortly after
         // launch, so its next open skips the full-document layout. Repeats are

@@ -193,7 +193,7 @@
         android:gravity="left|center_vertical"
         android:orientation="horizontal"
         android:padding="4dip"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <ImageView
             android:layout_width="@dimen/wh_button"

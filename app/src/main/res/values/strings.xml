@@ -787,6 +787,14 @@
    <string name="webdav_sync_conflict">Progress conflict policy</string>
    <string name="webdav_sync_policy_newer">Prefer newer (by edit time)</string>
    <string name="webdav_sync_policy_farther">Prefer further (by reading position)</string>
+   <string name="webdav_sync_interval">Background sync</string>
+   <string name="webdav_sync_interval_off">Off</string>
+   <string name="webdav_sync_interval_15">Every 15 minutes</string>
+   <string name="webdav_sync_interval_30">Every 30 minutes</string>
+   <string name="webdav_sync_interval_60">Every hour</string>
+   <string name="webdav_sync_interval_180">Every 3 hours</string>
+   <string name="webdav_sync_interval_360">Every 6 hours</string>
+   <string name="webdav_sync_interval_1440">Every day</string>
    <string name="webdav_sync_independent">Independent from the WebDAV servers in My files</string>
    <string name="webdav_sync_remote_dir">Sync path</string>
    <string name="webdav_path_pick_title">Choose server folder</string>

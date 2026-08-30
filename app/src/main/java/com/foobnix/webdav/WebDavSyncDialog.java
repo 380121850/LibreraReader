@@ -45,6 +45,7 @@ public class WebDavSyncDialog {
         final CheckBox trustCerts = (CheckBox) view.findViewById(R.id.webdavSyncTrustCerts);
         final TextView remoteValue = (TextView) view.findViewById(R.id.webdavSyncRemoteValue);
         final TextView policyValue = (TextView) view.findViewById(R.id.webdavSyncPolicyValue);
+        final TextView intervalValue = (TextView) view.findViewById(R.id.webdavSyncIntervalValue);
         final TextView test = (TextView) view.findViewById(R.id.webdavSyncTest);
         final TextView syncNow = (TextView) view.findViewById(R.id.webdavSyncNow);
         final TextView status = (TextView) view.findViewById(R.id.webdavSyncStatus);
@@ -54,6 +55,7 @@ public class WebDavSyncDialog {
         TxtUtils.underlineTextView(syncNow);
         TxtUtils.underlineTextView(policyValue);
         TxtUtils.underlineTextView(remoteValue);
+        TxtUtils.underlineTextView(intervalValue);
 
         // load the current config into the fields; when the sync server is
         // not configured yet, the fields are pre-filled (as defaults only)
@@ -82,6 +84,7 @@ public class WebDavSyncDialog {
         }
         refreshRemoteLabel(remoteValue);
         refreshPolicyLabel(policyValue);
+        refreshIntervalLabel(intervalValue);
         refreshStatusLabel(a, status);
 
         enable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -108,6 +111,30 @@ public class WebDavSyncDialog {
                         }
                         AppProfile.save(a);
                         refreshPolicyLabel(policyValue);
+                        return true;
+                    }
+                });
+                popup.show();
+            }
+        });
+
+        intervalValue.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(final View v) {
+                PopupMenu popup = new PopupMenu(a, v);
+                popup.getMenu().add(0, 0, 0, R.string.webdav_sync_interval_off);
+                popup.getMenu().add(0, 15, 1, R.string.webdav_sync_interval_15);
+                popup.getMenu().add(0, 30, 2, R.string.webdav_sync_interval_30);
+                popup.getMenu().add(0, 60, 3, R.string.webdav_sync_interval_60);
+                popup.getMenu().add(0, 180, 4, R.string.webdav_sync_interval_180);
+                popup.getMenu().add(0, 360, 5, R.string.webdav_sync_interval_360);
+                popup.getMenu().add(0, 1440, 6, R.string.webdav_sync_interval_1440);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override public boolean onMenuItemClick(android.view.MenuItem item) {
+                        AppState.get().webdavSyncIntervalMin = item.getItemId();
+                        AppProfile.save(a);
+                        // re-arm with the new interval; <= 0 stops the cycle
+                        WebDavSyncer.scheduleNextPeriodic(a);
+                        refreshIntervalLabel(intervalValue);
                         return true;
                     }
                 });
@@ -256,6 +283,33 @@ public class WebDavSyncDialog {
             policyValue.setText(R.string.webdav_sync_policy_farther);
         } else {
             policyValue.setText(R.string.webdav_sync_policy_newer);
+        }
+    }
+
+    /** The periodic-sync interval as a human label ("Off", "Every hour"…). */
+    private static void refreshIntervalLabel(TextView intervalValue) {
+        switch (AppState.get().webdavSyncIntervalMin) {
+        case 15:
+            intervalValue.setText(R.string.webdav_sync_interval_15);
+            break;
+        case 30:
+            intervalValue.setText(R.string.webdav_sync_interval_30);
+            break;
+        case 60:
+            intervalValue.setText(R.string.webdav_sync_interval_60);
+            break;
+        case 180:
+            intervalValue.setText(R.string.webdav_sync_interval_180);
+            break;
+        case 360:
+            intervalValue.setText(R.string.webdav_sync_interval_360);
+            break;
+        case 1440:
+            intervalValue.setText(R.string.webdav_sync_interval_1440);
+            break;
+        default:
+            intervalValue.setText(R.string.webdav_sync_interval_off);
+            break;
         }
     }
 

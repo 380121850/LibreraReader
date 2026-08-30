@@ -90,6 +90,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
     // kept between layout passes: the 我的文件 quick sources are rebuilt on
     // every refresh so newly added WebDAV servers / library folders show up
     LinearLayout filesRowView;
+    View filesHeader;
 
     @Override
     public Pair<Integer, Integer> getNameAndIconRes() {
@@ -148,6 +149,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         bindRow((RecyclerView) view.findViewById(R.id.bookmarkRow), bookmarkAdapter);
 
         filesRowView = (LinearLayout) view.findViewById(R.id.filesRow);
+        filesHeader = view.findViewById(R.id.filesHeader);
         buildFileSources(filesRowView);
 
         populate();
@@ -266,13 +268,16 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
                 }
             });
         }
-        // catch-all entry into the full files tab
-        addSource(row, getString(R.string.moon_my_files), R.drawable.glyphicons_145_folder_open, Color.parseColor("#757575"), new Runnable() {
-            @Override
-            public void run() {
-                goToTab(UITab.BrowseFragment);
-            }
-        });
+        // only the real configured sources are shown (no catch-all entry);
+        // with none of them the whole section stays hidden
+        final boolean empty = row.getChildCount() == 0;
+        final View scroll = (View) row.getParent();
+        if (scroll != null) {
+            scroll.setVisibility(empty ? View.GONE : View.VISIBLE);
+        }
+        if (filesHeader != null) {
+            filesHeader.setVisibility(empty ? View.GONE : View.VISIBLE);
+        }
     }
 
     private void addSource(LinearLayout row, String label, int iconRes, int color, final Runnable action) {

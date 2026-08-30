@@ -918,3 +918,26 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
 - WebDavSyncer.doSync：全局 app-State/app-CSS 同步**前**先导出（防 newer-wins 覆盖本地新配置），同步**后**合并回写并再次发布全局文件，双端一次同步即收敛。
 - 说明：OPDS 登录已随 app-Misc.json 同步；WebDAV 密码因 AndroidKeyStore 设备绑定不参与跨设备同步（恢复后需重输）。
 - 验证：MI9 后台同步后 app-NetworkSources.json 生成，内容含 Gutenberg OPDS、LeeStation、/sdcard/DSfile 三段；logcat 无同步异常。
+
+## [0.9.0] 2026-08-30（第四轮）
+
+### 备份/同步按数据类型分类改造（一个 WEBDAV 多设备冲突修复）
+- 新设备首同步保护（本地默认 → 服务器为准）：同步时现场判断本地 app-State/app-CSS 是否仍等于出厂默认（按"个性化字段"视图比较，剔除屏幕尺寸默认值、绝对路径、时间戳等设备字段），等于默认即收养服务器配置而非用默认值覆盖服务器；在"我的文件"里配置同步本身不算个性化，刚输入的同步服务器/路径/策略/定时在收养时保留。
+- 设备相关字段隔离：app-State 的 displayPath、installationDate、屏幕相关默认值（tapzoneSize/coverBigSize/progressLineHeight 等）、背景图路径、代理配置（含代理密码）、会话残留（selectedText/searchQuery/isAutoScroll），app-CSS 的 searchPathsJson/cachePath/fontFolder/dictPath/pathSAF 等路径字段——不参与比较、不上传服务器、下载后回填本地值。多设备不再互相污染，服务器副本不再保存设备字段与代理密码明文。
+- 修复 app-BookStates（已读/在读标记）合并失效：旧合并代码期望带时间戳的对象而实际值是 int（0 未读/1 在读/2 已读），远端条目永远合并不进来、各设备轮流覆盖服务器。改为按 key 并集取更靠后状态（只进不退，天然无冲突）。
+- 配置变化自动触发同步：AppState/BookCSS 真实变更写盘后，10 秒去抖合并触发一次静默 WebDAV 同步；同步过程自身写的 lastSync 水印不会引发循环（已验证静置无重复同步）。
+- 定时同步间隔可配置：WebDAV 同步对话框新增"定时同步"行（关闭/每15分钟/每30分钟/每1小时/每3小时/每6小时/每1天），应用存活期间周期后台同步，改动即时生效（每次循环重读配置）。
+- 备份 zip 导出前刷新 app-NetworkSources.json：手动备份包里 OPDS 目录、WEBDAV 服务器、书库文件夹始终是最新值（此前只有跑过 WebDAV 同步才有）。
+- 备份 zip 跨机型恢复：导入解压后若当前机型目录（device.<机型>）缺 app-State/app-CSS/app-Misc，自动从其他机型目录收养最近一份，设置类配置跨机型迁移生效；importMisc 恢复 AppSP 时保护 rootPath/currentProfile/lastBookPath 等本机字段不被源设备值覆盖。
+- 密码策略保持现状：OPDS 登录、书/应用密码、AI Key 明文随 app-Misc/app-AI 同步与备份（自建服务器、多设备免重输的取舍）；WebDAV 密码仍 AndroidKeyStore 设备绑定、不随同步迁移。
+
+### 界面
+- "软件说明"与"更新说明"弹窗去掉最后一行"请在 Google Play 反馈并评分"。
+- 首页"我的文件"行只显示已配置的 WEBDAV 服务器与书库文件夹项（去掉"我的文件"总入口子项）；一项都没配置时整段（含标题）隐藏。
+
+### 验证（MI9 真机，全部通过）
+- 常规同步正常、全程 logcat 无未捕获异常。
+- 模拟新机（改走 device 目录 + 只配置同步服务器）：首同步收养服务器个性化配置（主题色/AI 配置/排版一致），同步配置保留，设备字段用本机值。
+- app-BookStates int 状态条目随同步完整轮回；配置变化后 10~15 秒内自动同步一次，静置 60 秒无循环。
+- 定时同步 7 档设置/回读正常；备份 zip 含最新 app-NetworkSources.json；跨机型 zip 导入后设置文件被当前机型目录收养；软件说明与首页"我的文件"行按预期显示。
+- 定时同步默认打开，默认间隔 15 分钟（此前默认关闭）；已有设备如显示关闭，在同步对话框选一次即可。

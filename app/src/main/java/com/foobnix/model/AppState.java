@@ -324,6 +324,9 @@ public class AppState {
     // progress conflict policy: "newer" (latest edit wins) or "farther" (the
     // position closer to the end of the book wins)
     public String webdavSyncPolicy = "newer";
+    // periodic background sync interval in minutes while the app is alive;
+    // on by default (15 min), 0 = off
+    public int webdavSyncIntervalMin = 15;
     public String webdavLastSyncInfo = "";
 
     // AI LLM provider config (see AiClient): protocol routing key plus the
@@ -849,6 +852,9 @@ public class AppState {
         if (currentHash != instance.hashCode) {
             hashCode = currentHash;
             IO.writeObj(AppProfile.syncState, instance);
+            // the configuration really changed: run one WebDAV sync for it
+            // (no-op unless sync is configured; coalesced/debounced there)
+            com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(a);
         }
     }
 }
