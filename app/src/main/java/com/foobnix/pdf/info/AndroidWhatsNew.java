@@ -37,11 +37,11 @@ import static android.os.Build.VERSION.SDK_INT;
 
 public class AndroidWhatsNew {
 
-    public static final String DETAIL_URL_RU = (SDK_INT >= 24 ? "https" : "http") + "://librera.mobi";
+    public static final String DETAIL_URL_RU = (SDK_INT >= 24 ? "https" : "http") + "://github.com/380121850/LibreraReader";
     private static final String BETA_TXT = "changelog.txt";
     private static final String BETA = "beta-";
-    private static final String WHATSNEW_URL = (SDK_INT >= 24 ? "https" : "http") + "://librera.mobi/what-is-new/";
-    public static final String DOWNLOAD_LINK = "https://emma.cloud.tabdigital.eu/s/E8froWd87JC6cM5";
+    private static final String WHATSNEW_URL = (SDK_INT >= 24 ? "https" : "http") + "://github.com/380121850/LibreraReader/releases";
+    public static final String DOWNLOAD_LINK = "https://github.com/380121850/LibreraReader/releases";
 
     public static String getLangUrl(Context c) {
         //String versionName = Apps.getVersionName(c);
@@ -297,7 +297,7 @@ public class AndroidWhatsNew {
                                 return;
                             }
 
-                            AlertDialogs.showDialog(c,   c.getString(R.string.new_beta_version_available) + " [" + resultFinal+"]\nhttp://beta.librera.mobi", c.getString(R.string.download), new Runnable() {
+                            AlertDialogs.showDialog(c,   c.getString(R.string.new_beta_version_available) + " [" + resultFinal+"]\nhttps://github.com/380121850/LibreraReader/releases", c.getString(R.string.download), new Runnable() {
 
                                 @Override
                                 public void run() {

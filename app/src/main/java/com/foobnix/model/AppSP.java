@@ -76,14 +76,30 @@ public class AppSP {
     public void init(Context c) {
         sp = c.getSharedPreferences("AppTemp", Context.MODE_PRIVATE);
         load(c);
+        migrateLegacyRoot();
         getRootPath(c);
+    }
+
+    /**
+     * The storage root was rebranded from /sdcard/Librera to /sdcard/HowRead.
+     * Installs that still point at the old default follow automatically; a
+     * user-chosen custom folder is never touched. The library DB file name is
+     * derived from the root path hash, so the switch starts a fresh DB that
+     * the next scan repopulates.
+     */
+    private void migrateLegacyRoot() {
+        final String legacy = new File(Environment.getExternalStorageDirectory(), "Librera").toString();
+        if (legacy.equals(rootPath1)) {
+            LOG.d("migration", "rootPath1", rootPath1, "to", getRootDir());
+            rootPath1 = getRootDir();
+        }
     }
 
     public String getTempDir(Context c){
         return new File(c.getExternalFilesDir(null), "Demo").toString();
     }
     public String getRootDir(){
-        return new File(Environment.getExternalStorageDirectory(), "Librera").toString();
+        return new File(Environment.getExternalStorageDirectory(), "HowRead").toString();
     }
     public File getTempDownloadBooks(Context c){
         return new File(c.getExternalFilesDir(null), "TempDownloads");

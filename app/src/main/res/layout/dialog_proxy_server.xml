@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dip"
                 android:minWidth="100dip"
-                android:text="Dowloads/Librera" />
+                android:text="Downloads/HowRead" />
         </LinearLayout>
 
         <CheckBox

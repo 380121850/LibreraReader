@@ -806,3 +806,32 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
 - 桌面图标显示**好好读**(中文),与旧版 Librera 并存;应用启动、首页/书库正常;
 - 构建产物名:HowRead Librera-9.4.24-arm64.apk。
 - 待办提醒:release 正式包请先用新签名试装一次;howread.app 网站内容需自行部署。
+# 2026-08-30 HowRead 0.9.0：目录换新 + release 试装
+
+## 1. 真实目录 "Librera" 全部换新（方案 A：换新 + 自动迁移）
+- 本机存储根目录 `/sdcard/Librera` → `/sdcard/HowRead`：`AppSP.getRootDir()` 改名；`AppSP.init()` 新增一次性迁移——持久化 `rootPath1` 仍等于旧默认时自动切到新根（用户自定义路径不动）。库 DB 文件名含根路径 hash，自动重建后重扫。
+- 下载目录族 `Download/Librera` → `Download/HowRead`：`BookCSS` 的 downloads/Cache/TTS/Backup/三个云缓存路径默认值改名；`load1()` 读取持久化配置后调用新增 `migrateLegacyDownloadPaths()`（仅当存量值 == 旧默认才跟随迁移）。
+- WebDAV 远程目录 `/Librera` → `/HowRead`：`AppState.webdavSyncRemoteDir` 默认值改名 + `loadInit()` 一次性迁移 + `remoteDir()` 读取兜底（覆盖从旧 app-State.json 同步回 "Librera" 的情况）。
+- WebDavSyncer 新增 `importLegacyRemoteDir()`/`copyRemoteTree()`：同步开始时若新目录为空且服务器上旧 `/Librera` 存在，逐文件 GET→PUT **复制**导入（不删旧目录，旧版 Librera 应用同步不受影响）。
+- Drive 根目录：`GFile.findLibreraSync()` 只查 "HowRead"、缺失才创建（**不**采用旧 "Librera" 目录，避免新旧两个应用共写同一个 Drive 文件夹）；数据搬迁由 WebDAV 导入承担。
+- UI 字样：我的文件菜单 "HowRead/下载"、"HowRead/Sync"（BrowseFragment2 三处）；PopupHelper 图标着色跳过判断 contains("HowRead")；代理对话框占位文本 "Downloads/HowRead"（顺带修正 Dowloads 拼写）；44 个语言的 msg_migration/msg_sync "[Librera]"→"HowRead"。
+- 刻意保留：内部 profile 名 "Librera"；`BookCSS.LIBRERA_CLOUD_*` 常量值与 `Clouds.isCloudImage` 的 "Librera.Cloud" 判断（持久化云书籍路径路由依赖字面值）；在线同步目录 `/Librera.Cloud`；cloudrail OAuth 回调 URL；ExportConverter 旧播放列表迁移源 `Librera/Playlist`。
+
+## 2. 版本 0.9.0 + APK 文件名
+- `app/gradle.properties`（版本号真实来源，在仓库内）：appVersionNumberBase=0.9、appVersionNumberIndex=0 → versionName **0.9.0**；appCodeNumber 7190→7198（保证升级 versionCode 单调增）。
+- `app/build.gradle` APK 模板：librera（主品牌）flavor 去掉 flavor 段 → **HowRead-0.9.0-arm64.apk / HowRead-0.9.0-uni.apk**（文件名不再含空格）；其余 flavor 保留标签 HowRead-Pro-…、HowRead-Fdroid-… 等。
+- 8 处 manifestPlaceholders appName 对齐品牌：librera="HowRead"、fdroid="HowRead FD"、pro="HowRead Pro"（马甲包名不变）。
+- "Librera_111" 调试残留：仓库已无此字符串（About 页"引擎"行运行时显示真实 MuPDF 版本，如 1.23.7-librera）。
+
+## 3. 链接统一指向 https://github.com/380121850/LibreraReader
+- about_section.xml（官网/测试版/FAQ 三处，原 howread.app）、config.xml wiki_url、PrefFragment2 WWW_SITE/WWW_BETA_SITE/WWW_WIKI_SITE（原 librera.mobi）、whatsnew2.xml wiki 文本、Urls.rateIT（FDroid 渠道）、AndroidWhatsNew（详情/更新日志/下载链接/弹窗文案）。
+- 保留 SamlibOPDS `?from=librera.mobi`（OPDS 书源服务参数，功能性）。
+
+## 4. release 试打 + MI9 试装（验证通过）
+- `assembleLibreraRelease` 构建成功；apksigner 确认签名 **CN=HowRead**（howread.keystore）。
+- debug/release 签名不同 → 卸载 debug 版后 `pm install -i com.android.vending -r -t` 安装成功（versionName 0.9.0 / versionCode 7199）。MIUI 偶发 INSTALL_FAILED_USER_RESTRICTED 时用设备端后台安装重试即可。
+- 真机核验：桌面图标"好好读"；软件说明弹窗"好好读: 0.9.0 (1.23.7-librera) SDK: 30 Xiaomi"+"HowRead Pro: 无广告的应用程序"；WebDAV 同步对话框"同步路径 /HowRead"；`/sdcard/HowRead/profile.Librera` 已创建；书架/开书（2600 页 PDF）冒烟正常。
+
+## 影响与注意
+- 本机目录换新 → 书库重新扫描一次（全新安装本就如此）；旧 `/sdcard/Librera`、`Download/Librera` 文件不自动删除，可手动清理。
+- WebDAV 首次同步会多一步旧目录导入；升级路径 versionCode 已保持单调，0.9.0 可直接覆盖安装 9.4.x 之后的构建。

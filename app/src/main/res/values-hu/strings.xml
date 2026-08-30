@@ -680,8 +680,8 @@
    <string name="single_tap">Egyetlen érintéssel</string>
    <string name="long_tap">Hosszú koppintás</string>
    <string name="select_mode">Mód kiválasztása</string>
-   <string name="msg_migration">Vigye át a [Librera] könyvtárat egy másik eszközre az adatok migrálásához.</string>
-   <string name="msg_sync">Szinkronizálja a [Librera] mappát más eszközökkel a Google Drive vagy harmadik féltől származó alkalmazások segítségével.</string>
+   <string name="msg_migration">Vigye át a HowRead könyvtárat egy másik eszközre az adatok migrálásához.</string>
+   <string name="msg_sync">Szinkronizálja a HowRead mappát más eszközökkel a Google Drive vagy harmadik féltől származó alkalmazások segítségével.</string>
    <string name="display_alert_if_cropping_is_on">Riasztás megjelenítése, ha a vágás be van kapcsolva</string>
    <string name="scan_for_new_books_at_launch">Új könyvek keresése a megjelenéskor</string>
    <string name="show_contrast_and_brightness_button">Kontraszt és fényerő megjelenítése gomb</string>

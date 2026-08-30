@@ -25,6 +25,7 @@ import org.ebookdroid.common.settings.books.SharedBooks;
 import org.librera.JSONArray;
 import org.librera.LinkedJSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -70,7 +71,9 @@ import javax.net.ssl.SSLException;
  */
 public class WebDavSyncer {
 
-    public static final String REMOTE_DIR = "Librera";
+    public static final String REMOTE_DIR = "HowRead";
+    /** sync folder name before the HowRead rebrand, still imported once */
+    public static final String REMOTE_LEGACY_DIR = "Librera";
     private static final String REMOTE_GLOBAL = "global";
     private static final String REMOTE_BOOKS = "books";
     private static final String REMOTE_LEGACY_PROGRESS = "progress.json";
@@ -136,7 +139,9 @@ public class WebDavSyncer {
     /** Configured server-side sync directory, cleaned of slashes. */
     public static String remoteDir() {
         String dir = AppState.get().webdavSyncRemoteDir;
-        if (TxtUtils.isEmpty(dir)) {
+        // the legacy default follows the rebrand; a stale "Librera" may also
+        // come back through a synced app-State.json (importAppState)
+        if (TxtUtils.isEmpty(dir) || REMOTE_LEGACY_DIR.equals(dir)) {
             dir = REMOTE_DIR;
         }
         dir = dir.replace("\\", "/");
@@ -165,6 +170,7 @@ public class WebDavSyncer {
             String root = WebDavStore.trimSlash(serverUrl) + "/" + remoteDir();
             String globalUrl = root + "/" + REMOTE_GLOBAL;
             String booksUrl = root + "/" + REMOTE_BOOKS;
+            importLegacyRemoteDir(s, WebDavStore.trimSlash(serverUrl), root);
             mkDirs(s, root, globalUrl, booksUrl);
 
             // ---- global config: two-way, newer file wins (volatile fields excluded)
@@ -536,6 +542,80 @@ public class WebDavSyncer {
     }
 
     // ------------------------------------------------------------------ legacy
+
+    /**
+     * One-time server-side rebrand import: the sync folder was renamed from
+     * "/Librera" to "/HowRead". While the new folder is still empty, every
+     * file of the old folder is copied over (never moved, so an old Librera
+     * install keeps syncing against its own folder). Later syncs exit after a
+     * cheap listing because the new folder then has content.
+     */
+    static void importLegacyRemoteDir(Sardine s, String serverRoot, String newRoot) {
+        if (remoteDir().equals(REMOTE_LEGACY_DIR)) {
+            return; // user deliberately points the sync at the legacy folder
+        }
+        try {
+            if (s.list(newRoot, 1).size() > 1) {
+                return; // new folder already has content
+            }
+        } catch (Exception e) {
+            // listing may fail before the folder exists; treat as empty
+        }
+        try {
+            final String legacyRoot = serverRoot + "/" + REMOTE_LEGACY_DIR;
+            final int copied = copyRemoteTree(s, legacyRoot, newRoot, 0);
+            if (copied > 0) {
+                LOG.d("WebDavSyncer legacy dir import", REMOTE_LEGACY_DIR, "to", remoteDir(), copied);
+            }
+        } catch (Exception e) {
+            // no legacy folder (404) or a copy error must never break the sync
+            LOG.d("WebDavSyncer legacy dir import", e.getMessage());
+        }
+    }
+
+    /** Depth-limited recursive GET→PUT copy of a remote WebDAV tree. */
+    static int copyRemoteTree(Sardine s, String fromDir, String toDir, int depth) throws IOException {
+        if (depth > 3) {
+            return 0;
+        }
+        try {
+            s.createDirectory(toDir);
+        } catch (IOException e) {
+            LOG.d("WebDavSyncer mkcol", e.getMessage()); // 405 = already exists
+        }
+        int copied = 0;
+        final String selfName = fromDir.substring(fromDir.lastIndexOf('/') + 1);
+        for (DavResource r : s.list(fromDir, 1)) {
+            final String name = r.getName();
+            if (name == null || name.equals(selfName)) {
+                continue;
+            }
+            if (r.isDirectory()) {
+                copied += copyRemoteTree(s, fromDir + "/" + name, toDir + "/" + name, depth + 1);
+            } else {
+                InputStream is = null;
+                try {
+                    is = s.get(fromDir + "/" + name);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    final byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = is.read(buf)) > 0) {
+                        out.write(buf, 0, n);
+                    }
+                    s.put(toDir + "/" + name, out.toByteArray());
+                    copied++;
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        return copied;
+    }
 
     /** Fold the pre-per-book aggregate files into the local state, then remove them. */
     static void migrateLegacy(Sardine s, String root, LinkedJSONObject localP, LinkedJSONObject localB, boolean farther) {

@@ -125,7 +125,7 @@ android {
             dimension = "version"
             applicationId = "com.howread.reader.pro"
             manifestPlaceholders = [
-                    appName      : "Librera FD",
+                    appName      : "HowRead FD",
                     appIcon      : "@mipmap/icon_pdf_pro",
                     appRoundIcon : "@mipmap/icon_pdf_pro",
                     appGdriveKey : "",
@@ -141,7 +141,7 @@ android {
             dimension = "version"
             applicationId = "com.howread.reader"
             manifestPlaceholders = [
-                    appName      : "Librera",
+                    appName      : "HowRead",
                     appIcon      : "@mipmap/icon_pdf_reader",
                     appRoundIcon : "@mipmap/icon_pdf_reader",
                     appGdriveKey : project.findProperty('librera_appGdriveKey') ?: '',
@@ -157,7 +157,7 @@ android {
             dimension = "version"
             applicationId = "com.howread.reader.pro"
             manifestPlaceholders = [
-                    appName      : "Librera",
+                    appName      : "HowRead Pro",
                     appIcon      : "@mipmap/icon_pdf_pro",
                     appRoundIcon : "@mipmap/icon_pdf_pro",
                     appGdriveKey : project.findProperty('pro_appGdriveKey') ?: '',
@@ -268,15 +268,18 @@ android {
                 abiName = abiName.replace("arm64-v8a", "arm64").replace("armeabi-v7a", "arm")
 
                 output.versionCodeOverride = code
-                //def fullName = "Librera ${flavor}-${versionNumber}-c${code}-d${db}-${abiName}.apk"
+                // the main "Librera" flavor IS the HowRead brand: no flavor tag
+                // in the file name; the other flavors keep their tag
+                def brand = (flavor == "Librera") ? "HowRead" : "HowRead-${flavor}"
 
-                def fullName = "HowRead ${flavor}-${versionNumber}-${abiName}.apk"
+                def fullName = "${brand}-${versionNumber}-${abiName}.apk"
 
                 output.outputFileName = fullName
             } else {
                 //def fullName = "Librera ${flavor}-${versionNumber}-c${codeNumber}-d${db}-universal.apk"
                 //def fullName = "Librera ${flavor}-${versionNumber}-universal.apk"
-                def fullName = "HowRead ${flavor}-${versionNumber}-uni.apk"
+                def brand = (flavor == "Librera") ? "HowRead" : "HowRead-${flavor}"
+                def fullName = "${brand}-${versionNumber}-uni.apk"
                 output.versionCodeOverride = codeNumber
                 output.outputFileName = fullName
             }

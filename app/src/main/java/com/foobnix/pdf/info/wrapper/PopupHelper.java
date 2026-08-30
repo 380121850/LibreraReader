@@ -107,7 +107,7 @@ public class PopupHelper {
 
             for (int i = 0; i < menu.getMenu().size(); i++) {
                 MenuItem item = menu.getMenu().getItem(i);
-                if (item.getTitle().toString().contains("Librera")) {
+                if (item.getTitle().toString().contains("HowRead")) {
                     continue;
                 }
                 Drawable icon = item.getIcon().getConstantState().newDrawable();

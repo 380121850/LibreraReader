@@ -680,8 +680,8 @@
    <string name="single_tap">Еднократно докосване</string>
    <string name="long_tap">Дълго докосване</string>
    <string name="select_mode">Изберете режим</string>
-   <string name="msg_migration">Прехвърлете директорията [Librera] на друго устройство, за да мигрирате данните си.</string>
-   <string name="msg_sync">Синхронизирайте папката [Librera] с други устройства чрез Google Drive или приложения на трети страни.</string>
+   <string name="msg_migration">Прехвърлете директорията HowRead на друго устройство, за да мигрирате данните си.</string>
+   <string name="msg_sync">Синхронизирайте папката HowRead с други устройства чрез Google Drive или приложения на трети страни.</string>
    <string name="display_alert_if_cropping_is_on">Показване на предупреждение, ако изрязването е включено</string>
    <string name="scan_for_new_books_at_launch">Сканиране за нови книги при издаването им</string>
    <string name="show_contrast_and_brightness_button">Бутон за показване на контраст и яркост</string>

@@ -680,8 +680,8 @@
    <string name="single_tap">Un só Toque</string>
    <string name="long_tap">Toque longo</string>
    <string name="select_mode">Modo selección</string>
-   <string name="msg_migration">Transfire o cartafol [Librera] a outro dispositivo para migrar os teus datos.</string>
-   <string name="msg_sync">Sincroniza o cartafol [Librera] con outros dispositivos mediante Google Drive ou aplicacións de terceiros.</string>
+   <string name="msg_migration">Transfire o cartafol HowRead a outro dispositivo para migrar os teus datos.</string>
+   <string name="msg_sync">Sincroniza o cartafol HowRead con outros dispositivos mediante Google Drive ou aplicacións de terceiros.</string>
    <string name="display_alert_if_cropping_is_on">Amosar aviso se o recorte está activado</string>
    <string name="scan_for_new_books_at_launch">Escanear novos libros ao abrir a aplicación</string>
    <string name="show_contrast_and_brightness_button">Botón para mostrar contraste e brillo</string>

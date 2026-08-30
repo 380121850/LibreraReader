@@ -66,16 +66,16 @@ public class BookCSS {
     private static BookCSS instance = new BookCSS();
     public String searchPathsJson;
 
-    public String cachePath = new File(AppProfile.DOWNLOADS_DIR, "Librera/Cache").getPath();
+    public String cachePath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/Cache").getPath();
     public String downlodsPath;
 
     ///
-    public String ttsSpeakPath = new File(AppProfile.DOWNLOADS_DIR, "Librera/TTS").getPath();
-    public String backupPath = new File(AppProfile.DOWNLOADS_DIR, "Librera/Backup").getPath();
+    public String ttsSpeakPath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/TTS").getPath();
+    public String backupPath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/Backup").getPath();
 
-    public String syncDropboxPath = new File(AppProfile.DOWNLOADS_DIR, "Librera/" + LIBRERA_CLOUD_DROPBOX).getPath();
-    public String syncGdrivePath = new File(AppProfile.DOWNLOADS_DIR, "Librera/" + LIBRERA_CLOUD_GOOGLEDRIVE).getPath();
-    public String syncOneDrivePath = new File(AppProfile.DOWNLOADS_DIR, "Librera/" + LIBRERA_CLOUD_ONEDRIVE).getPath();
+    public String syncDropboxPath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/" + LIBRERA_CLOUD_DROPBOX).getPath();
+    public String syncGdrivePath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/" + LIBRERA_CLOUD_GOOGLEDRIVE).getPath();
+    public String syncOneDrivePath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/" + LIBRERA_CLOUD_ONEDRIVE).getPath();
     public String dictPath;
     public String fontFolder;
     public volatile int fontSizeSp = Dips.isXLargeScreen() ? 24 : 20;
@@ -216,7 +216,7 @@ public class BookCSS {
         fontWeight = 400;
 
         fontFolder = AppProfile.syncFontFolder.getPath();
-        downlodsPath = new File(AppProfile.DOWNLOADS_DIR, "Librera").getPath();
+        downlodsPath = new File(AppProfile.DOWNLOADS_DIR, "HowRead").getPath();
         displayFontName = DEFAULT_FONT;
         normalFont = DEFAULT_FONT;
         boldFont = DEFAULT_FONT;
@@ -244,6 +244,27 @@ public class BookCSS {
 
     }
 
+    /**
+     * The download subfolders were rebranded from Download/Librera to
+     * Download/HowRead. Only stored paths that still equal the old defaults
+     * follow the rebrand; user-chosen folders are never touched.
+     */
+    private void migrateLegacyDownloadPaths() {
+        downlodsPath = legacySwap(downlodsPath, "Librera", "HowRead");
+        cachePath = legacySwap(cachePath, "Librera/Cache", "HowRead/Cache");
+        ttsSpeakPath = legacySwap(ttsSpeakPath, "Librera/TTS", "HowRead/TTS");
+        backupPath = legacySwap(backupPath, "Librera/Backup", "HowRead/Backup");
+        syncDropboxPath = legacySwap(syncDropboxPath, "Librera/" + LIBRERA_CLOUD_DROPBOX, "HowRead/" + LIBRERA_CLOUD_DROPBOX);
+        syncGdrivePath = legacySwap(syncGdrivePath, "Librera/" + LIBRERA_CLOUD_GOOGLEDRIVE, "HowRead/" + LIBRERA_CLOUD_GOOGLEDRIVE);
+        syncOneDrivePath = legacySwap(syncOneDrivePath, "Librera/" + LIBRERA_CLOUD_ONEDRIVE, "HowRead/" + LIBRERA_CLOUD_ONEDRIVE);
+    }
+
+    private static String legacySwap(String current, String legacySub, String newSub) {
+        final String legacyPath = new File(AppProfile.DOWNLOADS_DIR, legacySub).getPath();
+        final String newPath = new File(AppProfile.DOWNLOADS_DIR, newSub).getPath();
+        return legacyPath.equals(current) ? newPath : current;
+    }
+
     public static List<String> filtered(List<String> objects) {
         if (objects == null || objects.isEmpty()) {
             return Collections.emptyList();
@@ -267,6 +288,8 @@ public class BookCSS {
         resetToDefault(c);
 
         IO.readObj(AppProfile.syncCSS, instance);
+
+        migrateLegacyDownloadPaths();
 
         try {
             List<String> filtered = filtered(JsonDB.get(instance.searchPathsJson));

@@ -1,5 +1,26 @@
 ![Logo](https://raw.githubusercontent.com/foobnix/LirbiReader/master/logo.jpg)
 
+
+# HowRead · 好好读
+
+**This is a fork of [Librera Reader](https://github.com/foobnix/LibreraReader).**
+
+> Original Librera Reader is Copyright (c) Ivan Oleksandrovych Ivanenko.
+> This project is an independent fork, not affiliated with or endorsed by the original author.
+
+- Original License: GPL-3.0-or-later
+- This fork License: GPL-3.0-or-later
+- Uses MuPDF under AGPL-3.0
+
+## Changes from upstream
+- Renamed to HowRead (好好读)
+- New applicationId: com.howread.reader / com.howread.reader.pro
+- Removed all Google Play Services, Firebase, AdMob
+- Removed pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader flavors
+- Added lightweight local-file preview mode
+- TODO
+
+
 **The development and support of Librera is frozen for an unpredictable time, there is a big war in my country
 Ukraine.**
 [Russian invasion of Ukraine](https://en.wikipedia.org/wiki/2022_Russian_invasion_of_Ukraine)

@@ -31,7 +31,7 @@
             android:layout_marginLeft="4dip"
             android:gravity="center"
             android:singleLine="false"
-            android:text="http://librera.mobi/wiki" />
+            android:text="https://github.com/380121850/LibreraReader" />
 
 
     </LinearLayout>

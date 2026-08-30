@@ -472,7 +472,7 @@ import java.util.Map;
 
                 if (new File(BookCSS.get().downlodsPath).isDirectory()) {
                     menu.getMenu()
-                        .add("Librera/" + getString(R.string.downloads))
+                        .add("HowRead/" + getString(R.string.downloads))
                         .setOnMenuItemClickListener(new OnMenuItemClickListener() {
 
                             @Override public boolean onMenuItemClick(MenuItem item) {
@@ -484,7 +484,7 @@ import java.util.Map;
                 }
                 if (AppSP.get().isEnableSync) {
                     menu.getMenu()
-                        .add("Librera" + "/" + "Sync")
+                        .add("HowRead" + "/" + "Sync")
                         .setOnMenuItemClickListener(new OnMenuItemClickListener() {
 
                             @Override public boolean onMenuItemClick(MenuItem item) {
@@ -1562,7 +1562,7 @@ import java.util.Map;
             entries.add(new String[]{name, info});
         }
         if (new File(BookCSS.get().downlodsPath).isDirectory()) {
-            entries.add(new String[]{"Librera/" + getString(R.string.downloads), BookCSS.get().downlodsPath});
+            entries.add(new String[]{"HowRead/" + getString(R.string.downloads), BookCSS.get().downlodsPath});
         }
         List<FileMeta> starFolders = AppData.get().getAllFavoriteFolders();
         List<String> names = new ArrayList<>();

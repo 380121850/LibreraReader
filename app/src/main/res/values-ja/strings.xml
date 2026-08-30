@@ -680,8 +680,8 @@
    <string name="single_tap">シングルタップ</string>
    <string name="long_tap">長押し</string>
    <string name="select_mode">選択モード</string>
-   <string name="msg_migration">データを移行するには、[Librera] ディレクトリを別のデバイスに転送します。</string>
-   <string name="msg_sync">Google ドライブまたはサードパーティ アプリを介して [Librera] フォルダーを他のデバイスと同期します。</string>
+   <string name="msg_migration">データを移行するには、HowRead ディレクトリを別のデバイスに転送します。</string>
+   <string name="msg_sync">Google ドライブまたはサードパーティ アプリを介して HowRead フォルダーを他のデバイスと同期します。</string>
    <string name="display_alert_if_cropping_is_on">クロッピングがオンの場合に警告を表示する</string>
    <string name="scan_for_new_books_at_launch">発売時に新刊書籍をスキャンする</string>
    <string name="show_contrast_and_brightness_button">コントラストと明るさボタンを表示する</string>

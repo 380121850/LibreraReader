@@ -319,7 +319,7 @@ public class AppState {
     public String webdavSyncServer = "";
     // server-side directory (relative to the server root) that holds
     // progress.json / bookmarks.json; picked with the folder browser
-    public String webdavSyncRemoteDir = "Librera";
+    public String webdavSyncRemoteDir = "HowRead";
     public long webdavLastSyncTime = 0;
     // progress conflict policy: "newer" (latest edit wins) or "farther" (the
     // position closer to the end of the book wins)
@@ -806,6 +806,20 @@ public class AppState {
                         AppState.get().tabsOrder9 = order.replace("5#1", "5#0");
                         LOG.d("migration", "network-merge tabsOrder9:", AppState.get().tabsOrder9);
                     }
+                }
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+
+            // The WebDAV sync folder was rebranded from "/Librera" to
+            // "/HowRead". Follow the rebrand only when the stored dir is still
+            // the old default; a user-chosen folder is left alone. (A stale
+            // "Librera" can also come back through a synced app-State.json,
+            // so remoteDir() re-guards this on every read.)
+            try {
+                if ("Librera".equals(AppState.get().webdavSyncRemoteDir)) {
+                    AppState.get().webdavSyncRemoteDir = "HowRead";
+                    LOG.d("migration", "webdavSyncRemoteDir to HowRead");
                 }
             } catch (Exception e) {
                 LOG.e(e);

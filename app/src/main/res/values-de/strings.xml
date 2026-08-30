@@ -680,8 +680,8 @@
    <string name="single_tap">Einmaliges Tippen</string>
    <string name="long_tap">Langes Tippen</string>
    <string name="select_mode">Modus auswählen</string>
-   <string name="msg_migration">Übertragen Sie das Verzeichnis [Librera] auf ein anderes Gerät, um Ihre Daten zu migrieren.</string>
-   <string name="msg_sync">Synchronisieren Sie den [Librera]-Ordner mit anderen Geräten über Google Drive oder Apps von Drittanbietern.</string>
+   <string name="msg_migration">Übertragen Sie das Verzeichnis HowRead auf ein anderes Gerät, um Ihre Daten zu migrieren.</string>
+   <string name="msg_sync">Synchronisieren Sie den HowRead-Ordner mit anderen Geräten über Google Drive oder Apps von Drittanbietern.</string>
    <string name="display_alert_if_cropping_is_on">Warnmeldung anzeigen, wenn das Zuschneiden aktiviert ist</string>
    <string name="scan_for_new_books_at_launch">Scannen Sie bei der Veröffentlichung nach neuen Büchern.</string>
    <string name="show_contrast_and_brightness_button">Kontrast- und Helligkeitstaste anzeigen</string>

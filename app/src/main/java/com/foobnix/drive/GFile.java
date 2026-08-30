@@ -209,9 +209,15 @@ public class GFile {
         return withTrashed ? exeQ("") : exeQ("trashed = false");
     }
 
+    /**
+     * Drive sync root lookup. Only the rebranded "HowRead" folder is used;
+     * the old "Librera" folder of the original app is deliberately NOT
+     * adopted so the two apps never share (and corrupt) one Drive folder.
+     * Reading data is brought over by the WebDAV sync instead.
+     */
     public static File findLibreraSync() throws Exception {
 
-        final List<File> files = exeQF("name = 'Librera' and 'root' in parents and mimeType = '%s' and trashed = false", MIME_FOLDER);
+        final List<File> files = exeQF("name = 'HowRead' and 'root' in parents and mimeType = '%s' and trashed = false", MIME_FOLDER);
         debugPrint(files);
         if (files.size() > 0) {
             return files.get(0);
@@ -494,8 +500,8 @@ public class GFile {
                 File syncRoot = GFile.findLibreraSync();
                 LOG.d(TAG, "findLibreraSync finded", syncRoot);
                 if (syncRoot == null || syncRoot.getTrashed() == true) {
-                    syncRoot = GFile.createFolder("root", "Librera");
-                    debugOut += "\n Create remote [Librera]";
+                    syncRoot = GFile.createFolder("root", "HowRead");
+                    debugOut += "\n Create remote [HowRead]";
                 }
                 AppSP.get().syncRootID = syncRoot.getId();
                 AppProfile.save(c);
@@ -528,7 +534,7 @@ public class GFile {
             if (!AppProfile.SYNC_FOLDER_ROOT.exists()) {
                 sp.edit().clear().commit();
                 AppProfile.SYNC_FOLDER_ROOT.mkdirs();
-                debugOut += "\n Create local [Librera]";
+                debugOut += "\n Create local [HowRead]";
             }
 
 
