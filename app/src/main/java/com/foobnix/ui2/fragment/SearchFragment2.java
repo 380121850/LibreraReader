@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
@@ -41,6 +42,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.OnScrollListener;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -121,6 +123,9 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
     final Set<String> autocomplitions = new HashSet<String>();
     public int prevLibModeAuthors = NONE;
     public int rememberPos = 0;
+    // data identity of the currently shown library list (mode/filter/sort/
+    // dataset): the scroll position is only restored when it still matches
+    private String libScrollKey;
     FileMetaAdapter searchAdapter;
     AuthorsAdapter2 authorsAdapter;
     TextView countBooks, sortBy, layoutErrorOnRestart;
@@ -601,6 +606,14 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         myAutoCompleteImage = (ImageView) view.findViewById(R.id.myAutoCompleteImage);
         searchEditText = (AutoCompleteTextView) view.findViewById(R.id.filterLine);
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
+        recyclerView.addOnScrollListener(new OnScrollListener() {
+
+            @Override public void onScrollStateChanged(RecyclerView rv, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    saveLibScrollPosition();
+                }
+            }
+        });
 
         View layoutOnGrant = view.findViewById(R.id.layoutOnGrant);
         Views.visible(layoutOnGrant, !Android6.canWrite(getContext()) && getArguments()!=Bundle.EMPTY);
@@ -1213,6 +1226,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             searchAdapter.getItemsList()
                          .addAll(items);
             searchAdapter.notifyDataSetChanged();
+            libScrollKey = buildLibScrollKey();
+            restoreLibScrollPosition();
             handler.postDelayed(new Runnable() {
 
                 @Override public void run() {
@@ -1297,6 +1312,78 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
 
         showBookCount();
 
+    }
+
+    /** Identity of the shown book list: changes when mode/filter/sort/data change. */
+    private String buildLibScrollKey() {
+        String txt = searchEditText == null ? "" : searchEditText.getText()
+                                                                 .toString()
+                                                                 .trim();
+        return AppState.get().libraryMode + "|" + txt + "|" + AppState.get().sortBy + "|" + AppState.get().isSortAsc
+                + "|" + TempHolder.get().listHash;
+    }
+
+    /** Persists where the user browsed to, so the library can reopen there. */
+    private void saveLibScrollPosition() {
+        if (libScrollKey == null || recyclerView == null || getActivity() == null) {
+            return;
+        }
+        // group modes (authors/series/...) keep their own rememberPos logic
+        if (!Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT)
+                  .contains(AppState.get().libraryMode)) {
+            return;
+        }
+        int pos = -1;
+        int offset = 0;
+        RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
+        if (lm instanceof LinearLayoutManager) {
+            LinearLayoutManager llm = (LinearLayoutManager) lm;
+            pos = llm.findFirstVisibleItemPosition();
+            if (pos >= 0 && llm.getOrientation() == RecyclerView.VERTICAL && llm.getChildCount() > 0) {
+                offset = llm.getChildAt(0)
+                            .getTop();
+            }
+        } else if (lm instanceof StaggeredGridLayoutManager) {
+            int[] first = ((StaggeredGridLayoutManager) lm).findFirstVisibleItemPositions(null);
+            pos = first.length == 0 ? -1 : first[0];
+        }
+        if (pos < 0) {
+            return;
+        }
+        getActivity().getSharedPreferences("lib_scroll", Context.MODE_PRIVATE)
+                     .edit()
+                     .putString("key", libScrollKey)
+                     .putInt("pos", pos)
+                     .putInt("offset", offset)
+                     .apply();
+    }
+
+    /** Scrolls back to the remembered position when the same list reloads. */
+    private void restoreLibScrollPosition() {
+        if (libScrollKey == null || recyclerView == null || getActivity() == null) {
+            return;
+        }
+        SharedPreferences sp = getActivity().getSharedPreferences("lib_scroll", Context.MODE_PRIVATE);
+        String savedKey = sp.getString("key", null);
+        int pos = sp.getInt("pos", -1);
+        int offset = sp.getInt("offset", 0);
+        if (!libScrollKey.equals(savedKey) || pos < 0) {
+            // different mode / filter / sort / dataset: start from the top
+            sp.edit().clear().apply();
+            recyclerView.scrollToPosition(0);
+            return;
+        }
+        RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
+        if (lm instanceof LinearLayoutManager) {
+            LinearLayoutManager llm = (LinearLayoutManager) lm;
+            if (llm.getOrientation() == RecyclerView.VERTICAL) {
+                llm.scrollToPositionWithOffset(pos, offset);
+            } else {
+                llm.scrollToPosition(pos);
+            }
+        } else if (lm instanceof StaggeredGridLayoutManager) {
+            ((StaggeredGridLayoutManager) lm).scrollToPosition(pos);
+        }
     }
 
     private void sortByPopup(final View view) {

@@ -409,7 +409,7 @@ import java.util.Map;
                 displayAnyPath(Environment.getExternalStorageDirectory().getPath());
             }
         });
-        if (TYPE_DEFAULT == fragmentType) {
+        if (TYPE_DEFAULT == fragmentType || TYPE_SELECT_FOLDER == fragmentType) {
             buildQuickDirChips(view);
         }
         onHome.setOnLongClickListener(new OnLongClickListener() {
@@ -1592,8 +1592,9 @@ import java.util.Map;
         LOG.d("Display-path", path);
         isRestorePos = false;
         setPath(path);
-        if (browsePath == null) {
-            // the detached folder page must not move the tab's last dir
+        if (browsePath == null && new File(path).isDirectory()) {
+            // only real local dirs may become the last chooser dir;
+            // "my-files:" / OPDS / content paths would poison folder pickers
             BookCSS.get().dirLastPath = path;
         }
         if (netSection != null) {

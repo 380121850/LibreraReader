@@ -41,6 +41,7 @@ import com.foobnix.pdf.info.wrapper.DocumentController;
 import com.foobnix.pdf.search.activity.HorizontalViewActivity;
 import com.foobnix.pdf.search.activity.ViewBinder;
 import com.foobnix.pdf.search.view.CloseAppDialog;
+import com.foobnix.sys.FirstPaintGate;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.tts.TTSNotification;
 import com.foobnix.ui2.FileMetaCore;
@@ -318,6 +319,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     protected void onDestroy() {
         TempHolder.readerActive = false;
         android.util.Log.i("BENCH", "VV onDestroy");
+        FirstPaintGate.cancel();
         try {
             getController().cancelPhase2();
         } catch (Exception e) {

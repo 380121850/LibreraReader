@@ -63,6 +63,14 @@ public abstract class AbstractEvent implements IEvent {
             return process(page.nodes);
         }
 
+        // A page with a decode already queued/in flight (its nodes were
+        // requested by a previous event) must not be recycled here: right
+        // after a progressive open pages have no real bounds yet, and this
+        // cancel left the visible page blank until some later event.
+        if (page.nodes != null && page.nodes.root != null && page.nodes.root.decodingNow.get()) {
+            return false;
+        }
+
         recyclePage(viewState, page);
         return false;
     }

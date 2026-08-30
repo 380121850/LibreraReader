@@ -11,6 +11,8 @@ public abstract class BaseAsyncTask<Params, Result> extends CopyAsyncTask<Params
 
     protected final Context context;
     protected AlertDialog progressDialog;
+    // when set, onPostExecute leaves the dialog open (FirstPaintGate dismisses it)
+    protected boolean holdProgressDialog;
 
     public BaseAsyncTask(Context context) {
         this.context = context;
@@ -39,6 +41,9 @@ public abstract class BaseAsyncTask<Params, Result> extends CopyAsyncTask<Params
     @Override
     protected void onPostExecute(Result result) {
         super.onPostExecute(result);
+        if (holdProgressDialog) {
+            return;
+        }
         try {
             if (progressDialog != null) {
                 progressDialog.dismiss();

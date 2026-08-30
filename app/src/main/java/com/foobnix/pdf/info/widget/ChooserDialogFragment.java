@@ -3,6 +3,7 @@ package com.foobnix.pdf.info.widget;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,28 @@ import com.foobnix.android.utils.ResultResponse2;
 import com.foobnix.pdf.info.R;
 import com.foobnix.ui2.fragment.BrowseFragment2;
 
+import java.io.File;
+
 public class ChooserDialogFragment extends DialogFragment {
+
+    /**
+     * Pseudo paths ("my-files:" root, OPDS, content://) must never become a
+     * chooser start directory: the dialog would open on a synthetic root
+     * instead of the real file system.
+     */
+    public static String validStartDir(final String candidate) {
+        if (candidate != null && candidate.length() > 0) {
+            try {
+                final File f = new File(candidate);
+                if (f.isDirectory() && f.canRead()) {
+                    return candidate;
+                }
+            } catch (final Exception e) {
+                LOG.e(e);
+            }
+        }
+        return Environment.getExternalStorageDirectory().getAbsolutePath();
+    }
 
     public ChooserDialogFragment() {
 
@@ -36,7 +58,7 @@ public class ChooserDialogFragment extends DialogFragment {
         ChooserDialogFragment ch = new ChooserDialogFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(BrowseFragment2.EXTRA_TYPE, BrowseFragment2.TYPE_SELECT_FOLDER);
-        bundle.putString(BrowseFragment2.EXTRA_INIT_PATH, initPath);
+        bundle.putString(BrowseFragment2.EXTRA_INIT_PATH, validStartDir(initPath));
         ch.setArguments(bundle);
         try {
             ch.show(a.getSupportFragmentManager(), "da");

@@ -32,6 +32,7 @@ import com.foobnix.pdf.info.wrapper.DocumentController;
 import com.foobnix.pdf.info.wrapper.DocumentWrapperUI;
 import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.search.activity.HorizontalModeController;
+import com.foobnix.sys.FirstPaintGate;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.sys.VerticalModeController;
 import com.foobnix.tts.TTSEngine;
@@ -212,6 +213,14 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     private volatile boolean progressiveLoad;
 
     /**
+     * The TOC (outline) load is deferred while a progressive phase-two layout
+     * is running: getOutline() forces a full-document layout in native code,
+     * which used to occupy the decode executor for 10s+ on large books and
+     * left the second visible page blank after opening.
+     */
+    private boolean outlineLoaded;
+
+    /**
      * Generation counter for the background phase-two layout: bumping it
      * cancels the running task (new open, activity teardown).
      */
@@ -261,17 +270,31 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
                                           }
 
-                                          controller.loadOutline(new ResultResponse<List<OutlineLinkWrapper>>() {
-
-                                              @Override public boolean onResultRecive(List<OutlineLinkWrapper> result) {
-                                                  wrapperControlls.showOutline(result, controller.getPageCount());
-
-                                                  return false;
-                                              }
-                                          });
+                                          if (progressiveLoad) {
+                                              // deferred: loaded when phase-two finishes
+                                              // (getOutline would force the full layout now)
+                                          } else {
+                                              loadOutlineOnce();
+                                          }
 
                                       }
                                   }));
+    }
+
+    /** Loads the TOC once; later calls are no-ops. */
+    public void loadOutlineOnce() {
+        if (outlineLoaded) {
+            return;
+        }
+        outlineLoaded = true;
+        controller.loadOutline(new ResultResponse<List<OutlineLinkWrapper>>() {
+
+            @Override public boolean onResultRecive(List<OutlineLinkWrapper> result) {
+                wrapperControlls.showOutline(result, controller.getPageCount());
+
+                return false;
+            }
+        });
     }
 
     public void onPause() {
@@ -283,6 +306,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     public void onDestroy() {
         phase2Gen.incrementAndGet();
         progressiveLoad = false;
+        FirstPaintGate.cancel();
         if (wrapperControlls != null) {
             wrapperControlls.onDestroy();
         }
@@ -741,6 +765,11 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                             startPhaseTwoLayout(dm);
                         }
 
+                        // keep the loading dialog up until the first page
+                        // bitmap is decoded, so no blank page flashes
+                        holdProgressDialog = true;
+                        FirstPaintGate.arm(progressDialog);
+
                     } catch (final Throwable th) {
                         result = th;
                     }
@@ -784,13 +813,20 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         final long gen = phase2Gen.get();
         final int knownCount = dm.getPageCount();
         if (knownCount <= 0) {
+            // nothing to grow: load the TOC right away
+            loadOutlineOnce();
             return;
         }
         final long t0 = android.os.SystemClock.elapsedRealtime();
         android.util.Log.i("BENCH", "phase2-begin n1=" + knownCount);
-        AppsConfig.executorService.execute(new Runnable() {
+        // dedicated thread: the shared 2-thread AppsConfig pool must stay
+        // free for the decode consumer and other UI services
+        new Thread(new Runnable() {
             @Override
             public void run() {
+                // slightly below foreground priority, but NOT the background
+                // cgroup (THREAD_PRIORITY_BACKGROUND) which MIUI throttles hard
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_LESS_FAVORABLE);
                 try {
                     // Let the first-screen decode grab the native lock first,
                     // so content is on screen before we start filling in.
@@ -851,6 +887,8 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                                     currentPageChanged(dm.getCurrentIndex().docIndex, -1);
                                     wrapperControlls.refreshPageCount();
                                 }
+                                // full layout is done: the TOC load is cheap now
+                                loadOutlineOnce();
                             } catch (Throwable e) {
                                 LOG.e(e);
                             }
@@ -860,7 +898,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                     LOG.e(e);
                 }
             }
-        });
+        }, "@T phase2").start();
     }
 
 }

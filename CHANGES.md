@@ -653,3 +653,49 @@ MOBI《2014中日战争》：一次 567ms（1613 页）/ 二次 108ms 且页数�
 - EPUB 冷打开首屏正常（恢复位置若为章末页，页面本身内容少属书籍内容而非缺陷）；EPUB 热 193~233ms；TXT 热 2.8s；FB2 热 78ms；
 - MOBI《2014中日战争》两连开 742ms/611ms，总页数 1613 完整（回归通过）；
 - logcat crash buffer 无 FATAL。
+
+## [2026-08-30] 打开空页根治 + 书库文件夹选择器修复 + 书库滚动位置记忆
+
+### 一、打开书出现空页 → 加载框保持到首屏整屏解码完成(根治)
+
+两段修复:
+
+1. **FirstPaintGate(首屏门闩)**:新增 `com/foobnix/sys/FirstPaintGate.java`。「请稍候」加载框原先在排版完成时即关闭(`BaseAsyncTask.onPostExecute`),位图尚未解码,用户先看到空白占位页。现在成功路径持框直到首屏解码齐(500ms 静默期 + 8s 硬上限 + 2s 无解码判定),`BaseAsyncTask` 增加 `holdProgressDialog` 跳过自动关闭;`PageTreeNode.decodeComplete` 喂给门闩;`VerticalViewActivity.onDestroy`/`ViewerActivityController.onDestroy` 兜底取消;密码/错误/手动取消路径行为不变。
+
+2. **首屏第二页空白 5~15 秒的真正根因(三处)**:
+   - **目录(Outline)抢占解码线程**:`startDecoding` 回调里的 `loadOutline()` 在渐进打开后立即执行,`getOutline()` 的 native 调用会强制排版全书(24MB 书 10~15 秒),期间解码执行器被独占,第二屏解码全部排队。修复:渐进模式把 outline 延迟到 phase-two 排版完成后再加载(届时毫秒级);非渐进格式(PDF 等)保持原行为(`loadOutlineOnce()`,phase2 成功/`knownCount<=0` 兜底触发)。
+   - **节点回收取消在途解码**:`AbstractEventScroll.process(node)` 对「不在内存保留范围」的节点直接 recycle→stopDecoding;渐进打开初期页面尚无真实边界,刚排队的第二屏解码被后续布局事件取消。修复:`decodingNow` 为 true 的节点跳过 recycle。
+   - **页级回收同样绕过守卫**:`AbstractEvent.process(Page)` 的 `recyclePage` 增加相同守卫(根节点在解码中则不回收该页)。
+   - 附带加固:`DecodeServiceBase.tasks` 改为 `Collections.synchronizedList`(原先裸 ArrayList 被 UI 线程与消费线程并发读写);phase-two 与 BookWarmer 移出 2 线程共享池 `AppsConfig.executorService`(改独立线程,解码消费者常驻该池),phase2 线程用 `THREAD_PRIORITY_LESS_FAVORABLE`(BACKGROUND 的 cgroup 会被 MIUI 限速)。
+
+**MI9 实测**(big25.epub 冷开):排版完成 → 首屏 3 个节点 **230ms 内连续解码完成** → 加载框 807ms 时关闭、内容整屏出现,不再有「页 N」空白占位;之前第二页空白 5~15 秒。TXT 冷开(转换 13s)同样 825ms 整屏出现。
+
+### 二、「我的文件 → 书库文件夹添加」无本地存储路径选择 → 修复
+
+**根因**:我的文件根页是伪路径 `my-files:`,`displayAnyPath` 把它无条件写入 `BookCSS.dirLastPath`;「添加文件夹」把这个伪路径当初始目录传给 ChooserDialogFragment,弹出的还是伪根页(只有书库文件夹列表),看不到真实文件系统,确认按钮也报「值不正确」。
+
+修复:
+- `ChooserDialogFragment.chooseFolder` 内部对初始路径做净化(新增 `validStartDir`:非真实本地目录一律回退到机身存储根),所有调用点(我的文件、偏好里的书库文件夹配置)一并修好;
+- `BrowseFragment2.displayAnyPath` 只有真实本地目录才写入 `dirLastPath`(同时防 OPDS/content 路径污染);
+- 选择器弹窗内启用存储快捷入口 chips(机身存储/Download/SD 卡/Librera 下载,复用 `buildQuickDirChips`,`TYPE_SELECT_FOLDER` 也构建)。
+
+**MI9 实测**:添加文件夹 → 选择器打开在真实文件系统(Alarms/Android/Download…)、chips 可见可点、进入 Download → 选择 → 文件夹入库、列表即时刷新。
+
+### 三、书库页面记住浏览位置
+
+`SearchFragment2`:书库列表(网格/封面/列表模式)滚动停止时记录首个可见项位置+偏移到独立 SharedPreferences(`lib_scroll`),key=`模式|过滤文本|排序|方向|数据 hash`——搜索词/排序/数据集变化自动失效归零,不会串位置;`populateDataInUI` 重灌后 `scrollToPositionWithOffset` 恢复(含 StaggeredGrid 变体);分组模式(作者/系列等)保留原有 rememberPos 逻辑。
+
+**MI9 实测**:书库滚到中部 → 切首页再切回 → 位置精确恢复(截图逐像素一致)。
+
+### 四、AI 大模型配置与备份/同步(检查结论,无代码改动)
+
+备份(`PrefDialogs.exportDialog` 打包 `profile.*/<设备>/`)已包含 `app-AI.json`(API Key,`ProfileStateIO.exportAi`)与 `app-State.json`(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking);WebDAV 同步同样覆盖(`WebDavSyncer` exportAi/syncMergedObjectFile/importAi,双方非空 Key 者胜)。**AI 配置已随备份/同步走,无需修改。**
+
+### MI9 真机验证汇总
+
+- EPUB 冷开:整屏 0.8s 内随加载框关闭一起出现,无空白占位页(修复前第二页空 5~15s);
+- TXT 冷开 + 阅读中返回退出:~1s 完成,无卡死(phase2 正常补全 14154 页);
+- MOBI《2014中日战争》冷开 749ms/热开 141ms,两开页数均完整 1613(回归通过);
+- 我的文件 → 书库文件夹添加:选择器真实路径 + 存储 chips + 添加成功;
+- 书库滚动位置:切标签往返精确保留;
+- logcat crash buffer 无 FATAL。

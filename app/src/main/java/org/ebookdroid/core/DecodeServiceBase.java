@@ -38,6 +38,7 @@ import org.emdev.utils.LengthUtils;
 import org.emdev.utils.MathUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -57,7 +58,7 @@ public class DecodeServiceBase implements DecodeService {
     final AtomicBoolean isRecycled = new AtomicBoolean();
     final AtomicReference<ViewState> viewState = new AtomicReference<ViewState>();
     final Map<PageTreeNode, DecodeTask> decodingTasks = new IdentityHashMap<PageTreeNode, DecodeTask>();
-    final List<Task> tasks = new ArrayList<Task>();
+    final List<Task> tasks = Collections.synchronizedList(new ArrayList<Task>());
     ExecutorRunnable executor = new ExecutorRunnable();
     private CodecDocument codecDocument;
     private Map<Integer, CodecPageHolder> pages = new LinkedHashMap<Integer, CodecPageHolder>() {
@@ -780,6 +781,7 @@ public class DecodeServiceBase implements DecodeService {
                     stopDecoding(running, null, "canceled by new one");
                 }
             } catch (Exception e) {
+                android.util.Log.i("BENCH", "add error: " + e);
                 LOG.e(e);
             } finally {
                 // TempHolder.lock.unlock();

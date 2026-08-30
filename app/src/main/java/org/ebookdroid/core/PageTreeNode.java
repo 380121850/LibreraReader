@@ -8,6 +8,7 @@ import android.graphics.RectF;
 
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppState;
+import com.foobnix.sys.FirstPaintGate;
 
 import org.ebookdroid.common.bitmaps.BitmapManager;
 import org.ebookdroid.common.bitmaps.BitmapRef;
@@ -115,6 +116,7 @@ public class PageTreeNode implements DecodeService.DecodeCallback {
                     // long t0 = System.currentTimeMillis();
                     holder.setBitmap(bitmaps);
                     stopDecodingThisNode(null);
+                    FirstPaintGate.notifyDecoded();
 
                     final IViewController dc = page.base.getDocumentController();
                     if (dc instanceof AbstractViewController) {

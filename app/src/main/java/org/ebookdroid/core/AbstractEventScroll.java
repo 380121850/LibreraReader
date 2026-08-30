@@ -75,7 +75,13 @@ public abstract class AbstractEventScroll<E extends AbstractEventScroll<E>> exte
         final RectF pageBounds = viewState.getBounds(node.page);
 
         if (!viewState.isNodeKeptInMemory(node, pageBounds)) {
-            node.recycle(bitmapsToRecycle);
+            // A queued/in-flight decode must survive events that run before
+            // the page has real bounds (e.g. right after a progressive open):
+            // cancelling it here left the visible page blank until some
+            // later event happened to re-request it.
+            if (!node.decodingNow.get()) {
+                node.recycle(bitmapsToRecycle);
+            }
             return false;
         }
 

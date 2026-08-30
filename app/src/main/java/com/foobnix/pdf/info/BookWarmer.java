@@ -44,7 +44,9 @@ public class BookWarmer {
         if (todo.isEmpty()) {
             return;
         }
-        AppsConfig.executorService.execute(new Runnable() {
+        // dedicated thread: the shared 2-thread AppsConfig pool must stay
+        // free for the decode consumer and other UI services
+        final Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
@@ -55,7 +57,9 @@ public class BookWarmer {
                     warmOne(path);
                 }
             }
-        });
+        }, "@T BookWarmer");
+        t.setPriority(Thread.MIN_PRIORITY);
+        t.start();
     }
 
     private static void warmOne(final String path) {
