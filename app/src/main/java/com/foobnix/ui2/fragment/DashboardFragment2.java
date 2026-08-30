@@ -91,6 +91,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
     // every refresh so newly added WebDAV servers / library folders show up
     LinearLayout filesRowView;
     View filesHeader;
+    View filesDivider;
 
     @Override
     public Pair<Integer, Integer> getNameAndIconRes() {
@@ -150,6 +151,7 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
 
         filesRowView = (LinearLayout) view.findViewById(R.id.filesRow);
         filesHeader = view.findViewById(R.id.filesHeader);
+        filesDivider = view.findViewById(R.id.filesDivider);
         buildFileSources(filesRowView);
 
         populate();
@@ -277,6 +279,9 @@ public class DashboardFragment2 extends UIFragment<FileMeta> {
         }
         if (filesHeader != null) {
             filesHeader.setVisibility(empty ? View.GONE : View.VISIBLE);
+        }
+        if (filesDivider != null) {
+            filesDivider.setVisibility(empty ? View.GONE : View.VISIBLE);
         }
     }
 

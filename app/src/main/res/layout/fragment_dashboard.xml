@@ -127,6 +127,7 @@
             </HorizontalScrollView>
 
             <View
+                android:id="@+id/filesDivider"
                 android:layout_width="match_parent"
                 android:layout_height="1dip"
                 android:layout_marginTop="14dip"

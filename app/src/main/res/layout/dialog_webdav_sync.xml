@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="/Librera" />
+            android:text="/HowRead" />
     </LinearLayout>
 
     <LinearLayout
