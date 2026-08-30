@@ -398,6 +398,34 @@ public abstract class UIFragment<T> extends Fragment {
             recyclerView.setLayoutManager(mGridManager);
             recyclerView.setAdapter(searchAdapter);
 
+        } else if (mode == AppState.MODE_SHELF) {
+            // Moon+ bookshelf: fixed 3 books per shelf row (more on wide screens)
+            final int num = Math.max(3, Dips.screenWidthDP() / 120);
+            GridLayoutManager mGridManager = new GridLayoutManager(getActivity(), num);
+            mGridManager.setSpanSizeLookup(new SpanSizeLookup() {
+
+                @Override
+                public int getSpanSize(int pos) {
+                    if (pos < 0 || pos >= searchAdapter.getItemCount()) {
+                        return 1;
+                    }
+                    int type = searchAdapter.getItemViewType(pos);
+                    switch (type) {
+                        case FileMetaAdapter.DISPALY_TYPE_LAYOUT_TITLE_FOLDERS:
+                        case FileMetaAdapter.DISPALY_TYPE_LAYOUT_TITLE_NONE:
+                        case FileMetaAdapter.DISPALY_TYPE_LAYOUT_TITLE_DIVIDER:
+                        case FileMetaAdapter.DISPALY_TYPE_LAYOUT_TITLE_BOOKS:
+                        case FileMetaAdapter.DISPALY_TYPE_SERIES:
+                            return num;
+                        default:
+                            return 1;
+                    }
+                }
+            });
+            searchAdapter.setAdapterType(FileMetaAdapter.ADAPTER_SHELF);
+            recyclerView.setLayoutManager(mGridManager);
+            recyclerView.setAdapter(searchAdapter);
+
         } else if (Arrays.asList(AppState.MODE_PUBLICATION_DATE, AppState.MODE_PUBLISHER, AppState.MODE_AUTHORS, AppState.MODE_SERIES, AppState.MODE_GENRE, AppState.MODE_USER_TAGS, AppState.MODE_KEYWORDS, AppState.MODE_LANGUAGES)
                          .contains(mode)) {
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());

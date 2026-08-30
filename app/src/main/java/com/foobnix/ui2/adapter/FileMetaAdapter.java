@@ -75,6 +75,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
     public static final int ADAPTER_GRID = 1;
     public static final int ADAPTER_COVERS = 3;
     public static final int ADAPTER_LIST_COMPACT = 4;
+    public static final int ADAPTER_SHELF = 5;
     public static final int TEMP_VALUE_NONE = 0;
     public static final int TEMP_VALUE_FOLDER_PATH = 1;
     public static final int TEMP_VALUE_STAR_GRID_ITEM = 2;
@@ -153,6 +154,8 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         if (viewType == DISPLAY_TYPE_FILE) {
             if (adapterType == ADAPTER_LIST || adapterType == ADAPTER_LIST_COMPACT) {
                 itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.browse_item_list, parent, false);
+            } else if (adapterType == ADAPTER_SHELF) {
+                itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.browse_item_shelf, parent, false);
             } else {
                 itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.browse_item_grid, parent, false);
                 if (tempValue == TEMP_VALUE_STAR_GRID_ITEM || tempValue == TEMP_VALUE_SERIES) {
@@ -844,7 +847,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
 
         bindItemClickAndLongClickListeners(holder.parent, fileMeta);
 
-        if (adapterType == ADAPTER_GRID || adapterType == ADAPTER_COVERS) {
+        if (adapterType == ADAPTER_GRID || adapterType == ADAPTER_COVERS || adapterType == ADAPTER_SHELF) {
             if (holder.path != null) {
                 holder.path.setVisibility(View.GONE);
             }
@@ -888,6 +891,18 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
 
             }
         }
+        if (adapterType == ADAPTER_SHELF) {
+            // Moon+ bookshelf: fixed book slot per column, 1:1.4 book ratio
+            int columns = Math.max(3, Dips.screenWidthDP() / 120);
+            int slotW = (Dips.screenWidth() - Dips.dpToPx(30)) / columns;
+            holder.imageParent.getLayoutParams().width = slotW;
+            holder.imageParent.getLayoutParams().height = (int) (slotW * IMG.WIDTH_DK);
+            holder.imageParent.setLayoutParams(holder.imageParent.getLayoutParams());
+            LayoutParams lp = holder.image.getLayoutParams();
+            lp.width = LayoutParams.MATCH_PARENT;
+            lp.height = LayoutParams.MATCH_PARENT;
+            holder.image.setLayoutParams(lp);
+        }
         if (holder.date != null) {
             holder.date.setVisibility(View.VISIBLE);
             holder.size.setVisibility(View.VISIBLE);
@@ -911,7 +926,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         }
 
         if (holder.layoutBootom != null) {
-            if (adapterType == ADAPTER_COVERS) {
+            if (adapterType == ADAPTER_COVERS || adapterType == ADAPTER_SHELF) {
                 holder.layoutBootom.setVisibility(View.GONE);
                 holder.infoLayout.setVisibility(View.GONE);
             } else {
@@ -985,7 +1000,7 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         // shelf mode: covers/grid cards go transparent so the wooden bookshelf
         // of the library page shows through; every bind sets it explicitly so
         // recycled holders always match the current mode
-        boolean shelfItem = shelfMode && (adapterType == ADAPTER_COVERS || adapterType == ADAPTER_GRID);
+        boolean shelfItem = shelfMode && (adapterType == ADAPTER_COVERS || adapterType == ADAPTER_GRID || adapterType == ADAPTER_SHELF);
         if (holder.defaultCardElevation < 0) {
             holder.defaultCardElevation = ((CardView) holder.parent).getCardElevation();
             holder.defaultCardColor = ((CardView) holder.parent).getCardBackgroundColor();
@@ -1054,6 +1069,29 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         TxtUtils.setInkTextView(holder.title, holder.author, holder.path, holder.browserExt, holder.size, holder.date, holder.series, holder.idPercentText);
 
         Apps.accessibilityButtonSize(holder.star, holder.menu);
+
+        if (adapterType == ADAPTER_SHELF) {
+            // Moon+ bookshelf: circular progress badge on the cover corner;
+            // placed after setInkTextView, which would paint the text dark again
+            if (holder.shelfBadge != null) {
+                int shelfPct = (int) Math.round(100.0 * recentProgress);
+                // books never opened (0%) show no badge, like Moon+ Reader
+                holder.shelfBadge.setVisibility(shelfPct > 0 ? View.VISIBLE : View.GONE);
+                holder.idPercentText.setText("" + shelfPct + "%");
+                holder.idPercentText.setTextColor(Color.WHITE);
+            }
+            if (holder.shelfMenu != null) {
+                holder.shelfMenu.setOnClickListener(new OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        if (onMenuClickListener != null && fileMeta != null) {
+                            onMenuClickListener.onResultRecive(fileMeta);
+                        }
+                    }
+                });
+            }
+        }
 
         return fileMeta;
     }
@@ -1138,6 +1176,8 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
         public ImageView image, star, signIcon, menu, cloudImage;
         public View authorParent, progresLayout, parent, remove, layoutBootom, infoLayout, idProgressColor, idProgressBg, imageParent;
         public View gridProgressLayout, gridProgressFill, gridProgressRest;
+        // Moon+ bookshelf extras (present only in browse_item_shelf.xml)
+        public View shelfBadge, shelfMenu;
         // XML ripple background captured on first bind, so the recycled row
         // can always be restored to it (selection accent must not leak)
         public android.graphics.drawable.Drawable defaultBackground;
@@ -1176,6 +1216,8 @@ public class FileMetaAdapter extends AppRecycleAdapter<FileMeta, RecyclerView.Vi
             gridProgressLayout = view.findViewById(R.id.gridProgressLayout);
             gridProgressFill = view.findViewById(R.id.gridProgressFill);
             gridProgressRest = view.findViewById(R.id.gridProgressRest);
+            shelfBadge = view.findViewById(R.id.shelfBadge);
+            shelfMenu = view.findViewById(R.id.shelfMenu);
 
             menu = (ImageView) view.findViewById(R.id.itemMenu);
             remove = view.findViewById(R.id.delete);

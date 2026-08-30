@@ -52,6 +52,30 @@ public class LibreraAppGlideModule extends AppGlideModule {
     static Bitmap cache;
     static String path;
 
+    /**
+     * Books without an embedded cover get a placeholder bitmap; show the book
+     * title (file name) on it instead of the old "#error null" literal.
+     */
+    static String coverTitle(String model) {
+        String p = model;
+        try {
+            com.foobnix.pdf.info.PageUrl url = com.foobnix.pdf.info.PageUrl.fromString(model);
+            if (url != null && url.getPath() != null) {
+                p = url.getPath();
+            }
+        } catch (Exception e) {
+            // keep the raw model string
+        }
+        try {
+            String name = new File(p).getName();
+            int dot = name.lastIndexOf('.');
+            String t = dot > 0 ? name.substring(0, dot) : name;
+            return t.trim().length() == 0 ? "..." : t;
+        } catch (Exception e) {
+            return "...";
+        }
+    }
+
     final static ModelLoader<String, Bitmap> modelLoader = new ModelLoader<String, Bitmap>() {
         @Nullable
         @Override
@@ -82,7 +106,7 @@ public class LibreraAppGlideModule extends AppGlideModule {
                                 bitmap = ImageExtractor.getInstance(LibreraApp.context).proccessOtherPage(s);
                                 if (bitmap == null) {
                                     LOG.d("Bitmap-test-1-cancel", bitmap, s);
-                                    callback.onDataReady(ImageExtractor.messageFileBitmap("#error null", ""));
+                                    callback.onDataReady(ImageExtractor.messageFileBitmap(coverTitle(s), ""));
                                     stream.close();
                                     return;
                                 }
@@ -107,7 +131,7 @@ public class LibreraAppGlideModule extends AppGlideModule {
                         LOG.d("LibreraAppGlideModule onDataReady", stream);
 
                     } catch (Exception e) {
-                        callback.onDataReady(ImageExtractor.messageFileBitmap("#error", ""));
+                        callback.onDataReady(ImageExtractor.messageFileBitmap(coverTitle(s), ""));
 
                         LOG.e(e);
                     }

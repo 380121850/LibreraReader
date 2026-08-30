@@ -306,6 +306,78 @@ public class ProfileStateIO {
         }
     }
 
+    // ---------------------------------------------------------- AI model config (inside app-State.json)
+
+    private static final String[] AI_STATE_FIELDS = {"aiProtocol", "aiBaseUrl", "aiModel", "aiMaxTokens", "aiThinking"};
+    /** AppState.aiMaxTokens default — a field equal to it counts as "not set". */
+    private static final int AI_MAX_TOKENS_DEFAULT = 4096;
+
+    /**
+     * Union merge of the AI model config inside app-State.json so the config
+     * survives a device reset: after a reset the freshly created local state
+     * file is always "newer" (its mtime is now), and plain newer-wins would
+     * clobber the server copy with empty fields. A set value beats an unset
+     * one; on a real conflict the newer side wins.
+     */
+    public static LinkedJSONObject mergeAiState(LinkedJSONObject local, LinkedJSONObject remote, boolean remoteNewer) {
+        try {
+            LinkedJSONObject newer = remoteNewer ? remote : local;
+            LinkedJSONObject out = new LinkedJSONObject(newer.toString());
+            for (String k : AI_STATE_FIELDS) {
+                Object lv = local.opt(k);
+                Object rv = remote.opt(k);
+                boolean lSet = aiFieldSet(lv);
+                boolean rSet = aiFieldSet(rv);
+                if (lSet && rSet) {
+                    continue; // real conflict — the newer side (base) keeps it
+                }
+                if (lSet) {
+                    out.put(k, lv);
+                } else if (rSet) {
+                    out.put(k, rv);
+                }
+            }
+            return out;
+        } catch (Exception e) {
+            LOG.e(e);
+            return remoteNewer ? remote : local;
+        }
+    }
+
+    /** "Set" per field type: strings non-empty, tokens ≠ default, thinking always. */
+    static boolean aiFieldSet(Object v) {
+        if (v == null) {
+            return false;
+        }
+        if (v instanceof Integer) {
+            return ((Integer) v) != AI_MAX_TOKENS_DEFAULT;
+        }
+        if (v instanceof Boolean) {
+            return true;
+        }
+        return TxtUtils.isNotEmpty(String.valueOf(v));
+    }
+
+    /**
+     * Re-read the synced app-State.json into the live AppState (in place), so
+     * settings synced from the server — the AI model config above included —
+     * apply immediately instead of waiting for an app restart.
+     */
+    public static void importAppState() {
+        try {
+            if (AppProfile.syncState == null || !AppProfile.syncState.isFile()) {
+                return;
+            }
+            LinkedJSONObject o = IO.readJsonObject(AppProfile.syncState);
+            if (o.length() == 0) {
+                return;
+            }
+            com.foobnix.android.utils.Objects.loadFromJson(AppState.get(), o);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
     // ------------------------------------------------------------------ simple-meta arrays (recent / favorite)
 
     /**

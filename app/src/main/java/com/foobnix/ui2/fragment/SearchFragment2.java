@@ -429,7 +429,8 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                     AppState.get().libraryMode == AppState.MODE_GRID || //
                             AppState.get().libraryMode == AppState.MODE_LIST || //
                             AppState.get().libraryMode == AppState.MODE_LIST_COMPACT || //
-                            AppState.get().libraryMode == AppState.MODE_COVERS//
+                            AppState.get().libraryMode == AppState.MODE_COVERS || //
+                            AppState.get().libraryMode == AppState.MODE_SHELF//
             ) {
                 handler.removeCallbacks(sortAndSeach);
                 handler.removeCallbacks(hideKeyboard);
@@ -527,8 +528,11 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         applyBookshelfBackground();
     }
 
+    private com.foobnix.ui2.ShelfBoardsDecoration shelfBoards;
+
     /**
-     * Moon+ style wooden bookshelf: covers/grid pages sit on a wood texture.
+     * Moon+ style wooden bookshelf: covers/grid pages sit on a wood texture,
+     * the 书架 mode additionally draws a plank under every row of books.
      * List pages keep the plain background.
      */
     private void applyBookshelfBackground() {
@@ -537,11 +541,23 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         }
         boolean shelf = AppState.get().libraryMode == AppState.MODE_COVERS
                 || AppState.get().libraryMode == AppState.MODE_GRID;
-        searchAdapter.shelfMode = shelf;
+        boolean boards = AppState.get().libraryMode == AppState.MODE_SHELF;
+        searchAdapter.shelfMode = shelf || boards;
+        // 封面/网格 keep the fixed wood background; 书架 draws its wood inside
+        // the decoration so the texture scrolls together with books and boards
         if (shelf && getActivity() != null) {
             recyclerView.setBackground(com.foobnix.ui2.WoodShelf.texture(getActivity()));
         } else {
             recyclerView.setBackground(null);
+        }
+        if (boards) {
+            if (shelfBoards == null) {
+                shelfBoards = new com.foobnix.ui2.ShelfBoardsDecoration(recyclerView.getContext());
+            }
+            recyclerView.removeItemDecoration(shelfBoards);
+            recyclerView.addItemDecoration(shelfBoards);
+        } else if (shelfBoards != null) {
+            recyclerView.removeItemDecoration(shelfBoards);
         }
     }
 
@@ -1012,7 +1028,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                                    .toString()
                                    .trim();
         countTitles = 0;
-        if (Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT)
+        if (Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT, AppState.MODE_SHELF)
                   .contains(AppState.get().libraryMode)) {
 
             if (!prevText.contains(txt)) {
@@ -1212,7 +1228,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             cleanFilter.setVisibility(View.VISIBLE);
         }
 
-        if (Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT)
+        if (Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT, AppState.MODE_SHELF)
                   .contains(AppState.get().libraryMode)) {
             AppState.get().previousLibraryMode = AppState.get().libraryMode;
             searchEditText.setEnabled(true);
@@ -1331,7 +1347,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
             return;
         }
         // group modes (authors/series/...) keep their own rememberPos logic
-        if (!Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT)
+        if (!Arrays.asList(AppState.MODE_GRID, AppState.MODE_COVERS, AppState.MODE_LIST, AppState.MODE_LIST_COMPACT, AppState.MODE_SHELF)
                   .contains(AppState.get().libraryMode)) {
             return;
         }
@@ -1417,6 +1433,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                 R.string.compact, //
                 R.string.grid, //
                 R.string.cover, //
+                R.string.shelf, //
                 R.string.author, //
                 R.string.genre, //
                 R.string.serie, //
@@ -1429,6 +1446,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
                 R.drawable.my_glyphicons_114_justify_compact, //
                 R.drawable.glyphicons_157_thumbnails, //
                 R.drawable.glyphicons_158_thumbnails_small, //
+                R.drawable.glyphicons_422_book_library, //
                 R.drawable.glyphicons_4_user, //
                 R.drawable.glyphicons_66_tag, //
                 R.drawable.glyphicons_115_list, //
@@ -1439,6 +1457,7 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         final List<Integer> actions = Arrays.asList(AppState.MODE_LIST, AppState.MODE_LIST_COMPACT, //
                 AppState.MODE_GRID, //
                 AppState.MODE_COVERS, //
+                AppState.MODE_SHELF, //
                 AppState.MODE_AUTHORS, //
                 AppState.MODE_GENRE, //
                 AppState.MODE_SERIES, //

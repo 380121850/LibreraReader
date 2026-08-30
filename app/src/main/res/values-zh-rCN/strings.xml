@@ -278,6 +278,7 @@
    <string name="compact">简表</string>
    <string name="grid">网格</string>
    <string name="cover">封面</string>
+   <string name="shelf">书架</string>
    <string name="author">作者</string>
    <string name="genre">流派</string>
    <string name="serie">丛书</string>

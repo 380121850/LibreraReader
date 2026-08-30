@@ -707,3 +707,56 @@ MOBI《2014中日战争》：一次 567ms（1613 页）/ 二次 108ms 且页数�
 修复:`SearchFragment2.buildLibScrollKey()` 去掉 `listHash` 维度,只保留 模式|过滤文本|排序|方向——阅读返回照常恢复;换搜索词/排序/阅读模式仍正常失效归零。
 
 **MI9 实测**:书库滚到中部 → 点开《映画周星驰》(恢复到该书上次阅读位)→ 关闭阅读器 → 书库精确停回原浏览位置(前后截图一致)。
+
+## [2026-08-30] 书库新增「书架」视图模式(仿静读天下/Moon+ Reader)
+
+### 功能
+- 书库查看菜单新增「书架」模式(`AppState.MODE_SHELF = 13`):每行固定 3 本书(平板按屏宽增加),木质书架背景上每行下方绘制木板与落影,封面直立在木板上,视觉对齐 Moon+ Reader 书架。
+- 封面左下角圆形阅读进度角标(≥1% 才显示,与 Moon+ 一致);右下角 ⋮ 按钮直接弹出单书操作菜单(与长按菜单同一回调)。
+- 无封面书籍的占位封面改为显示书名(解析 PageUrl 取真实路径,用文件名去扩展名),替换原先的 "#error null" 字样;该改进对 列表/网格/封面 模式同样生效。
+
+### 改动文件
+| 文件 | 改动 |
+| --- | --- |
+| `model/AppState.java` | 新增 `MODE_SHELF = 13` |
+| `ui2/fragment/SearchFragment2.java` | 查看菜单加「书架」项;`applyBookshelfBackground` 扩展(书架模式加挂木板装饰、其余模式摘除);onTextChanged / prepareDataInBackground / populateDataInUI / saveLibScrollPosition 四处扁平模式白名单加入 MODE_SHELF(搜索、排序、滚动位置记忆在书架模式下全功能可用) |
+| `ui2/fragment/UIFragment.java` | `onGridList` 新增书架分支:`GridLayoutManager` 列数 `max(3, 屏宽dp/120)`,分组标题类条目跨全列 |
+| `ui2/adapter/FileMetaAdapter.java` | 新增 `ADAPTER_SHELF = 5`;onCreateViewHolder 选择新布局;书架封面固定槽位尺寸(宽=(屏宽-30dp)/列数,高=宽×1.4 即 WIDTH_DK);进度角标文本/可见性与 ⋮ 菜单点击绑定(setInkTextView 之后执行,保证白字);shelfMode 透明卡条件扩展 |
+| `res/layout/browse_item_shelf.xml` | 新建书架 item 布局:封面 + 左下进度圆标(shelfBadge/idPercentText)+ 右下 ⋮(shelfMenu),隐藏文字区但保留全部既有 id(复用 FileMetaViewHolder,不空指针) |
+| `res/drawable/shelf_badge_bg.xml` | 新建角标/⋮ 半透明黑圆底 |
+| `ui2/ShelfBoardsDecoration.java` | 新建:行木板 ItemDecoration(渐变木板 + 顶部亮边 + 底部暗线 + 板上方 8dp 落影,按行底 Y 去重通宽绘制) |
+| `pdf/info/wrapper/PopupHelper.java` | `updateGridOrListIcon` 加 MODE_SHELF 分支(glyphicons_422_book_library 图标) |
+| `sys/LibreraAppGlideModule.java` | 封面提取失败时的占位图标题改为书名(新增 `coverTitle()`,替换 "#error null"/"#error") |
+| `strings.xml` ×3 | 新增 `shelf` = Bookshelf / 书架 / 書架 |
+
+### 验证(MI9 真机)
+- 书架模式渲染:3 本/行、木板、进度角标(6%/100% 完整显示,0% 隐藏)、⋮ 菜单弹出完整书籍操作、无封面书显示书名占位。
+- 打开《悲惨世界》恢复到 3545/3545 页;关闭返回后书库浏览位置保持(不跳回顶部)。
+- 切回 封面/网格 模式:木纹背景正常、无木板无角标,无回归;模式选择随 AppState 持久化,重启后保持。
+
+## [2026-08-30] 书架模式打磨:加厚木板、木纹随内容滚动、胡桃木纹理
+
+- **木板加厚**:13dp → 20dp(顶部亮边 2dp、底部暗线 3dp、板上方落影 9dp),书立在板上的立体感更强。
+- **修复背景不随内容滚动**:书架模式的木纹改由 `ShelfBoardsDecoration` 在内容坐标系绘制(BitmapShader 锚定内容原点),书籍、木板、木纹三者一起滚动;`applyBookshelfBackground` 中书架模式不再设置固定背景。封面/网格模式保持固定木纹背景不变。
+- **胡桃木纹理**:`WoodShelf` 换为深棕胡桃木(基调 #5C4232/#543A2B/#664834),纹理线更细密近直、板缝亮边更低调;新增 `WoodShelf.tile()` 供装饰层共用同一张 tile,板面与背景纹理无缝衔接。
+- 验证(MI9 真机,像素级对照):内容滚动 846px 后,书条带差值 0.87、行间木纹带差值 0.61(完全随动),若按"固定背景"对齐则差值 113.8(错位);不滚动的工具栏区域位移 0 处差值 0.0(对照组)。
+
+涉及:`ui2/WoodShelf.java`、`ui2/ShelfBoardsDecoration.java`、`ui2/fragment/SearchFragment2.java`。
+
+## [2026-08-30] 书架纹理调浅+整块木板纹理;修复 WebDAV 同步后 AI 模型配置丢失
+
+### 书架视觉(应用户反馈)
+- 木纹背景调浅:深胡桃 #5C4232 一系 → 浅胡桃 #94745A 一系。
+- 取消横纹:不再按 128px 画板缝与每板色带,改为**一整块木板**——纯竖向细密木纹 + 少量木节;纹理线在 tile 高度上按整周期绘制、横向不出界,双向无缝平铺(`WoodShelf.makeTile` 重写)。
+- 木板装饰配色适配浅色底:亮边 #C29A6E、底线 #4A3018。
+
+### WebDAV 同步 AI 模型配置丢失(修复)
+AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-State.json`,此前同步规则是"文件修改时间新者胜",存在两个问题:
+1. **重置后本机文件永远"更新"**:刚生成的本地 app-State.json 修改时间最新,同步反而把空配置上传覆盖服务器副本,AI 配置永远同步不下来。
+2. **同步不应用到运行中的 APP**:即使远端赢,同步只写文件不刷新内存 AppState;同步结束时的 `AppState.save()` 又把内存旧状态写回文件。
+
+修复:
+- `ProfileStateIO.mergeAiState`:app-State.json 同步时对 5 个 AI 字段做字段级并集——一边设置、一边未设置 → 取设置过的值;两边都设置且不同 → 新的一方胜出;`WebDavSyncer.syncGlobalFile` 在两种胜负路径都写入/上传合并结果(双向收敛)。
+- 新增 `ProfileStateIO.importAppState`:同步完成后把合并后的 app-State.json 原位加载进运行中的 AppState(`Objects.loadFromJson`),配置立即生效,并避免同步末尾的回写覆盖。
+
+涉及:`ui2/WoodShelf.java`、`ui2/ShelfBoardsDecoration.java`、`model/ProfileStateIO.java`、`webdav/WebDavSyncer.java`。真机验证:书架纹理视觉已核对;WebDAV AI 同步请在用户自己的服务器上按"重置 → 配 WebDAV → 同步 → 查看 AI 配置"流程确认。

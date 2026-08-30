@@ -278,6 +278,7 @@
    <string name="compact">Condensed</string>
    <string name="grid">Grid</string>
    <string name="cover">Book Cover</string>
+   <string name="shelf">Bookshelf</string>
    <string name="author">Author</string>
    <string name="genre">Genre</string>
    <string name="serie">Series</string>

@@ -184,6 +184,10 @@ public class WebDavSyncer {
             syncMergedObjectFile(s, globalUrl, AppProfile.syncMisc, ProfileStateIO::mergeMisc);
             ProfileStateIO.importAi(c);
             ProfileStateIO.importMisc(c);
+            // apply the synced global settings (AI model config, …) to the
+            // running app; AppState.save() at the end would otherwise write
+            // the stale in-memory state back over the synced file
+            ProfileStateIO.importAppState();
 
             // ---- local state: progress per book + bookmarks by creation time
             final boolean farther = "farther".equals(AppState.get().webdavSyncPolicy);
@@ -433,15 +437,21 @@ public class WebDavSyncer {
      * otherwise the newer file (remote modified vs local lastModified) wins.
      * Volatile fields (webdavLastSync*) are excluded from the comparison so
      * per-sync status stamps never echo back and forth between devices.
+     *
+     * For app-State.json the AI model config fields are additionally union
+     * merged (ProfileStateIO.mergeAiState): after a reset the freshly created
+     * local file is always "newer" and plain newer-wins would clobber the
+     * server copy with empty AI fields.
      */
     static void syncGlobalFile(Sardine s, String globalUrl, File local, boolean stripVolatile) {
         try {
             if (local == null || !local.isFile()) {
                 return;
             }
+            final String localFull = readText(local);
             final String localText = stripVolatile
-                    ? withoutVolatile(IO.readJsonObject(local)).toString()
-                    : readText(local);
+                    ? withoutVolatile(new LinkedJSONObject(localFull)).toString()
+                    : localFull;
             final String remoteText = fetchText(s, globalUrl + "/" + local.getName());
             // both sides compared without the volatile fields
             final String remoteCmp = remoteText == null
@@ -452,18 +462,32 @@ public class WebDavSyncer {
             }
             final long remoteMod = remoteModified(s, globalUrl + "/" + local.getName());
             if (remoteText == null) {
-                s.put(globalUrl + "/" + local.getName(), readText(local).getBytes("UTF-8"));
-            } else if (remoteMod > local.lastModified()) {
-                // remote wins: write through, keeping the local volatile fields
-                if (stripVolatile) {
-                    LinkedJSONObject remote = new LinkedJSONObject(remoteText);
-                    keepLocalVolatile(remote);
-                    IO.writeObjSync(local, remote);
-                } else {
+                s.put(globalUrl + "/" + local.getName(), localFull.getBytes("UTF-8"));
+                return;
+            }
+            if (!stripVolatile) {
+                if (remoteMod > local.lastModified()) {
                     IO.writeObjSync(local, new LinkedJSONObject(remoteText));
+                } else {
+                    s.put(globalUrl + "/" + local.getName(), localFull.getBytes("UTF-8"));
                 }
-            } else {
-                s.put(globalUrl + "/" + local.getName(), readText(local).getBytes("UTF-8"));
+                return;
+            }
+            final LinkedJSONObject localObj = new LinkedJSONObject(localFull);
+            final LinkedJSONObject remoteObj = new LinkedJSONObject(remoteText);
+            final boolean remoteNewer = remoteMod > local.lastModified();
+            final LinkedJSONObject merged = ProfileStateIO.mergeAiState(localObj, remoteObj, remoteNewer);
+            final boolean localChanged = !merged.toString().equals(localFull);
+            final boolean remoteChanged = !merged.toString().equals(remoteText);
+            if (remoteNewer) {
+                // remote wins: write through, keeping the local volatile fields
+                keepLocalVolatile(merged);
+                IO.writeObjSync(local, merged);
+            } else if (localChanged) {
+                IO.writeObjSync(local, merged);
+            }
+            if (remoteChanged || remoteNewer) {
+                s.put(globalUrl + "/" + local.getName(), merged.toString().getBytes("UTF-8"));
             }
         } catch (Exception e) {
             LOG.e(e, "WebDavSyncer global", local.getName());

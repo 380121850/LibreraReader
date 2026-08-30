@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dip"
+    android:background="?android:attr/selectableItemBackground"
+    card_view:cardBackgroundColor="@color/transparent"
+    card_view:cardCornerRadius="2dip"
+    card_view:cardElevation="0dip" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/imageParent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="0dip"
+            android:padding="0dip"
+            card_view:cardBackgroundColor="@color/white"
+            card_view:cardCornerRadius="2dip"
+            card_view:cardElevation="2dip" >
+
+            <ImageView
+                android:id="@+id/browserItemIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="0dip"
+                android:adjustViewBounds="true"
+                android:background="@color/white"
+                android:cropToPadding="true"
+                android:padding="0dip" />
+
+            <FrameLayout
+                android:id="@+id/shelfBadge"
+                android:layout_width="40dip"
+                android:layout_height="40dip"
+                android:layout_gravity="bottom|left"
+                android:layout_margin="4dip"
+                android:background="@drawable/shelf_badge_bg"
+                android:visibility="gone" >
+
+                <TextView
+                    android:id="@+id/idPercentText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:ellipsize="end"
+                    android:paddingLeft="4dip"
+                    android:paddingRight="4dip"
+                    android:singleLine="true"
+                    android:text="24%"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <ImageView
+                android:id="@+id/shelfMenu"
+                android:layout_width="26dip"
+                android:layout_height="26dip"
+                android:layout_gravity="bottom|right"
+                android:layout_margin="3dip"
+                android:background="@drawable/shelf_badge_bg"
+                android:contentDescription="@string/book_menu"
+                android:padding="5dip"
+                android:src="@drawable/glyphicons_498_more_vertical"
+                android:tint="@color/white" />
+        </androidx.cardview.widget.CardView>
+
+        <FrameLayout
+            android:id="@+id/title2Parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/layoutBootom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="2dip"
+            android:visibility="gone" >
+
+            <TextView
+                android:id="@+id/title1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/title2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/gridProgressLayout"
+                android:layout_width="match_parent"
+                android:layout_height="2dip"
+                android:orientation="horizontal"
+                android:visibility="gone" >
+
+                <View
+                    android:id="@+id/gridProgressFill"
+                    android:layout_width="0dip"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:background="#3949ab" />
+
+                <View
+                    android:id="@+id/gridProgressRest"
+                    android:layout_width="0dip"
+                    android:layout_height="match_parent"
+                    android:layout_weight="100"
+                    android:background="#33999999" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/infoLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="bottom"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:visibility="gone" >
+
+                <TextView
+                    android:id="@+id/browserExt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:textAllCaps="true"
+                    android:textSize="@dimen/text_subtitle" />
+
+                <ImageView
+                    android:id="@+id/cloudImage"
+                    android:layout_width="@dimen/wh_button_small"
+                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_weight="0"
+                    android:padding="3dip"
+                    android:src="@drawable/dropbox" />
+
+                <ImageView
+                    android:id="@+id/starIcon"
+                    style="@style/buttonWhite"
+                    android:layout_width="@dimen/wh_button_small"
+                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_weight="0"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:contentDescription="@string/add_to_favorites"
+                    android:padding="2dip"
+                    android:src="@drawable/glyphicons_50_star_empty"
+                    android:tint="@color/tint_gray" />
+
+                <ImageView
+                    android:id="@+id/itemMenu"
+                    android:layout_width="@dimen/wh_button_small"
+                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_weight="0"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:contentDescription="@string/book_menu"
+                    android:padding="2dip"
+                    android:src="@drawable/glyphicons_498_more_vertical"
+                    android:tint="@color/tint_gray" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

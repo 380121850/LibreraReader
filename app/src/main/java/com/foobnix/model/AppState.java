@@ -149,6 +149,7 @@ public class AppState {
     public final static int MODE_LANGUAGES = 10;
     public final static int MODE_PUBLICATION_DATE = 11;
     public final static int MODE_PUBLISHER = 12;
+    public final static int MODE_SHELF = 13;
     public final static int BOOKMARK_MODE_BY_DATE = 1;
     public final static int BOOKMARK_MODE_BY_BOOK = 2;
     // end

@@ -36,6 +36,9 @@ public class PopupHelper {
         } else if (libraryMode == AppState.MODE_COVERS) {
             gridList.setImageResource(R.drawable.glyphicons_158_thumbnails_small);
             stringId = R.string.cover;
+        } else if (libraryMode == AppState.MODE_SHELF) {
+            gridList.setImageResource(R.drawable.glyphicons_422_book_library);
+            stringId = R.string.shelf;
         } else if (libraryMode == AppState.MODE_AUTHORS) {
             gridList.setImageResource(R.drawable.glyphicons_4_user);
             stringId = R.string.author;

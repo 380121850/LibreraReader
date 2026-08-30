@@ -14,16 +14,18 @@ import android.graphics.drawable.PaintDrawable;
 import java.util.Random;
 
 /**
- * Procedural wooden bookshelf texture (Moon+ Reader style) for the library
- * page in covers/grid mode: horizontal planks with wavy grain, plank seams
- * with a lit top edge, slight per-plank tint variation and rare knots. No
- * image assets — the tile is drawn once per process and reused.
+ * Procedural wooden bookshelf texture (Moon+ Reader style): a light-walnut
+ * board with fine vertical grain. ONE continuous board — no plank seams and
+ * no per-plank tint bands. The pattern tiles in both directions: the grain
+ * strokes are periodic over the tile height and never cross the left/right
+ * edges. No image assets — the tile is drawn once per process and reused.
  */
 public class WoodShelf {
 
     private static volatile Drawable cached;
+    private static volatile Bitmap tileCache;
 
-    /** Tiled plank texture sized in pixels (no context-dependent sizing). */
+    /** Tiled wood texture as a drawable (fixed background, covers/grid modes). */
     public static Drawable texture(Context c) {
         if (cached != null) {
             return cached;
@@ -32,7 +34,7 @@ public class WoodShelf {
             if (cached != null) {
                 return cached;
             }
-            final Bitmap tile = makeTile();
+            final Bitmap tile = tile();
             PaintDrawable d = new PaintDrawable();
             d.setIntrinsicWidth(tile.getWidth());
             d.setIntrinsicHeight(tile.getHeight());
@@ -42,76 +44,87 @@ public class WoodShelf {
         }
     }
 
-    /** Horizontal planks, seam to seam. Must tile vertically without a visible joint. */
+    /** The raw tile bitmap, shared by the scrolling shelf decoration. */
+    public static Bitmap tile() {
+        if (tileCache != null) {
+            return tileCache;
+        }
+        synchronized (WoodShelf.class) {
+            if (tileCache != null) {
+                return tileCache;
+            }
+            tileCache = makeTile();
+            return tileCache;
+        }
+    }
+
     private static Bitmap makeTile() {
         final int w = 512, h = 512;
-        final int plank = 128;
         final Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(bmp);
         // fixed seed: every device shows the same shelf
-        final Random rnd = new Random(20260830L);
-
+        final Random rnd = new Random(20260831L);
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        for (int top = 0; top < h; top += plank) {
-            // per-plank base tint: warm oak with slight variation
-            final int tint = rnd.nextInt(3);
-            final int base = tint == 0 ? 0xFF9A6B3F : tint == 1 ? 0xFF93643A : 0xFFA17348;
+        // light walnut base — one single tone, no horizontal bands
+        canvas.drawColor(0xFF94745A);
 
-            // vertical light falloff inside the plank
-            paint.setShader(new LinearGradient(0, top, 0, top + plank,
-                    lighten(base, 1.10f), darken(base, 0.86f), Shader.TileMode.CLAMP));
-            paint.setStyle(Paint.Style.FILL);
-            canvas.drawRect(0, top, w, top + plank, paint);
-            paint.setShader(null);
+        // broad, soft vertical grain bands
+        for (int i = 0; i < 10; i++) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(20 + rnd.nextInt(40));
+            paint.setColor(rnd.nextBoolean() ? Color.argb(14, 74, 46, 24) : Color.argb(12, 232, 202, 158));
+            drawGrainLine(canvas, paint, w, h, rnd, 6f + rnd.nextFloat() * 12f);
+        }
+        // fine grain streaks
+        for (int i = 0; i < 60; i++) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1f + rnd.nextInt(2));
+            int alpha = 16 + rnd.nextInt(26);
+            paint.setColor(rnd.nextBoolean() ? Color.argb(alpha, 70, 44, 22) : Color.argb(alpha - 8, 238, 210, 166));
+            drawGrainLine(canvas, paint, w, h, rnd, 1.5f + rnd.nextFloat() * 4f);
+        }
 
-            // wavy grain lines
-            for (int g = 0; g < 14; g++) {
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(1f + rnd.nextInt(2));
-                final int alpha = 22 + rnd.nextInt(26);
-                paint.setColor(rnd.nextBoolean() ? Color.argb(alpha, 62, 36, 14) : Color.argb(alpha, 226, 190, 140));
-                float y = top + 10 + rnd.nextFloat() * (plank - 22);
-                float amp = 2f + rnd.nextFloat() * 4f;
-                float period = 60f + rnd.nextFloat() * 130f;
-                float phase = rnd.nextFloat() * (float) Math.PI * 2;
-                android.graphics.Path p = new android.graphics.Path();
-                p.moveTo(0, y);
-                for (float x = 0; x <= w; x += 8) {
-                    p.lineTo(x, y + amp * (float) Math.sin(x / period + phase));
-                }
-                canvas.drawPath(p, paint);
-            }
-
-            // rare knot
-            if (rnd.nextInt(4) == 0) {
-                float kx = 40 + rnd.nextFloat() * (w - 80);
-                float ky = top + 24 + rnd.nextFloat() * (plank - 48);
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.argb(60, 58, 32, 12));
-                canvas.drawOval(kx - 9, ky - 5, kx + 9, ky + 5, paint);
-                paint.setColor(Color.argb(70, 48, 26, 10));
+        // rare small knots
+        paint.setStyle(Paint.Style.FILL);
+        for (int i = 0; i < 2; i++) {
+            if (rnd.nextInt(3) == 0) {
+                float kx = 60 + rnd.nextFloat() * (w - 120);
+                float ky = 60 + rnd.nextFloat() * (h - 120);
+                paint.setColor(Color.argb(42, 70, 44, 22));
+                canvas.drawOval(kx - 9, ky - 4.5f, kx + 9, ky + 4.5f, paint);
+                paint.setColor(Color.argb(52, 56, 34, 16));
                 canvas.drawOval(kx - 4, ky - 2.5f, kx + 4, ky + 2.5f, paint);
             }
-
-            // plank seam: dark groove + lit top edge of the next plank
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.argb(255, 52, 30, 12));
-            canvas.drawRect(0, top + plank - 4, w, top + plank, paint);
-            paint.setColor(Color.argb(255, 214, 178, 128));
-            canvas.drawRect(0, top, w, top + 3, paint);
         }
         return bmp;
     }
 
-    private static int lighten(int color, float f) {
-        return Color.argb(255,
-                Math.min(255, (int) (Color.red(color) * f)),
-                Math.min(255, (int) (Color.green(color) * f)),
-                Math.min(255, (int) (Color.blue(color) * f)));
-    }
-
-    private static int darken(int color, float f) {
-        return lighten(color, f);
+    /**
+     * One wavy vertical grain stroke; the wave is periodic over the tile
+     * height and the whole stroke stays inside the horizontal bounds, so the
+     * texture tiles seamlessly in both directions.
+     */
+    private static void drawGrainLine(Canvas c, Paint p, int w, int h, Random rnd, float amp) {
+        final float x0 = amp + rnd.nextFloat() * (w - 2 * amp);
+        final int k = 1 + rnd.nextInt(2);
+        final float period = h / (float) k;
+        final float phase = rnd.nextFloat() * (float) Math.PI * 2;
+        android.graphics.Path path = new android.graphics.Path();
+        for (float y = -p.getStrokeWidth(); y <= h + p.getStrokeWidth(); y += 6) {
+            float x = x0 + amp * (float) Math.sin((y / period) * (float) Math.PI * 2 + phase);
+            if (x < 0) {
+                x = 0;
+            }
+            if (x > w) {
+                x = w;
+            }
+            if (path.isEmpty()) {
+                path.moveTo(x, y);
+            } else {
+                path.lineTo(x, y);
+            }
+        }
+        c.drawPath(path, p);
     }
 }
