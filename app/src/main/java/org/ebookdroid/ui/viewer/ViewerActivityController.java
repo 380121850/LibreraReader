@@ -63,6 +63,7 @@ import org.emdev.ui.tasks.BaseAsyncTask;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ViewerActivityController extends ActionController<VerticalViewActivity> implements IActivityController,
@@ -210,7 +211,32 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     /** True while the current load used the two-phase (progressive) layout. */
     private volatile boolean progressiveLoad;
 
+    /**
+     * Generation counter for the background phase-two layout: bumping it
+     * cancels the running task (new open, activity teardown).
+     */
+    private final AtomicLong phase2Gen = new AtomicLong();
+
+    /** Stops the background phase-two layout of this book, if running. */
+    public void cancelPhase2() {
+        phase2Gen.incrementAndGet();
+    }
+
+    /** Alias used when the reader goes to the background. */
+    public void pausePhase2() {
+        phase2Gen.incrementAndGet();
+    }
+
+    /** Continues a paused phase-two layout when the reader becomes visible again. */
+    public void resumePhase2() {
+        if (progressiveLoad && documentModel != null) {
+            startPhaseTwoLayout(documentModel);
+        }
+    }
+
     public void startDecoding(final String fileName, final String password) {
+        // A new load invalidates any still-running phase-two of a previous book.
+        phase2Gen.incrementAndGet();
         getManagedComponent().view.getView()
                                   .post(new BookLoadTask(fileName, password, new Runnable() {
 
@@ -255,6 +281,8 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     }
 
     public void onDestroy() {
+        phase2Gen.incrementAndGet();
+        progressiveLoad = false;
         if (wrapperControlls != null) {
             wrapperControlls.onDestroy();
         }
@@ -262,6 +290,9 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
     }
 
     public void beforeDestroy() {
+        // Stop any running phase-two layout before the document handle is
+        // recycled below (it would otherwise keep the native lock busy).
+        phase2Gen.incrementAndGet();
         final boolean finishing = getManagedComponent().isFinishing();
         if (finishing) {
             getManagedComponent().view.onDestroy();
@@ -743,9 +774,14 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
      * background and grows the page canvas in place. Pages are appended at
      * the tail, so the current reading position stays visually stable; only
      * the page counters and the progress bar widen afterwards.
+     * <p>
+     * The layout is advanced in bounded chunks (~400 pages per native call):
+     * between chunks the global native lock is released, so page-turn
+     * decoding, opening other books and activity teardown never queue behind
+     * a long full-document count. Bumping {@link #phase2Gen} cancels it.
      */
     private void startPhaseTwoLayout(final DocumentModel dm) {
-        progressiveLoad = false;
+        final long gen = phase2Gen.get();
         final int knownCount = dm.getPageCount();
         if (knownCount <= 0) {
             return;
@@ -756,12 +792,46 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
             @Override
             public void run() {
                 try {
-                    final int fullCount = dm.decodeService.getPageCount();
-                    android.util.Log.i("BENCH", "phase2-end n2=" + fullCount + " "
+                    // Let the first-screen decode grab the native lock first,
+                    // so content is on screen before we start filling in.
+                    Thread.sleep(2000);
+
+                    final android.app.Activity act = getActivity();
+                    int total = knownCount;
+                    int requested = knownCount + 400;
+                    while (phase2Gen.get() == gen && act != null && !act.isDestroyed() && !act.isFinishing()) {
+                        // Yield to UI/decode threads waiting on the global
+                        // native lock: without this the non-fair lock can be
+                        // re-acquired by this loop faster than a blocked main
+                        // thread wakes up, starving input for the whole run.
+                        int yield = 0;
+                        while (phase2Gen.get() == gen && TempHolder.lock.hasQueuedThreads() && yield++ < 50) {
+                            Thread.sleep(100);
+                        }
+                        if (phase2Gen.get() != gen) {
+                            android.util.Log.i("BENCH", "phase2-cancelled at " + total);
+                            return;
+                        }
+                        final int n = dm.decodeService.getPageCountProgressive(requested);
+                        if (phase2Gen.get() != gen || act.isDestroyed() || act.isFinishing()) {
+                            android.util.Log.i("BENCH", "phase2-cancelled at " + total);
+                            return;
+                        }
+                        if (n <= total) {
+                            break; // no growth (also covers recycled/failed: 0)
+                        }
+                        total = n;
+                        if (n < requested) {
+                            break; // document end reached
+                        }
+                        requested = total + 400;
+                    }
+                    android.util.Log.i("BENCH", "phase2-end n2=" + total + " "
                             + (android.os.SystemClock.elapsedRealtime() - t0) + "ms");
-                    if (fullCount <= knownCount || getActivity() == null) {
+                    if (phase2Gen.get() != gen || total <= knownCount || getActivity() == null) {
                         return;
                     }
+                    final int fullCount = total;
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -775,6 +845,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                                 // return null: the array is not grown yet.)
                                 final Page marker = dm.getPageObject(Math.max(0, knownCount - 1));
                                 if (dm.appendPages(fullCount) && marker != null) {
+                                    progressiveLoad = false;
                                     getDocumentController().invalidatePageSizes(
                                             IViewController.InvalidateSizeReason.PAGE_LOADED, marker);
                                     currentPageChanged(dm.getCurrentIndex().docIndex, -1);

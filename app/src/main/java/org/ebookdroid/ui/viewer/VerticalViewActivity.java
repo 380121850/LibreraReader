@@ -265,9 +265,15 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     @Override
     protected void onStart() {
         super.onStart();
+        android.util.Log.i("BENCH", "VV onStart");
         // Analytics.onStart(this);
         try {
             getController().getDocumentModel().decodeService.restore();
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        try {
+            getController().resumePhase2();
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -281,6 +287,15 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     protected void onStop() {
+        android.util.Log.i("BENCH", "VV onStop");
+        try {
+            // Pause the background phase-two layout while the reader is not
+            // visible (resumed in onStart); it would otherwise keep the
+            // global native lock busy with nobody watching.
+            getController().pausePhase2();
+        } catch (Exception e) {
+            LOG.e(e);
+        }
         try {
             getController().getDocumentModel().decodeService.shutdown();
         } catch (Exception e) {
@@ -302,6 +317,12 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     @Override
     protected void onDestroy() {
         TempHolder.readerActive = false;
+        android.util.Log.i("BENCH", "VV onDestroy");
+        try {
+            getController().cancelPhase2();
+        } catch (Exception e) {
+            LOG.e(e);
+        }
         super.onDestroy();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);

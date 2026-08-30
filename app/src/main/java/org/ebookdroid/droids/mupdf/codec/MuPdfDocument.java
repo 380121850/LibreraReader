@@ -274,11 +274,11 @@ public class MuPdfDocument extends AbstractCodecDocument {
             // size is in sp here (same contract as getPageCount); the native
             // layout em must match the other call sites exactly, or the
             // accelerator is invalidated on every open.
-            int n = getPageCountProgressive(documentHandle, w, h, Dips.spToPx(size), Math.max(1, uptoPage));
-            if (n <= 0) {
-                // Chapter API unavailable or failed: fall back to the full count.
-                n = getPageCountWithException(documentHandle, w, h, size);
-            }
+            //
+            // No full-count fallback here: callers chunk the work in small
+            // uptoPage steps and must never trigger a long full-document
+            // layout inside a single call.
+            final int n = getPageCountProgressive(documentHandle, w, h, Dips.spToPx(size), Math.max(1, uptoPage));
             LOG.d("MuPdfDocument getPageCountProgressive", uptoPage, "->", n);
             return n;
         } finally {

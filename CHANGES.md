@@ -631,3 +631,25 @@ MI9（48fee174）：四格式冷/热全矩阵计时通过；滚动渲染、进�
 ### 五、验证（MI9 真机）
 
 MOBI《2014中日战争》：一次 567ms（1613 页）/ 二次 108ms 且页数完整、可翻全本；TXT 冷 12.0s、热 2.8s（28038 页，渲染与章节标题正确）；EPUB 热 193ms、FB2 热 78ms 回归正常；logcat crash buffer 无 FATAL。
+
+## [2026-08-30] 二阶段补全长锁独占修复（退出卡死/首屏空页/概率打不开）
+
+### 根因（真机线程时序定位）
+
+二阶段补全与 BookWarmer 预热各用**一次 native 调用**完成全量计数，大书要持有全局锁 `TempHolder.lock` 10~40 秒（ReentrantLock 非公平，循环立即重抢锁会把等锁的主线程饿死）。后果：翻页解码排队（首屏长时间空白）、返回键在主线程排队 30+ 秒才被处理（体感"退出卡死"）、期间打开其它书（FB2"概率打不开"、侯卫东再开变慢）、退出时 `freeDocument` 等锁。
+
+### 修复
+
+1. **补全分块化**：`startPhaseTwoLayout` 改为每轮 `getPageCountProgressive(已排+400)` 的循环（约 400 页/百 ms 级），轮间释放锁并让路——`TempHolder.lock.hasQueuedThreads()` 为真时每次让出 100ms，保证 UI/解码线程优先拿锁。
+2. **可取消**：`AtomicLong phase2Gen` 代号，`VerticalViewActivity/HorizontalViewActivity.onDestroy → cancelPhase2()`（发现 controller 的 onDestroy/beforeDestroy 在此 fork 中无调用方，取消必须挂在 Activity 生命周期上）；back = moveTaskToBack 的场景由循环内 `isDestroyed/isFinishing` 自检兜底；`onStart → resumePhase2()`、`onStop → pausePhase2()` 暂停/恢复（后台不再空转占锁）。
+3. **BookWarmer 分块化**：同样 400 页步进 + 等锁让路 + readerActive 立即让出。
+4. **MuPdfDocument.getPageCountProgressive**：去掉内部"失败回退全量计数"（保证分块单次调用有界；主打开路径的回退保留在 DocumentModel）。
+5. 二阶段启动延时 800ms → 2000ms，首屏位图解码优先于补全。
+
+### MI9 真机验证
+
+- TXT 冷打开后二阶段进行中按返回：**~1 秒内完成退出**（修复前主线程饿死 30 秒+），补全任务即时取消并丢弃部分进度（无 UI 污染）；
+- 回到阅读器（onStart）补全自动恢复，28038 页全部补齐；
+- EPUB 冷打开首屏正常（恢复位置若为章末页，页面本身内容少属书籍内容而非缺陷）；EPUB 热 193~233ms；TXT 热 2.8s；FB2 热 78ms；
+- MOBI《2014中日战争》两连开 742ms/611ms，总页数 1613 完整（回归通过）；
+- logcat crash buffer 无 FATAL。

@@ -69,9 +69,37 @@ public class BookWarmer {
             }
             document = context.openDocument(path, "");
             if (document != null && !document.isRecycled()) {
-                final int pages = document.getPageCount(Dips.screenWidth(), Dips.screenHeight(),
-                        Dips.spToPx(BookCSS.get().fontSizeSp));
-                Log.i("BENCH", "warm " + ExtUtils.getFileName(path) + " pages=" + pages
+                final int w = Dips.screenWidth();
+                final int h = Dips.screenHeight();
+                final int sp = BookCSS.get().fontSizeSp;
+                // Chunked warm-up: ~400 pages per native call with the global
+                // lock released in between, and an immediate yield as soon as
+                // the user starts reading, so warming never blocks the reader.
+                int total = 0;
+                int requested = 400;
+                int guard = 0;
+                while (!TempHolder.readerActive && guard++ < 200) {
+                    // Yield the global native lock to anyone waiting (reader
+                    // threads have priority over background warming).
+                    int yield = 0;
+                    while (TempHolder.lock.hasQueuedThreads() && yield++ < 50) {
+                        Thread.sleep(100);
+                    }
+                    if (TempHolder.readerActive) {
+                        break;
+                    }
+                    final int n = document.getPageCountProgressive(w, h, sp, requested);
+                    if (n <= total) {
+                        total = Math.max(total, n);
+                        break;
+                    }
+                    total = n;
+                    if (n < requested) {
+                        break; // document end reached
+                    }
+                    requested = total + 400;
+                }
+                Log.i("BENCH", "warm " + ExtUtils.getFileName(path) + " pages=" + total
                         + " " + (SystemClock.elapsedRealtime() - t0) + "ms");
             }
         } catch (Throwable e) {
