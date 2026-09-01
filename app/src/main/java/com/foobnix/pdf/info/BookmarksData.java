@@ -53,6 +53,12 @@ public class BookmarksData {
     public void remove(AppBookmark bookmark) {
         LOG.d("BookmarksData", "remove", bookmark.t, bookmark.file);
 
+        if (bookmark.file == null) {
+            // synthetic entries (e.g. the merged-notes row) have no backing
+            // file — deleting them must go through their real entries
+            LOG.d("BookmarksData", "remove: no backing file for", bookmark.text);
+            return;
+        }
         try {
             LinkedJSONObject obj = IO.readJsonObject(bookmark.file);
             if (obj.has("" + bookmark.t)) {

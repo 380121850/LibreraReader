@@ -5,6 +5,20 @@
 
 ---
 
+## [2026-09-02] 书签/我的文件页五项修复与交互优化
+
+**1. 笔记删除不了（修复）**：按书视图下的"笔记 (N)"条目是 `mergeNotes()` 的合成对象，`file` 为 null 且 `t` 只是第一条笔记的 key——`BookmarksData.remove()` 定位不到存储直接 NPE 被吞，删除无效。现在 `BookmarksFragment2.onDeleteResponse` 特判合并条目：遍历其携带的真实笔记逐条删除；`BookmarksData.remove()` 对 `file == null` 的合成对象记日志防 NPE。
+
+**2/3. 删除 X、编辑按钮增大**：书签页 `bookmark_item.xml`（remove/remove2）、文件列表 `browse_item_list.xml`（delete/itemMenu）从 25dp 提到新增的 `wh_button_touch`=40dp；"我的文件"OPDS/WebDAV 行程序化构建的编辑笔/X 从 30dp 提到 40dp（`netListItem`，padding 相应缩小）。
+
+**4. 添加文件夹后页面不恢复（修复）**：根因是文件夹选择器内嵌的 BrowseFragment2（browsePath==null）浏览时把共享的 `AppState.displayPath` 改成了对话框内最后浏览的目录，关闭后只 `populate()` 不回根视图，重启才恢复。现在 `addLibraryFolder`/`addLibraryFile` 选完后调 `displayAnyPath(ROOT_PATH)`——恢复根视图（OPDS/WebDAV/书库文件夹/搜索区）并刷新列表。
+
+**5. "在多个文档中搜索"/"新文件(.txt)" 移到文件夹列表下方**：新增 `netSection2`（`fragment_browse2.xml` 中 RecyclerView 容器之后，`bankSpace` 改 0dp+weight=1），`buildNetSections` 往其追加 divider + "搜索"分节头（无添加按钮时隐藏"+ 添加"标签）+ 两个工具项；可见性跟随根视图（`displayAnyPath` 同步切换）。
+
+**验证（MI9）**：合并笔记条目删除后消失且不再回弹；书签页/文件列表 X、编辑笔明显变大易点；添加文件夹选完后立即回到根视图（重复添加报"已存在"也不停留）；"在多个文档中搜索""新文件"出现在文件夹列表下方"搜索"区且功能正常。
+
+---
+
 ## [2026-09-02] 图标改用 HowRead.png 面板设计并去除右下水印
 
 上一轮香槟金配色不满意，改用仓库根目录新设计稿 `HowRead.png`（1536x1536，米白圆角面板 + 金色"书"字 + 木质翻开书）重新生成，**保留原图配色**（面板设计本身主体突出、层次分明）：

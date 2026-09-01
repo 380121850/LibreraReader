@@ -89,8 +89,8 @@
 
                 <ImageView
                     android:id="@+id/remove"
-                    android:layout_width="@dimen/wh_button_small"
-                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_width="@dimen/wh_button_touch"
+                    android:layout_height="@dimen/wh_button_touch"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="0"
                     android:background="?android:attr/selectableItemBackground"
@@ -117,8 +117,8 @@
 
                 <ImageView
                     android:id="@+id/remove2"
-                    android:layout_width="@dimen/wh_button_small"
-                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_width="@dimen/wh_button_touch"
+                    android:layout_height="@dimen/wh_button_touch"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="0"
                     android:visibility="gone"

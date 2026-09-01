@@ -443,6 +443,13 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
                 }
                 LOG.d("onDeleteResponse", "Removed " + removedCount + " bookmarks for " + path);
                 populate();
+            } else if (result != null && result.isAiNote && result.notes != null) {
+                // Merged-notes entry (mergeNotes): a synthetic object without a
+                // backing file/key — delete each real note it carries instead.
+                for (AppBookmark n : result.notes) {
+                    BookmarksData.get().remove(n);
+                }
+                populate();
             } else if (bookmarksAdapter.withPageNumber) {
                 BookmarksData.get().remove(result);
                 populate();

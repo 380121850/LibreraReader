@@ -122,6 +122,7 @@ import java.util.Map;
      */
     public static final String ROOT_PATH = "my-files:";
     LinearLayout netSection;
+    LinearLayout netSection2;
     View quickDirChipsRow;
 
     /**
@@ -799,6 +800,7 @@ import java.util.Map;
         });
 
         netSection = view.findViewById(R.id.netSection);
+        netSection2 = view.findViewById(R.id.netSection2);
         quickDirChipsRow = (View) view.findViewById(R.id.quickDirChips).getParent();
         buildNetSections();
 
@@ -1176,6 +1178,9 @@ import java.util.Map;
             return;
         }
         netSection.removeAllViews();
+        if (netSection2 != null) {
+            netSection2.removeAllViews();
+        }
         final Runnable rebuild = new Runnable() {
             @Override public void run() {
                 buildNetSections();
@@ -1289,24 +1294,30 @@ import java.util.Map;
                 p.show();
             }
         }));
-        // tools moved here from the preferences "file search" category
-        netSection.addView(netListItem(R.drawable.glyphicons_144_database_search,
-                getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
-                    @Override public void onClick(View v) {
-                        MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
-                    }
-                }, null));
-        netSection.addView(netListItem(R.drawable.glyphicons_371_plus,
-                getString(R.string.new_file_txt), new OnClickListener() {
-                    @Override public void onClick(View v) {
-                        AlertDialogs.editFileTxt(a, null, AppProfile.DOWNLOADS_DIR, new StringResponse() {
-                            @Override public boolean onResultRecive(String string) {
-                                ExtUtils.openFile(a, new FileMeta(string));
-                                return false;
-                            }
-                        });
-                    }
-                }, null));
+
+        // --- search tools: below the folder list, visually separated ---
+        if (netSection2 != null) {
+            netSection2.addView(netSectionDivider());
+            netSection2.addView(netSectionHeader(getString(R.string.search), null));
+            // tools moved here from the preferences "file search" category
+            netSection2.addView(netListItem(R.drawable.glyphicons_144_database_search,
+                    getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
+                        @Override public void onClick(View v) {
+                            MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
+                        }
+                    }, null));
+            netSection2.addView(netListItem(R.drawable.glyphicons_371_plus,
+                    getString(R.string.new_file_txt), new OnClickListener() {
+                        @Override public void onClick(View v) {
+                            AlertDialogs.editFileTxt(a, null, AppProfile.DOWNLOADS_DIR, new StringResponse() {
+                                @Override public boolean onResultRecive(String string) {
+                                    ExtUtils.openFile(a, new FileMeta(string));
+                                    return false;
+                                }
+                            });
+                        }
+                    }, null));
+        }
     }
 
     /** "add a library folder" flow, same checks as the preferences page. */
@@ -1332,7 +1343,9 @@ import java.util.Map;
                         dialog.dismiss();
                         AppProfile.save(fa);
                         refresh.run();
-                        populate();
+                        // the chooser's embedded browser rewrote the shared
+                        // displayPath — go back to the root view (folders list)
+                        displayAnyPath(ROOT_PATH);
                         return false;
                     }
                 });
@@ -1354,7 +1367,8 @@ import java.util.Map;
                         dialog.dismiss();
                         AppProfile.save(fa);
                         refresh.run();
-                        populate();
+                        // see addLibraryFolder: restore the root view
+                        displayAnyPath(ROOT_PATH);
                         return false;
                     }
                 });
@@ -1388,10 +1402,14 @@ import java.util.Map;
         row.addView(t, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
         TextView add = new TextView(getActivity());
-        add.setText("+ " + getString(R.string.add));
-        add.setTextSize(17);
-        add.setTextColor(TintUtil.color);
-        add.setOnClickListener(onAdd);
+        if (onAdd == null) {
+            add.setVisibility(View.GONE);
+        } else {
+            add.setText("+ " + getString(R.string.add));
+            add.setTextSize(17);
+            add.setTextColor(TintUtil.color);
+            add.setOnClickListener(onAdd);
+        }
         row.addView(add, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         return row;
     }
@@ -1427,18 +1445,18 @@ import java.util.Map;
             ImageView edit = new ImageView(getActivity());
             edit.setImageResource(R.drawable.my_glyphicons_pen);
             edit.setColorFilter(TintUtil.getColorInDayNighth());
-            edit.setPadding(Dips.dpToPx(12), Dips.dpToPx(4), Dips.dpToPx(2), Dips.dpToPx(4));
+            edit.setPadding(Dips.dpToPx(8), Dips.dpToPx(2), Dips.dpToPx(2), Dips.dpToPx(2));
             edit.setOnClickListener(onEdit);
-            row.addView(edit, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
+            row.addView(edit, new LinearLayout.LayoutParams(Dips.dpToPx(40), Dips.dpToPx(40)));
         }
 
         if (onRemove != null) {
             ImageView del = new ImageView(getActivity());
             del.setImageResource(R.drawable.glyphicons_599_menu_close);
             del.setColorFilter(TintUtil.getColorInDayNighth());
-            del.setPadding(Dips.dpToPx(12), Dips.dpToPx(4), Dips.dpToPx(2), Dips.dpToPx(4));
+            del.setPadding(Dips.dpToPx(8), Dips.dpToPx(2), Dips.dpToPx(2), Dips.dpToPx(2));
             del.setOnClickListener(onRemove);
-            row.addView(del, new LinearLayout.LayoutParams(Dips.dpToPx(30), Dips.dpToPx(30)));
+            row.addView(del, new LinearLayout.LayoutParams(Dips.dpToPx(40), Dips.dpToPx(40)));
         }
         return row;
     }
@@ -1604,6 +1622,9 @@ import java.util.Map;
         }
         if (netSection != null) {
             netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
+        }
+        if (netSection2 != null) {
+            netSection2.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
         }
         // the 书库 folder rows are rendered bigger on the root page only
         if (searchAdapter != null) {

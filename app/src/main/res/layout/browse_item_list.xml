@@ -192,8 +192,8 @@
 
                 <ImageView
                     android:id="@+id/delete"
-                    android:layout_width="@dimen/wh_button_small"
-                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_width="@dimen/wh_button_touch"
+                    android:layout_height="@dimen/wh_button_touch"
                     android:layout_alignParentTop="true"
                     android:layout_marginBottom="-1dip"
                     android:layout_weight="0"
@@ -227,8 +227,8 @@
 
                 <ImageView
                     android:id="@+id/itemMenu"
-                    android:layout_width="@dimen/wh_button_small"
-                    android:layout_height="@dimen/wh_button_small"
+                    android:layout_width="@dimen/wh_button_touch"
+                    android:layout_height="@dimen/wh_button_touch"
                     android:layout_marginBottom="-1dip"
                     android:layout_weight="0"
                     android:background="?android:attr/selectableItemBackground"
