@@ -49,15 +49,16 @@ public class AboutSectionBinder {
             ((TextView) root.findViewById(R.id.pVersion)).setText(
                     String.format("%s: %s", a.getString(R.string.version), version));
             TextView section6 = root.findViewById(R.id.section6);
-            section6.setText(
-                    String.format("%s: %s", Apps.getApplicationName(a), version));
+            section6.setText(String.format("%s: v%s build %s",
+                    Apps.getApplicationName(a), version, Apps.getBuildTime(a)));
             TintUtil.setBackgroundFillColor(section6, TintUtil.color);
         } catch (PackageManager.NameNotFoundException e) {
             LOG.e(e);
         }
 
         TextView whatIsNew = root.findViewById(R.id.whatIsNew);
-        whatIsNew.setText(a.getString(R.string.what_is_new_in) + " " + Apps.getApplicationName(a) + " " + Apps.getVersionName(a));
+        whatIsNew.setText(a.getString(R.string.what_is_new_in) + " " + Apps.getApplicationName(a)
+                + " v" + Apps.getVersionName(a));
         TxtUtils.underlineTextView(whatIsNew);
         whatIsNew.setOnClickListener(v -> AndroidWhatsNew.show2(a));
 

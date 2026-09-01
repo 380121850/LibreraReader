@@ -5,6 +5,67 @@
 
 ---
 
+## [2026-09-02] 图标改用 HowRead.png 面板设计并去除右下水印
+
+上一轮香槟金配色不满意，改用仓库根目录新设计稿 `HowRead.png`（1536x1536，米白圆角面板 + 金色"书"字 + 木质翻开书）重新生成，**保留原图配色**（面板设计本身主体突出、层次分明）：
+
+| 文件 | 改动 |
+| --- | --- |
+| 生成脚本 `Z:\opt\librera\bench\gen_icons3.ps1` | ① 平滑去除右下角"元宝 AI生成"水印（矩形区域按左/上邻色双线性混合填充 + 两轮 3x3 盒式模糊）；② 按内容包围盒裁掉面板外围页边距；③ 双线性 cover 铺满画布（原图色彩不动） |
+| `mipmap-xxhdpi/icon_pdf_reader.png` | 144x144 重绘（13% 圆角） |
+| `mipmap-xxxhdpi/adaptive_pdf_reader.png` | 192x192 前景全幅重绘 |
+| `drawable/bg_pdf_reader.xml` | 自适应背景层改为采样面板上下边缘色调的柔和渐变（#C9C8C6→#E9E2DB） |
+
+**验证（MI9）**：构建安装后桌面"好好读"图标为面板设计原貌，水印不可见，MIUI 圆角遮罩正常。
+
+---
+
+## [2026-09-01] 图标优化：主体放大 + 暖金香槟渐变背景
+
+第一版图标直接把 `HowRead.jpg` 原图（含大量近白边距）缩进画布，书本/书字偏小，且背景取样自图片近白色（#FBFAF8→#F0EDE8），与白色书页几乎同色，主体不突出。本轮重做：
+
+- **主体放大**：逐像素扫描计算"书"字+书本的实际内容包围盒（按行左右边缘估计原图底色、色差判定），裁掉四周空白后放大绘制——legacy 图标占画布 96%、adaptive 前景占 72%（配合既有 23% inset）；
+- **背景换色**：原图近白背景平滑映射为暖金香槟渐变（上 #C8A26B → 下 #E9D8BA），金色"书"字、木质封面与书页阴影保留原图；阈值渐变（低于 16 视为纯背景、高于 52 视为前景、中间平滑过渡）避免生硬光晕；
+- **无接缝合成**：每个图标在整幅画布上单次逐像素合成，作品背景与画布渐变按绝对位置对齐（第一版"作品单独贴回渐变画布"的做法在 adaptive 图上有可见矩形接缝，已修复）；生成脚本 `Z:\opt\librera\bench\gen_icons2.ps1`。
+
+| 文件 | 改动 |
+| --- | --- |
+| `mipmap-xxhdpi/icon_pdf_reader.png` | 144x144 重绘：香槟渐变底 + 放大主体 + 13% 圆角 |
+| `mipmap-xxxhdpi/adaptive_pdf_reader.png` | 192x192 前景重绘：香槟渐变底 + 放大主体（inset 不变） |
+| `drawable/bg_pdf_reader.xml` | 背景层渐变改为 #C8A26B（上）→ #E9D8BA（下），与前景底色一致 |
+
+**验证（MI9）**：构建安装后桌面"好好读"图标主体明显变大，金色书+书字在香槟金底上突出，MIUI 圆角遮罩下无接缝、无裁切异常。
+
+---
+
+## [2026-09-01] 应用图标替换为 HowRead 设计图（书+书字）
+
+用仓库根目录的 `HowRead.jpg`（"书"字 + 翻开书立体图，浅暖米色背景）替换 librera 主 flavor（`com.howread.reader`）的启动图标 `@mipmap/icon_pdf_reader`：
+
+| 文件 | 改动 |
+| --- | --- |
+| `mipmap-xxhdpi/icon_pdf_reader.png` | 重绘为 144x144：图片等比居中 + 四角取样背景色（#F4F0EA）填充 + 13% 圆角，旧启动器使用 |
+| `mipmap-xxxhdpi/adaptive_pdf_reader.png` | 自适应图标前景重绘（192x192，保持原资产尺寸）：整幅取样背景色填充 + 图片等比居中，XML 既有 23% inset 不变 |
+| `drawable/bg_pdf_reader.xml` | 自适应图标背景层由旧绿色渐变（#236e45→#add074）改为图片本身的色调渐变（#FBFAF8→#F0EDE8），与前景无缝衔接 |
+
+生成脚本：`Z:\opt\librera\bench\gen_icons.ps1`（PowerShell System.Drawing，取样四角均值色、圆角裁剪、高质量插值缩放）。
+
+**验证（MI9）**：覆盖安装后桌面"好好读"图标显示新设计（MIUI 圆角遮罩正常），应用内与设置页图标同步更新。
+
+---
+
+## [2026-09-01] 软件说明标题栏显示版本号 v 前缀与编译时间
+
+| 文件 | 改动 |
+| --- | --- |
+| `app/build.gradle` | 新增 `generateBuildTimeSource` task：每次构建生成 `com.foobnix.pdf.info.BuildTime`（`BUILD_TIME = "yyyyMMddHHmm"`，构建机本地时间），加入 main java 源目录并挂到 `preBuild` 依赖。用生成源文件而非 `buildConfigField`——Configuration Cache 会冻结 buildConfigField 的值，增量构建显示的是过期时间 |
+| `Apps.java` | 新增 `getBuildTime(Context)` 返回生成的 `BuildTime.BUILD_TIME` |
+| `AboutSectionBinder.java` | 软件说明标题栏（section6）改为 `好好读: v0.9.0 build 202609012308`（版本号加 v 前缀、后接编译时间戳）；"更新日志"行同样加 v 前缀（`更新日志 好好读 v0.9.0`） |
+
+**验证（MI9）**：软件说明弹窗标题栏显示"好好读: v0.9.0 build 202609012312"，与该次构建的实际时间一致；更新日志行显示 v0.9.0。技术备注：曾尝试读取 APK 内 classes.dex 的 ZIP 时间戳，但 AGP 打包为可复现构建会归一化 zip 条目时间（显示 1981-01-01），故改用构建期生成源文件方案。
+
+---
+
 ## [2026-09-01] 同步方案三:列表/统计改整文件同步;进度与书签删除同步到服务器
 
 ### 一、OPDS/WebDAV/书库文件夹、最近阅读/珍藏、统计/AI/杂项 → 整文件同步
