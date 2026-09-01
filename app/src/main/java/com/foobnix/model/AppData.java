@@ -287,6 +287,16 @@ public class AppData {
 
     }
 
+    /**
+     * Drops the in-memory list caches so the next UI read reflects files
+     * rewritten outside of AppData (the WebDAV sync merge writes
+     * app-Recent/app-Favorite directly).
+     */
+    public void invalidateListCache() {
+        recentCacheTime = 0;
+        recentCache = new ArrayList<FileMeta>();
+    }
+
     public  List<FileMeta> getAllSyncBooks() {
         List<FileMeta> res = new ArrayList<>();
 

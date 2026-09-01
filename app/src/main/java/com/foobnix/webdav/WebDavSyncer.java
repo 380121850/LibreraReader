@@ -12,6 +12,7 @@ import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
 import com.foobnix.LibreraApp;
 import com.foobnix.model.AppBookmark;
+import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
@@ -44,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLException;
@@ -132,6 +134,8 @@ public class WebDavSyncer {
         public int booksSynced;
         /** number of books whose hash matched a local file (full restore) */
         public int booksAssociated;
+        /** server info files removed because their book was deleted locally */
+        public int booksDeleted;
         public long durationMs;
     }
 
@@ -291,23 +295,29 @@ public class WebDavSyncer {
             syncGlobalFile(s, globalUrl, AppProfile.syncState, true);
             syncGlobalFile(s, globalUrl, AppProfile.syncCSS, false);
 
-            // ---- full reading state: mirror stats / AI key / misc config to
-            // files, then union-merge everything the sync did not cover before
+            // ---- whole-file state: mirror stats / AI key / misc to files, then
+            // sync every list and config file as a WHOLE (newer mtime wins).
+            // Simple and predictable: the last device that changed a file wins
+            // and deletions propagate without tombstones. (Both sides editing
+            // the same file between two syncs resolves to "later sync wins".)
             ProfileStateIO.exportStats();
             ProfileStateIO.exportAi(c);
             ProfileStateIO.exportMisc(c);
-            syncMergedArrayFile(s, globalUrl, AppProfile.syncRecent);
-            syncMergedArrayFile(s, globalUrl, AppProfile.syncFavorite);
+            boolean listsUpdated = syncWholeFile(s, globalUrl, AppProfile.syncRecent);
+            listsUpdated |= syncWholeFile(s, globalUrl, AppProfile.syncFavorite);
+            if (listsUpdated) {
+                AppData.get().invalidateListCache();
+            }
             syncMergedObjectFile(s, globalUrl, AppProfile.syncBookStates, WebDavSyncer::mergeStatesMaxWins);
-            syncMergedObjectFile(s, globalUrl, AppProfile.syncStats, ProfileStateIO::mergeStats);
-            syncMergedObjectFile(s, globalUrl, AppProfile.syncAI, (l, r) -> ProfileStateIO.mergeAi(c, r));
-            syncMergedObjectFile(s, globalUrl, AppProfile.syncMisc, ProfileStateIO::mergeMisc);
+            syncWholeFile(s, globalUrl, AppProfile.syncStats);
+            syncWholeFile(s, globalUrl, AppProfile.syncAI);
+            syncWholeFile(s, globalUrl, AppProfile.syncMisc);
             ProfileStateIO.importAi(c);
             ProfileStateIO.importMisc(c);
-            // re-apply the merged reading statistics AFTER importMisc: the
-            // misc import restores the whole AppSP object from app-Misc.json,
-            // which was exported BEFORE the stats merge and would otherwise
-            // overwrite the synced-in statistics with stale local values
+            // re-apply the synced reading statistics AFTER importMisc: the
+            // misc import restores the whole AppSP object from app-Misc.json
+            // and would otherwise overwrite the synced statistics with the
+            // stale values carried inside it
             ProfileStateIO.importStats(c);
             // apply the synced global settings (AI model config, …) to the
             // running app; AppState.save() at the end would otherwise write
@@ -315,11 +325,10 @@ public class WebDavSyncer {
             ProfileStateIO.importAppState();
 
             // ---- network sources (OPDS catalogs, WebDAV servers, 书库文件夹):
-            // dedicated union-merged file, applied AFTER the global files so a
-            // newer-wins app-State.json / app-CSS.json can never drop entries;
-            // the merged state is persisted and re-published immediately so
-            // every device converges within this single sync
-            syncMergedObjectFile(s, globalUrl, AppProfile.syncNetworkSources, ProfileStateIO::mergeNetworkSources);
+            // dedicated whole-file, applied AFTER the global files so the
+            // newer-wins app-State.json import can never override the lists;
+            // imported wholesale, which is how deletions propagate
+            syncWholeFile(s, globalUrl, AppProfile.syncNetworkSources);
             ProfileStateIO.importNetworkSources();
             AppProfile.save(c);
             syncGlobalFile(s, globalUrl, AppProfile.syncState, true);
@@ -345,6 +354,11 @@ public class WebDavSyncer {
             int pDown = 0, bDown = 0, associated = 0;
             Set<String> namesCovered = new HashSet<>();
             Set<String> uploadedHashes = new HashSet<>();
+            // locally deleted progress/bookmarks (marked-unread, bookmark
+            // removal): never merged back, server file removed when nothing
+            // remains to keep it alive
+            final LinkedJSONObject deletedBooks = SharedBooks.DeletedBooks.all();
+            final List<String> hashesToDelete = new ArrayList<String>();
 
             // ---- apply every remote book info INDEPENDENTLY (per-book restore:
             // one corrupt or conflicting book never blocks the others)
@@ -354,6 +368,16 @@ public class WebDavSyncer {
                 try {
                     String name = info.optString("name");
                     if (TxtUtils.isEmpty(name)) {
+                        continue;
+                    }
+                    final boolean delProgress = markKind(deletedBooks, name, "p");
+                    final boolean delBookmarks = markKind(deletedBooks, name, "b");
+                    if ((delProgress || delBookmarks)
+                            && !localP.has(name) && subsetFor(localB, name).length() == 0) {
+                        // everything the user deleted locally is gone here too:
+                        // remove the server copy instead of restoring it
+                        hashesToDelete.add(rHash);
+                        namesCovered.add(name);
                         continue;
                     }
                     File localFile = candidates.get(name);
@@ -372,7 +396,7 @@ public class WebDavSyncer {
                     // progress: only a hash-confirmed book (or a book this device
                     // does not have yet) may change the local reading position
                     LinkedJSONObject rp = info.optJSONObject("progress");
-                    if (rp != null && (matched || localFile == null)) {
+                    if (rp != null && !delProgress && (matched || localFile == null)) {
                         if (mergeProgressEntry(localP, name, rp, farther)) {
                             pDown++;
                         }
@@ -382,7 +406,7 @@ public class WebDavSyncer {
                     // incoming entries are re-pointed at the local file so notes
                     // and bookmarks follow the book whatever the source path was
                     LinkedJSONObject rbs = info.optJSONObject("bookmarks");
-                    if (rbs != null) {
+                    if (rbs != null && !delBookmarks) {
                         Iterator<String> keys = rbs.keys();
                         while (keys.hasNext()) {
                             String key = keys.next();
@@ -442,6 +466,18 @@ public class WebDavSyncer {
                 }
             }
 
+            // remove server copies of books whose progress/bookmarks were
+            // deleted locally and have nothing left to keep them alive
+            for (String h : hashesToDelete) {
+                try {
+                    s.delete(booksUrl + "/" + h + ".json");
+                    res.booksDeleted++;
+                } catch (Exception delError) {
+                    LOG.d("WebDavSyncer delete", h, delError.getMessage());
+                }
+            }
+            SharedBooks.DeletedBooks.clear();
+
             IO.writeObjSync(AppProfile.syncProgress, localP);
             IO.writeObjSync(AppProfile.syncBookmarks, localB);
 
@@ -456,7 +492,10 @@ public class WebDavSyncer {
             res.booksAssociated = associated;
             res.durationMs = System.currentTimeMillis() - start;
             AppState.get().webdavLastSyncInfo = "\u2191" + res.booksSynced + "\u672c \u00b7 \u5173\u8054" + associated
+                    + (res.booksDeleted > 0 ? " \u00b7 \u5220" + res.booksDeleted : "")
                     + " \u00b7 " + res.durationMs + "ms";
+            android.util.Log.i("BENCH", "sync books: synced=" + res.booksSynced + " associated=" + associated
+                    + " deleted=" + res.booksDeleted);
             AppState.get().save(c);
 
             res.ok = true;
@@ -502,31 +541,49 @@ public class WebDavSyncer {
      * keyed by path, the newer "time" wins. The merged array is written back
      * locally and published so every device converges.
      */
-    static void syncMergedArrayFile(Sardine s, String globalUrl, File local) {
+    /**
+     * Whole-file two-way sync: identical content = no-op; the remote object
+     * not existing yet ("") = seed-upload the local copy; any other fetch
+     * failure (null) = touch nothing this round; otherwise the copy with the
+     * newer modification time wins as a whole — the local file is overwritten
+     * with the remote text, or the local text is uploaded.
+     *
+     * @return true when the LOCAL file was (re)written from the server.
+     */
+    static boolean syncWholeFile(Sardine s, String globalUrl, File local) {
         try {
-            if (local == null) {
-                return;
+            if (local == null || !local.isFile()) {
+                return false;
             }
             final String url = globalUrl + "/" + local.getName();
-            JSONArray localArr = ProfileStateIO.readSimpleMetaArray(local);
-            String remoteText = fetchText(s, url);
+            final String localText = readText(local);
+            final String remoteText = fetchText(s, url);
             if (remoteText == null) {
-                if (localArr.length() > 0) {
-                    s.put(url, localArr.toString().getBytes("UTF-8"));
-                }
-                return;
+                // transient GET failure: publishing local now could replace
+                // the converged server copy with a stale subset for good
+                android.util.Log.i("BENCH", "sync " + local.getName() + ": whole-file remote error, skipped");
+                return false;
             }
-            JSONArray remoteArr;
-            try {
-                remoteArr = new JSONArray(remoteText);
-            } catch (Exception badPayload) {
-                remoteArr = new JSONArray();
+            if (normalize(remoteText).equals(normalize(localText))) {
+                return false;
             }
-            JSONArray merged = ProfileStateIO.mergeSimpleMetaArrays(localArr, remoteArr);
-            IO.writeObjSync(local, merged);
-            s.put(url, merged.toString().getBytes("UTF-8"));
+            if (remoteText.isEmpty()) {
+                s.put(url, localText.getBytes("UTF-8"));
+                android.util.Log.i("BENCH", "sync " + local.getName() + ": whole-file uploaded (new)");
+                return false;
+            }
+            final long remoteMod = remoteModified(s, url);
+            if (remoteMod > local.lastModified()) {
+                IO.writeString(local, remoteText);
+                android.util.Log.i("BENCH", "sync " + local.getName() + ": whole-file downloaded (remote newer)");
+                return true;
+            }
+            s.put(url, localText.getBytes("UTF-8"));
+            android.util.Log.i("BENCH", "sync " + local.getName() + ": whole-file uploaded (local newer)");
+            return false;
         } catch (Exception e) {
-            LOG.e(e, "WebDavSyncer array", local.getName());
+            LOG.e(e, "WebDavSyncer whole", local == null ? "?" : local.getName());
+            return false;
         }
     }
 
@@ -540,6 +597,11 @@ public class WebDavSyncer {
             LinkedJSONObject localObj = IO.readJsonObject(local);
             String remoteText = fetchText(s, url);
             if (remoteText == null) {
+                // transient GET failure: touch neither the server nor the local file
+                android.util.Log.i("BENCH", "sync " + local.getName() + ": remote error, skipped");
+                return;
+            }
+            if (remoteText.isEmpty()) {
                 if (localObj.length() > 0) {
                     s.put(url, localObj.toString().getBytes("UTF-8"));
                 }
@@ -598,14 +660,19 @@ public class WebDavSyncer {
             final String localFull = readText(local);
             final String localCmp = withoutFields(new LinkedJSONObject(localFull), deviceFields).toString();
             final String remoteText = fetchText(s, url);
-            final String remoteCmp = remoteText == null
+            if (remoteText == null) {
+                // transient GET failure: skip the whole file this round
+                android.util.Log.i("BENCH", "sync " + local.getName() + ": remote error, skipped");
+                return;
+            }
+            final String remoteCmp = remoteText.isEmpty()
                     ? null
                     : withoutFields(new LinkedJSONObject(remoteText), deviceFields).toString();
             if (remoteCmp != null && normalize(remoteCmp).equals(normalize(localCmp))) {
                 return;
             }
             final long remoteMod = remoteModified(s, url);
-            if (remoteText == null) {
+            if (remoteCmp == null) {
                 // initial upload; the server copy never stores device-bound fields
                 s.put(url, withoutFields(new LinkedJSONObject(localFull), deviceFields).toString().getBytes("UTF-8"));
                 return;
@@ -1118,7 +1185,13 @@ public class WebDavSyncer {
         }
     }
 
-    /** GET a remote text file; null when it does not exist or cannot be read. */
+    /**
+     * GET a remote text file. "" when it does not exist (404 — the caller may
+     * seed-upload a local copy); null on any OTHER failure (auth, network,
+     * SSL, timeout) — the caller must then touch neither the server nor the
+     * local file, otherwise one transient error would publish a possibly
+     * incomplete local list over the converged server copy for good.
+     */
     static String fetchText(Sardine s, String url) {
         InputStream is = null;
         try {
@@ -1126,7 +1199,7 @@ public class WebDavSyncer {
             return IO.readString(is);
         } catch (Exception e) {
             LOG.d("WebDavSyncer fetch", url, e.getMessage());
-            return null;
+            return isNotFound(e) ? "" : null;
         } finally {
             if (is != null) {
                 try {
@@ -1135,6 +1208,30 @@ public class WebDavSyncer {
                 }
             }
         }
+    }
+
+    /** True when the failure chain reports HTTP 404 / "not found". */
+    private static boolean isNotFound(Throwable e) {
+        for (Throwable c = e; c != null; c = c.getCause()) {
+            String msg = c.getMessage();
+            if (msg != null && msg.contains("404")) {
+                return true;
+            }
+            try {
+                Object status = c.getClass().getMethod("getStatusCode").invoke(c);
+                if (status instanceof Integer && (Integer) status == 404) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
+    /** True when the deleted-books marker file records the given kind ("p"/"b") for the book. */
+    static boolean markKind(LinkedJSONObject markers, String name, String kind) {
+        LinkedJSONObject t = markers.optJSONObject(name);
+        return t != null && t.optLong(kind, 0) > 0;
     }
 
     private static String readText(File f) throws IOException {

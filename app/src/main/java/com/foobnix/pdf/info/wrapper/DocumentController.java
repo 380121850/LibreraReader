@@ -559,6 +559,18 @@ public abstract class DocumentController {
         }
     }
 
+    /**
+     * Flush the current position immediately: cancels the debounced save and
+     * writes the page while the document is still alive. Exit paths must use
+     * this before recycling the document, otherwise the pending debounced run
+     * is dropped by the page-count guard in saveCurrentPageAsync and the last
+     * read position is lost (book reopens one save behind).
+     */
+    public void saveCurrentPageNow() {
+        handler2.removeCallbacks(saveCurrentPageRunnable);
+        saveCurrentPageAsync();
+    }
+
     public void saveCurrentPageAsync() {
         // int page = PageUrl.fakeToReal(currentPage);
         LOG.d("_PAGE", "saveCurrentPage", getCurentPageFirst1(), getPageCount());

@@ -1616,8 +1616,16 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         AppProfile.save(this);
         TempHolder.isSeaching = false;
         TempHolder.isActiveSpeedRead.set(false);
-        //dc.saveCurrentPageAsync();
-        //handler.postDelayed(closeRunnable, AppState.APP_CLOSE_AUTOMATIC);
+        // Flush the last read position while the document is still alive:
+        // covers Home/recents exits and the back path, where the pending
+        // debounced save would be cancelled or dropped after recycle.
+        try {
+            if (dc != null) {
+                dc.saveCurrentPageNow();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
         handlerTimer.removeCallbacks(updateTimePower);
         GFile.runSyncService(this);
     }

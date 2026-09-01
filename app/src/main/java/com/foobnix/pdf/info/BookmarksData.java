@@ -5,10 +5,12 @@ import android.content.Context;
 import com.foobnix.android.utils.IO;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.Objects;
+import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
+import org.ebookdroid.common.settings.books.SharedBooks;
 
 import org.librera.LinkedJSONObject;
 
@@ -57,6 +59,11 @@ public class BookmarksData {
                 obj.remove("" + bookmark.t);
             }
             IO.writeObjSync(bookmark.file, obj);
+            // remember the deletion so the next WebDAV sync removes the
+            // bookmark from the server instead of merging it back
+            if (TxtUtils.isNotEmpty(bookmark.getPath())) {
+                SharedBooks.DeletedBooks.record(bookmark.getPath(), "b");
+            }
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -278,8 +285,18 @@ public class BookmarksData {
 
 
     public void cleanBookmarks() {
-        //IO.writeObj(AppProfile.syncBookmarks.getPath(), "{}");
-        AppData.get().clearAll(AppProfile.APP_BOOKMARKS_JSON);
+        // app-Bookmarks.json is a JSONObject keyed by creation time — the old
+        // clearAll() call wrote an empty SimpleMeta ARRAY into it, leaving a
+        // file no reader could parse. Clear properly and mark every affected
+        // book so the next sync removes the bookmarks server-side too.
+        for (AppBookmark b : getAll()) {
+            if (TxtUtils.isNotEmpty(b.getPath())) {
+                SharedBooks.DeletedBooks.record(b.getPath(), "b");
+            }
+        }
+        for (File f : AppProfile.getAllFiles(AppProfile.APP_BOOKMARKS_JSON)) {
+            IO.writeObjSync(f, new LinkedJSONObject());
+        }
     }
 
 

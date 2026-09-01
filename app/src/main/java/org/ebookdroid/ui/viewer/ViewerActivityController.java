@@ -301,6 +301,16 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         if (wrapperControlls != null) {
             wrapperControlls.onPause();
         }
+        // Cover exits that skip closeActivityFinal (Home key, swipe from
+        // recents): the document is still alive here, so the current position
+        // can be flushed as-is.
+        try {
+            if (controller != null) {
+                controller.saveCurrentPageNow();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
     }
 
     public void onDestroy() {
@@ -561,6 +571,17 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                 TTSNotification.hideNotification();
 
                 LOG.d("closeActivity 1");
+                // Persist the last read position BEFORE the document is
+                // recycled: after recycle() the page-count guard in
+                // saveCurrentPageAsync drops the save and the book would
+                // reopen one session behind.
+                try {
+                    if (controller != null) {
+                        controller.saveCurrentPageNow();
+                    }
+                } catch (Exception e) {
+                    LOG.e(e);
+                }
                 if (documentModel != null) {
                     documentModel.recycle();
                 }

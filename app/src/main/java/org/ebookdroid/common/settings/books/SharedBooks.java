@@ -14,8 +14,11 @@ import org.librera.LinkedJSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedBooks {
@@ -51,6 +54,7 @@ public class SharedBooks {
 
     public static void deleteProgress(String path) {
         cache.clear();
+        DeletedBooks.record(path, "p");
         for (File fileName : AppProfile.getAllFiles(AppProfile.APP_PROGRESS_JSON)) {
             LinkedJSONObject linkedJsonObject = IO.readJsonObject(fileName);
             String key = ExtUtils.getFileName(path);
@@ -58,6 +62,46 @@ public class SharedBooks {
                 linkedJsonObject.remove(key);
                 IO.writeObjSync(fileName, linkedJsonObject);
                 LOG.d("deleteProgress", path);
+            }
+        }
+    }
+
+    /**
+     * Locally deleted reading progress / bookmarks, consumed by the next
+     * WebDAV sync: the deleted parts are not merged back from the server and
+     * the server books/&lt;hash&gt;.json is removed when nothing remains for
+     * the book. Value = {"p": time, "b": time}, p = progress, b = bookmarks.
+     */
+    public static class DeletedBooks {
+
+        public static void record(String path, String kind) {
+            try {
+                if (AppProfile.syncDeletedBooks == null || TxtUtils.isEmpty(path)) {
+                    return;
+                }
+                final String name = ExtUtils.getFileName(path);
+                LinkedJSONObject root = IO.readJsonObject(AppProfile.syncDeletedBooks);
+                LinkedJSONObject marks = root.optJSONObject(name);
+                if (marks == null) {
+                    marks = new LinkedJSONObject();
+                    root.put(name, marks);
+                }
+                marks.put(kind, System.currentTimeMillis());
+                IO.writeObjSync(AppProfile.syncDeletedBooks, root);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        }
+
+        public static LinkedJSONObject all() {
+            return AppProfile.syncDeletedBooks == null
+                    ? new LinkedJSONObject()
+                    : IO.readJsonObject(AppProfile.syncDeletedBooks);
+        }
+
+        public static void clear() {
+            if (AppProfile.syncDeletedBooks != null) {
+                IO.writeObjSync(AppProfile.syncDeletedBooks, new LinkedJSONObject());
             }
         }
     }

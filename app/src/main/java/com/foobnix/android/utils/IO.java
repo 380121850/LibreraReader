@@ -89,8 +89,14 @@ public class IO {
 
     }
 
-    public static volatile String cacheFile;
-    public static volatile String cacheString;
+    /**
+     * Single-slot content cache published as ONE immutable path+content pair.
+     * The previous two volatile fields were updated in two separate steps and
+     * could interleave between concurrent writers of different files, so a
+     * reader got the NEW content under the OLD file name — one list (recent)
+     * read the other's (favorite) content and wrote it back, destroying data.
+     */
+    private static volatile String[] cachePair = new String[]{null, null};
 
     public static String readString(File file) {
         return readString(file, false);
@@ -109,40 +115,40 @@ public class IO {
 
 
     public static String readString(File file, boolean withSeparator) {
-        if (file.getPath().equals(cacheFile)) {
+        final String path = file.getPath();
+        final String[] cached = cachePair;
+        if (path.equals(cached[0])) {
             LOG.d("lib-IO", "read cache", file);
-            return cacheString;
+            return cached[1];
         }
         synchronized (getLock(file)) {
 
+            String content;
             try {
                 if (!file.exists()) {
-                    cacheString = "";
-                    cacheFile = file.getPath();
-                    return "";
-                }
-                LOG.d("lib-IO", "read file", file);
-                StringBuilder builder = new StringBuilder();
-                String aux = "";
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                String separator = System.getProperty("line.separator");
+                    content = "";
+                } else {
+                    LOG.d("lib-IO", "read file", file);
+                    StringBuilder builder = new StringBuilder();
+                    String aux = "";
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    String separator = System.getProperty("line.separator");
 
-                while ((aux = reader.readLine()) != null) {
-                    builder.append(aux);
-                    if (withSeparator) {
-                        builder.append(separator);
+                    while ((aux = reader.readLine()) != null) {
+                        builder.append(aux);
+                        if (withSeparator) {
+                            builder.append(separator);
+                        }
                     }
+                    reader.close();
+                    content = builder.toString();
                 }
-                reader.close();
-                cacheFile = file.getPath();
-                cacheString = builder.toString();
-                return cacheString;
             } catch (Exception e) {
                 LOG.e(e);
+                content = "";
             }
-            cacheFile = file.getPath();
-            cacheString = "";
-            return "";
+            cachePair = new String[]{path, content};
+            return content;
         }
     }
 
@@ -162,8 +168,7 @@ public class IO {
                 out.flush();
                 out.close();
 
-                cacheString = string;
-                cacheFile = file.getPath();
+                cachePair = new String[]{file.getPath(), string};
 
             } catch (Exception e) {
                 LOG.e(e);

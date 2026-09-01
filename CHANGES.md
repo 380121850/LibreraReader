@@ -5,6 +5,103 @@
 
 ---
 
+## [2026-09-01] 同步方案三:列表/统计改整文件同步;进度与书签删除同步到服务器
+
+### 一、OPDS/WebDAV/书库文件夹、最近阅读/珍藏、统计/AI/杂项 → 整文件同步
+
+按需求把六类数据从"逐条/逐字段合并"改为**整文件方案**（与 app-State/app-CSS 一致的 newer-mtime-wins）：内容相同则跳过；远端不存在则 seed 上传；其他失败跳过本轮；否则修改时间新的一方整份胜出。删除靠整份覆盖天然传播，不再需要墓碑/复活标记（上一轮的标记机制整体退役删除）。
+
+| 文件 | 改动 |
+| --- | --- |
+| `WebDavSyncer.java` | 新增通用 `syncWholeFile()`（no-op / seed / 跳过 / 双向整份覆盖，带 BENCH 日志）；`doSync` 中 `app-Recent`、`app-Favorite`、`app-Stats`、`app-AI`、`app-Misc`、`app-NetworkSources` 六个文件改走整文件；`app-BookStates`（已读/未读标记）保留逐项合并；移除 `syncMergedArrayFile` 与相应 `syncMergedObjectFile` 调用；本机被远端更新时调用 `AppData.invalidateListCache()` 刷新首页 |
+| `ProfileStateIO.java` | `exportNetworkSources/exportStats/exportAi/exportMisc` 改为**内容变化才写盘**（整文件方案以 mtime 判断"谁改过"，导出必须保真旧 mtime）；`exportNetworkSources` 只写 opds/webdav/folders 三段；`importNetworkSources` 改为整份应用（folders 整段替换 `searchPathsJson`）；删除退役的 `mergeNetworkSources`、`mergeSimpleMetaArrays`、`mergeStats/mergeAi/mergeMisc`、`updateMarkers/mergeMarkers/unionMarkers/markerKeys/filterTombstoned/tombstonesToArray/keysOf/unionLines/entryKey/readSimpleMetaArray/appendAll` 及标记段常量 |
+
+**已知语义**（整文件方案的固有代价，用户已确认）：两台设备在一次同步间隔内各自改动同一文件时，后同步的一方整份获胜，另一方的中间改动被覆盖；依赖设备与服务器时钟大致一致。
+
+### 二、每本书的进度/书签本地删除 → 同步删除服务器
+
+| 文件 | 改动 |
+| --- | --- |
+| `AppProfile.java` | 新增 `app-DeletedBooks.json`（设备目录，`{"书名":{"p":时间,"b":时间}}`，p=进度 b=书签） |
+| `SharedBooks.java` | 新增 `DeletedBooks` 记录/读取/清空助手；`deleteProgress()`（标记未读）记录 p 墓碑 |
+| `BookmarksData.java` | `remove()`（单条/按书删除书签的公共路径）记录 b 墓碑；**修复既有 bug**：`cleanBookmarks()`（清除所有书签）原来向对象格式文件写入空数组 `[]` 导致文件不可解析，改为正确清空并记录全部受影响书名 |
+| `WebDavSyncer.java` | doSync books 段：远端条目命中删除墓碑时**跳过其 progress/bookmarks 回灌本地**（否则删除会被服务器合并回来）；若该书本地已无任何进度与书签残留 → 直接删除服务器 `books/<hash>.json`（计入 `SyncResult.booksDeleted`，同步摘要显示"删N"）；处理完成后清空墓碑。BENCH 输出 books synced/associated/deleted 计数 |
+
+**验证（MI9，服务器 192.168.50.100:5005）**：整文件三态日志齐全（identical 静默 / uploaded (local newer) / downloaded (remote newer)），books 段 `synced=86 associated=49`；对《侯卫东官场笔记》"标记为未读（清空进度）"后 progress 键即时删除、墓碑记录，同步后**进度未被服务器回灌**（本地保留已删状态），因该书尚有书签残留服务器文件按语义保留（仅去掉进度部分）；连续两轮同步状态收敛。
+
+### 三、构建
+
+- Ubuntu 编译 `:app:assembleLibreraDebug :app:assembleLibreraRelease` 成功；debug 包已在 MI9 验证。
+
+---
+
+## [2026-08-31] 同步修复二轮:删除跨设备传播;最近阅读/珍藏不再被冲掉
+
+### 一、A 机删除的 OPDS/书库文件夹,B 机同步后也删除
+
+**根因**:上一轮墓碑合并规则中"本机快照段仍含该条目 → 丢弃墓碑"——未执行删除的设备永远以自己副本为准并回传服务器,删除只在本机生效,无法跨设备传播。
+
+| 文件 | 改动 |
+| --- | --- |
+| `ProfileStateIO.java` | 墓碑在合并中**无条件保留**(按 k 并集、时间取 max),不再因"本机仍有"被丢弃;B 机合并后由既有 import 逻辑(opds/webdav 整串替换、folders 按墓碑移除)落盘,删除随之传播到所有设备并回传服务器 |
+| 同上 | 新增复活标记段 `opds-add`/`webdav-add`/`folders-add`:本机"见过删除后又重新添加"的条目记录 `{k,t}` 标记;合并时**时间较新的复活标记取消其墓碑**(后到优先),使重新添加同样全局传播。复活标记仅在"本机墓碑段存在该键且条目重新出现"时记录,避免新设备首次同步把全列表误标为复活 |
+
+**验证(MI9,单机模拟双机)**:①模拟 A 机删除 My:Awards → 同步生成墓碑并发布;②模拟 B 机(快照/活列表均 3 项、无墓碑)→ 同步后**活列表与快照均变 2 项**(旧行为保留 3 项);③模拟重新添加 → `opds-add` 复活标记生成、墓碑清空、条目恢复并发布。
+
+### 二、最近阅读/我的珍藏:B 机看不到、A 机自己被冲掉
+
+| 文件 | 改动 |
+| --- | --- |
+| `IO.java` | 单槽读缓存 `cacheFile/cacheString` 两个 volatile 字段两步赋值,并发写不同文件时交错,读方会拿到"旧文件名+新内容"(最近阅读读到珍藏的数组),随后的读改写把列表整文件写坏——改为单一 volatile 不可变 `String[]{path, content}` 原子发布,读写都取完整快照 |
+| `WebDavSyncer.java` | `fetchText` 错误语义:404(不存在)返回 ""、其他一切失败(网络/鉴权/SSL/超时)返回 null;`syncMergedArrayFile`/`syncMergedObjectFile`/`syncGlobalFile` 在 null(暂时性失败)时**跳过该文件本轮**(不覆盖服务器也不动本地)——消除"一次网络抖动把残缺本地列表发布成全局并永久化"的窗口;404 仍保持既有 seed 上传 |
+| 同上 | `syncMergedArrayFile` 写回前**重读本机文件再合并**(远端 GET 期间本机 add() 追加的条目不再被丢失);写回 recent/favorite 后调用 `AppData.invalidateListCache()` 立即刷新首页;新增 `Log.i("BENCH")` 输出 local/remote/merged 条数,真机可观测 |
+
+**说明**:同步到 B 机的条目若对应书籍文件在 B 机相同路径不存在,首页仍会按 `isFile()` 过滤不显示(打不开就不显示);首页每栏只显示最近 8 条,完整列表在"最近阅读"页。
+
+**验证(MI9)**:BENCH 日志输出 `sync app-Recent.json: local=1 remote=1 merged=1` 等计数正常;打开第二本书后列表正确增长(1→2),再同步后内容稳定不丢;偏好页 WebDAV 服务器地址显示正常。
+
+### 三、构建
+
+- Ubuntu 编译 `:app:assembleLibreraDebug :app:assembleLibreraRelease` 成功;debug 包已在 MI9 验证。
+
+---
+
+## [2026-08-31] 修复阅读位置"慢一拍";修复 WebDAV 同步冲掉本地删除(OPDS/书库文件夹)
+
+### 一、重开书籍恢复到上次退出前的准确位置
+
+**根因**:翻页位置在内存即时更新,但写盘走 1 秒防抖(`DocumentController.saveCurrentPage` 的 `handler2.postDelayed`);返回键退出链路(`onCloseActivityAdnShowInterstial` → `closeActivityFinal`)全程没有任何保存,且 `closeActivityFinal` 先 `documentModel.recycle()`,此后防抖任务被 `saveCurrentPageAsync` 的 `getPageCount()<=0` 守卫丢弃——磁盘上停留在"最后一次停顿≥1 秒"的旧位置,重开即"慢一拍"。
+
+| 文件 | 改动 |
+| --- | --- |
+| `DocumentController.java` | 新增 `saveCurrentPageNow()`:取消防抖回调并立即走一次 `saveCurrentPageAsync()`(文档尚存活时调用,页数有效) |
+| `ViewerActivityController.java` | `closeActivityFinal` 在 `documentModel.recycle()` **之前** flush(覆盖返回键/关闭按钮/自动关闭全部退出路径);`onPause` 同样 flush(覆盖 Home 键/最近任务划掉等不经 closeActivityFinal 的场景),均带 try/catch + null 保护 |
+| `HorizontalViewActivity.java` | `onPause` 恢复被注释掉的保存,改为 `dc.saveCurrentPageNow()`(书籍/横向模式同样在文档存活时落盘) |
+
+**真机验证(MI9)**:《侯卫东官场笔记》连翻 4 页后**立即**按返回退出,`app-Progress.json` 由 pg=234 → pg=238(此前该场景保留旧值);重开直接落在 9/9(第 239 页),与退出位置一致。
+
+### 二、WebDAV 同步不再复活本地删除的 OPDS 条目/书库文件夹
+
+**根因**:OPDS 目录、WebDAV 服务器、书库文件夹三个列表走"纯并集"合并(`ProfileStateIO.unionLines`),没有删除传播——本地删除的条目在服务器快照里还在,同步时被无条件并回活内存并再次发布,删除永远无法收敛。
+
+**方案**:在 `app-NetworkSources.json` 中新增三个墓碑段 `opds-del`/`webdav-del`/`folders-del`(元素 `{k,t}`,k 为 entryKey),只影响上述三个列表;最近阅读/收藏、阅读进度、书签的同步逻辑不变。
+
+| 文件 | 改动 |
+| --- | --- |
+| `ProfileStateIO.java` | `exportNetworkSources()`:导出时对比"文件旧快照"与当前活列表,旧有今无的键记墓碑;活列表中重新出现的键清除其墓碑(重新添加优先);墓碑按时间取最新 500 条封顶 |
+| 同上 | `mergeNetworkSources()`:三段先并集;墓碑段按 k 并集、t 取 max;**本机活列表仍存在的键**丢弃其墓碑(另一台设备保留该条目时,以保留方为准);用墓碑过滤并集结果后随快照回写本地并发布服务器,删除就此收敛 |
+| 同上 | `importNetworkSources()`:opds/webdav 两段改为**按段存在性守卫的整串替换**(原 `isNotEmpty` 守卫导致"全部删除"无法落盘;旧格式文件无该段时不动 live);folders 段在既有 add-only 之外,新增按 `folders-del` 墓碑从 `searchPathsJson` 显式移除,使其他设备上的删除也能落到本机 |
+
+**语义**:删除优先于服务器旧副本;若另一台设备仍保留该条目,则以保留方为准(不会强制清空其他设备);任何设备重新添加即全局恢复。
+
+**真机验证(MI9,同步服务器 192.168.50.100:5005)**:①UI 删除 OPDS 条目"Top Books to Read"→ 同步 → `opds-del` 记录 `My:Awards` → 强杀重启 + 自动同步后**不复活**;②恢复条目 → 同步 → 墓碑清除、三设备状态收敛;③书库文件夹移除 DSfile → 同步 → `folders-del` 记录 → 重启后不复活;④加回 DSfile → 同步 → 墓碑清除、恢复 2 项。测试后设备配置已完全还原(OPDS 3 项原顺序、书库文件夹 2 项)。
+
+### 三、构建
+
+- Ubuntu 编译 `:app:assembleLibreraDebug :app:assembleLibreraRelease` 成功;debug 包已在 MI9 真机验证通过。
+
+---
+
 ## [2026-08-12] 移除 Google/Drive 依赖;新增书库「格式配置」「书库文件夹配置」
 
 ### 一、构建彻底去 Google 化

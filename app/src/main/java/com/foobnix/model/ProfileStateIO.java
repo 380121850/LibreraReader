@@ -15,8 +15,11 @@ import org.librera.LinkedJSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -58,7 +61,7 @@ public class ProfileStateIO {
             o.put("readPages", sp.readPages);
             o.put(K_MONTHLY, TxtUtils.isEmpty(sp.readMonthlyJson) ? "{}" : sp.readMonthlyJson);
             o.put(K_DAILY, TxtUtils.isEmpty(sp.readDailyJson) ? "{}" : sp.readDailyJson);
-            IO.writeObjSync(AppProfile.syncStats, o);
+            writeIfChanged(AppProfile.syncStats, o.toString());
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -152,7 +155,7 @@ public class ProfileStateIO {
             root.put(SEC_OPDS, snapshotPrefs(c, SEC_OPDS));
             root.put(SEC_PASSWORD, snapshotPrefs(c, SEC_PASSWORD));
             root.put(SEC_POPUPS, snapshotPrefs(c, SEC_POPUPS));
-            IO.writeObjSync(AppProfile.syncMisc, root);
+            writeIfChanged(AppProfile.syncMisc, root.toString());
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -288,7 +291,7 @@ public class ProfileStateIO {
             }
             LinkedJSONObject o = new LinkedJSONObject();
             o.put(K_API_KEY, AiCredentials.load(c));
-            IO.writeObjSync(AppProfile.syncAI, o);
+            writeIfChanged(AppProfile.syncAI, o.toString());
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -404,8 +407,12 @@ public class ProfileStateIO {
     /**
      * Snapshot the user-configured network sources into app-NetworkSources.json:
      * the raw OPDS catalog entries, the raw WebDAV server entries and the
-     * 书库文件夹 paths. Passwords are not included here — OPDS logins ride
-     * with app-Misc.json and WebDAV passwords stay device-bound.
+     * 书库文件夹 paths. The file is synced WHOLE (newer mtime wins), so it is
+     * only written when the content actually changed — an unconditional write
+     * would stamp a fresh mtime on every sync, make the local copy always
+     * "newer" and block incoming changes from other devices. Passwords are not
+     * included here — OPDS logins ride with app-Misc.json and WebDAV passwords
+     * stay device-bound.
      */
     public static void exportNetworkSources() {
         try {
@@ -422,9 +429,36 @@ public class ProfileStateIO {
                 }
             }
             root.put(SEC_NET_FOLDERS, folders);
-            IO.writeObjSync(AppProfile.syncNetworkSources, root);
+            writeIfChanged(AppProfile.syncNetworkSources, root.toString());
         } catch (Exception e) {
             LOG.e(e);
+        }
+    }
+
+    /**
+     * Whole-file sync compares modification times: only touch the file when
+     * the serialized content actually changed, preserving the mtime otherwise.
+     */
+    private static void writeIfChanged(File f, String text) {
+        try {
+            if (f.isFile()) {
+                final String current = IO.readString(f);
+                if (normalizeJson(current).equals(normalizeJson(text))) {
+                    return;
+                }
+            }
+            IO.writeObjSync(f, text);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Canonical text of a JSON document for content comparison. */
+    private static String normalizeJson(String s) {
+        try {
+            return new LinkedJSONObject(s).toString();
+        } catch (Exception e) {
+            return s == null ? "" : s.trim();
         }
     }
 
@@ -440,46 +474,10 @@ public class ProfileStateIO {
     }
 
     /**
-     * Union merge of two network-source snapshots: entries are keyed by the
-     * URL / path before the first comma, local order comes first and unknown
-     * remote entries are appended.
-     */
-    public static LinkedJSONObject mergeNetworkSources(LinkedJSONObject local, LinkedJSONObject remote) {
-        LinkedJSONObject out = new LinkedJSONObject();
-        out.put(SEC_NET_OPDS, unionLines(local, remote, SEC_NET_OPDS));
-        out.put(SEC_NET_WEBDAV, unionLines(local, remote, SEC_NET_WEBDAV));
-        out.put(SEC_NET_FOLDERS, unionLines(local, remote, SEC_NET_FOLDERS));
-        return out;
-    }
-
-    private static JSONArray unionLines(LinkedJSONObject local, LinkedJSONObject remote, String section) {
-        JSONArray out = new JSONArray();
-        Set<String> seen = new HashSet<String>();
-        JSONArray[] sources = { local.optJSONArray(section), remote.optJSONArray(section) };
-        for (JSONArray arr : sources) {
-            if (arr == null) {
-                continue;
-            }
-            for (int i = 0; i < arr.length(); i++) {
-                String line = arr.optString(i);
-                if (TxtUtils.isEmpty(line) || !seen.add(entryKey(line))) {
-                    continue;
-                }
-                out.put(line);
-            }
-        }
-        return out;
-    }
-
-    /** Union key of a raw entry line: the URL / path before the first comma. */
-    private static String entryKey(String line) {
-        int comma = line.indexOf(',');
-        return comma < 0 ? line : line.substring(0, comma);
-    }
-
-    /**
-     * Apply the merged network-source snapshot back into the live AppState /
-     * BookCSS (in memory); the caller persists them afterwards.
+     * Apply the (whole-file) network-source snapshot into the live AppState /
+     * BookCSS: the winning device's lists replace the local ones wholesale —
+     * that is how deletions propagate under the whole-file scheme. The caller
+     * persists them afterwards.
      */
     public static void importNetworkSources() {
         try {
@@ -490,22 +488,22 @@ public class ProfileStateIO {
             if (root.length() == 0) {
                 return;
             }
-            String mergedOpds = joinLines(root.optJSONArray(SEC_NET_OPDS));
-            if (TxtUtils.isNotEmpty(mergedOpds)) {
-                AppState.get().allOPDSLinks = mergedOpds;
+            if (root.has(SEC_NET_OPDS)) {
+                AppState.get().allOPDSLinks = joinLines(root.optJSONArray(SEC_NET_OPDS));
             }
-            String mergedWebDav = joinLines(root.optJSONArray(SEC_NET_WEBDAV));
-            if (TxtUtils.isNotEmpty(mergedWebDav)) {
-                AppState.get().allWebDavLinks = mergedWebDav;
+            if (root.has(SEC_NET_WEBDAV)) {
+                AppState.get().allWebDavLinks = joinLines(root.optJSONArray(SEC_NET_WEBDAV));
             }
-            JSONArray folders = root.optJSONArray(SEC_NET_FOLDERS);
-            if (folders != null) {
+            if (root.has(SEC_NET_FOLDERS)) {
+                JSONArray folders = root.optJSONArray(SEC_NET_FOLDERS);
+                JSONArray paths = new JSONArray();
                 for (int i = 0; i < folders.length(); i++) {
                     String path = folders.optString(i);
-                    if (TxtUtils.isNotEmpty(path) && !JsonDB.contains(BookCSS.get().searchPathsJson, path)) {
-                        BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, path);
+                    if (TxtUtils.isNotEmpty(path)) {
+                        paths.put(path);
                     }
                 }
+                BookCSS.get().searchPathsJson = paths.toString();
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -525,82 +523,6 @@ public class ProfileStateIO {
             }
         }
         return sb.toString();
-    }
-
-    // ------------------------------------------------------------------ simple-meta arrays (recent / favorite)
-
-    /**
-     * Union merge of two SimpleMeta arrays ([{"name":..,"path":..,"time":..}])
-     * keyed by path; the newer entry wins. Order: newest first.
-     */
-    public static JSONArray mergeSimpleMetaArrays(JSONArray local, JSONArray remote) {
-        try {
-            JSONArray both = new JSONArray();
-            appendAll(both, local);
-            appendAll(both, remote);
-            JSONArray out = new JSONArray();
-            // selection sort by time desc (the arrays are small)
-            for (int i = 0; i < both.length(); i++) {
-                int best = i;
-                for (int j = i + 1; j < both.length(); j++) {
-                    if (both.optJSONObject(j).optLong("time", 0) > both.optJSONObject(best).optLong("time", 0)) {
-                        best = j;
-                    }
-                }
-                if (best != i) {
-                    Object tmp = both.opt(i);
-                    both.put(i, both.opt(best));
-                    both.put(best, tmp);
-                }
-                LinkedJSONObject it = both.optJSONObject(best);
-                String path = it == null ? "" : it.optString("path", "");
-                boolean dup = false;
-                for (int k = 0; k < out.length(); k++) {
-                    if (path.equals(out.optJSONObject(k).optString("path", ""))) {
-                        dup = true;
-                        break;
-                    }
-                }
-                if (!dup && it != null) {
-                    out.put(it);
-                }
-            }
-            return out;
-        } catch (Exception e) {
-            LOG.e(e);
-            return local;
-        }
-    }
-
-    /** Reads a profile SimpleMeta file ([{...}]); an empty array when missing. */
-    public static JSONArray readSimpleMetaArray(File f) {
-        InputStream is = null;
-        try {
-            if (f == null || !f.isFile()) {
-                return new JSONArray();
-            }
-            is = new FileInputStream(f);
-            String text = IO.readString(is);
-            return new JSONArray(TxtUtils.isEmpty(text) ? "[]" : text);
-        } catch (Exception e) {
-            return new JSONArray();
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (Exception ignored) {
-                }
-            }
-        }
-    }
-
-    private static void appendAll(JSONArray dst, JSONArray src) {
-        for (int i = 0; i < src.length(); i++) {
-            try {
-                dst.put(src.get(i));
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     /**

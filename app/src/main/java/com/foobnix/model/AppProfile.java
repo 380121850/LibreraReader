@@ -59,6 +59,7 @@ public class AppProfile {
     public static final String APP_BOOKMARKS_JSON = "app-Bookmarks.json";
     public static final String APP_BOOKMARKS_BY_BOOK_JSON = "app-BookmarksByBook.json";
     public static final String APP_PROGRESS_JSON = "app-Progress.json";
+    public static final String APP_DELETED_BOOKS_JSON = "app-DeletedBooks.json";
     public static final String APP_BOOK_STATES_JSON = "app-BookStates.json";
     public static final String APP_STATS_JSON = "app-Stats.json";
     public static final String APP_AI_JSON = "app-AI.json";
@@ -91,6 +92,7 @@ public class AppProfile {
     public static File syncBookStates;
     public static File syncBookmarks;
     public static File syncBookmarksByBook;
+    public static File syncDeletedBooks;
     public static File syncStats;
     public static File syncAI;
     public static File syncMisc;
@@ -184,6 +186,7 @@ public class AppProfile {
         syncPlaylist = new File(SYNC_FOLDER_DEVICE_PROFILE, "playlists");
         syncBookmarks = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOKMARKS_JSON);
         syncBookmarksByBook = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOKMARKS_BY_BOOK_JSON);
+        syncDeletedBooks = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_DELETED_BOOKS_JSON);
         syncStats = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_STATS_JSON);
         syncAI = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_AI_JSON);
         syncMisc = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_MISC_JSON);
