@@ -9,16 +9,21 @@ import android.content.DialogInterface.OnDismissListener;
 import android.graphics.Color;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.util.Pair;
 
 import com.foobnix.StringResponse;
+import com.foobnix.ai.AiClient;
+import com.foobnix.ai.AiConfigDialog;
+import com.foobnix.ai.AiCredentials;
 import com.foobnix.android.utils.BaseItemLayoutAdapter;
 import com.foobnix.android.utils.IO;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
+import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
 import com.foobnix.drive.GFile;
 import com.foobnix.mobi.parser.IOUtils;
@@ -341,6 +346,7 @@ public class ShareDialog {
         }
 
         if (isShowInfo) {
+            items.add(iconText(a, "\u2728", R.string.ai_intro_book));
             items.add(iconText(a, "ⓘ", R.string.file_info));
         }
 
@@ -487,6 +493,10 @@ public class ShareDialog {
                     EventBus.getDefault()
                             .post(new UpdateAllFragments());
                 } else if (isShowInfo && which == i++) {
+                    // order matters: this chain must match the items order
+                    // (AI intro is added BEFORE 文件信息 in the list)
+                    showAiIntro(a, file);
+                } else if (isShowInfo && which == i++) {
                     FileInformationDialog.showFileInfoDialog(a, file, onDeleteAction);
                 }
 
@@ -505,12 +515,96 @@ public class ShareDialog {
 
         });
         create.show();
-//        MyPopupMenu menu = new MyPopupMenu(a, null);
-//
-//        menu.getMenu(R.drawable.glyphicons_basic_578_share, R.string.share, () -> ExtUtils.openPDFInTextReflow(a, file, page + 1, dc));
-//        menu.getMenu(R.drawable.glyphicons_2_book_open, R.string.open_with, () -> ExtUtils.openPDFInTextReflow(a, file, page + 1, dc));
-//
-//        menu.show();
+
+    }
+
+    /**
+     * "AI book overview" from the book menu: sends the file name plus the
+     * metadata title/author/notes to the configured AI model and shows the
+     * reply with an "add to notes" action.
+     */
+    public static void showAiIntro(final Activity a, final File file) {
+        if (TxtUtils.isEmpty(AppState.get().aiBaseUrl) || TxtUtils.isEmpty(AppState.get().aiModel)
+                || TxtUtils.isEmpty(AiCredentials.load(a))) {
+            Toast.makeText(a, R.string.ai_ask_not_configured, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String title = "";
+        String author = "";
+        String notes = "";
+        try {
+            FileMeta meta = AppDB.get().load(file.getPath());
+            if (meta != null) {
+                title = TxtUtils.nullToEmpty(meta.getTitle()).trim();
+                author = TxtUtils.nullToEmpty(meta.getAuthor()).trim();
+                notes = TxtUtils.nullToEmpty(meta.getAnnotation()).trim();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        if (TxtUtils.isEmpty(notes)) {
+            try {
+                notes = TxtUtils.nullToEmpty(FileMetaCore.getBookOverview(file.getPath())).trim();
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        }
+        if (TxtUtils.isEmpty(title)) {
+            title = ExtUtils.getFileName(file.getPath());
+        }
+
+        final String metaLine = a.getString(R.string.ai_intro_meta_line, title, author, notes);
+        final String prompt = a.getString(R.string.ai_intro_prompt, ExtUtils.getFileName(file.getPath()), metaLine);
+
+        final TextView replyView = new TextView(a);
+        replyView.setTextIsSelectable(true);
+        replyView.setPadding(40, 40, 40, 40);
+        replyView.setText(R.string.ai_ask_thinking);
+
+        final ScrollView scroll = new ScrollView(a);
+        scroll.addView(replyView, new android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        final AlertDialog dialog = new AlertDialog.Builder(a)
+                .setTitle(R.string.ai_intro_book)
+                .setView(scroll)
+                .setPositiveButton(R.string.save_as_note, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface d, int which) {
+                        AppBookmark note = new AppBookmark();
+                        note.setPath(file.getPath());
+                        note.text = ExtUtils.getFileName(file.getPath());
+                        note.aiAnswer = replyView.getText().toString().trim();
+                        note.isAiNote = true;
+                        note.p = 0;
+                        note.t = System.currentTimeMillis();
+                        BookmarksData.get().add(note);
+                        Toast.makeText(a, R.string.note_saved, Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(R.string.close, null)
+                .create();
+        dialog.show();
+        // enabled once the reply arrives
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+        new android.os.AsyncTask<Void, Void, AiClient.TestResult>() {
+            @Override protected AiClient.TestResult doInBackground(Void... params) {
+                return AiClient.ask(a, prompt);
+            }
+
+            @Override protected void onPostExecute(AiClient.TestResult res) {
+                if (res != null && res.ok && TxtUtils.isNotEmpty(res.reply)) {
+                    replyView.setText(res.truncated
+                            ? res.reply + "\n\n" + a.getString(R.string.ai_reply_truncated)
+                            : res.reply);
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                } else if (res != null) {
+                    replyView.setText(AiConfigDialog.resultErrorText(a, res.error, res.detail));
+                }
+            }
+        }.execute();
     }
 
     public static void showAddToCloudDialog(final Activity a, final File file) {

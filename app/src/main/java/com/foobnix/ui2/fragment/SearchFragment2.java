@@ -780,12 +780,14 @@ public class SearchFragment2 extends UIFragment<FileMeta> {
         buildShelfChips(view);
         setupSelectionBar(view);
         wrapItemClickListenerForSelection();
-        // long-press on a book enters multi-select (folders keep the default
-        // long-press menu from bindAdapter)
+        // long-press on a book enters multi-select AND brings up the
+        // single-book menu (same as the ⋮ button); folders keep the default
+        // long-press menu from bindAdapter
         searchAdapter.setOnItemLongClickListener(new ResultResponse<FileMeta>() {
             @Override public boolean onResultRecive(FileMeta meta) {
                 if (meta != null && meta.getPath() != null && !AppDB.get().isFolder(meta)) {
                     startSelection(meta.getPath());
+                    DefaultListeners.getOnMenuClick(getActivity(), searchAdapter).onResultRecive(meta);
                     return true;
                 }
                 return DefaultListeners.onLongClickChooser(getActivity(), searchAdapter).onResultRecive(meta);

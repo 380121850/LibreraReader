@@ -823,6 +823,9 @@
    <string name="ai_ask_thinking">AI is thinking…</string>
    <string name="ai_ask_not_configured">Configure it first in Preferences → General → AI model</string>
    <string name="ai_ask_default_prompt">Explain the following text:\n\n%s</string>
+   <string name="ai_intro_book">AI book overview</string>
+   <string name="ai_intro_prompt">Write a short introduction of this book based on the information below:\nFile name: %1$s%2$s\n\nBriefly introduce the content of this book. No need to think — output the answer directly!</string>
+   <string name="ai_intro_meta_line">\nTitle: %1$s\nAuthor: %2$s\nNotes: %3$s</string>
    <string name="ai_ask_answer">AI answer</string>
    <string name="ai_err_auth">Authentication failed, check the API key</string>
    <string name="ai_err_network">Cannot reach the AI service, check the URL and network</string>

@@ -824,6 +824,9 @@
    <string name="ai_ask_thinking">AI 思考中…</string>
    <string name="ai_ask_not_configured">请先在 偏好 → 常规设置 → AI 大模型 中完成配置</string>
    <string name="ai_ask_default_prompt">请解读以下内容：\n\n%s</string>
+   <string name="ai_intro_book">AI 简介书籍</string>
+   <string name="ai_intro_prompt">请根据以下书籍信息写一段简介：\n文件名：%1$s%2$s\n\n请简要介绍一下这本书籍的内容，不需要思考，直接输出回答！</string>
+   <string name="ai_intro_meta_line">\n标题：%1$s\n作者：%2$s\n注释：%3$s</string>
    <string name="ai_ask_answer">AI 回答</string>
    <string name="ai_err_auth">认证失败，请检查 API Key</string>
    <string name="ai_err_network">无法连接 AI 服务，请检查地址与网络</string>
