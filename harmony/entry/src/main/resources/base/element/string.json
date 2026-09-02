@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "Librera Reader entry module"
+      "value": "HowRead entry module"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "Librera Reader for HarmonyOS"
+      "value": "HowRead for HarmonyOS"
     },
     {
       "name": "EntryAbility_label",
-      "value": "Librera"
+      "value": "HowRead"
     }
   ]
 }

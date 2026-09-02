@@ -42,7 +42,7 @@ interface BackupFile {
 @Component
 struct Index {
   @State currentTab: number = 0;
-  @State title: string = 'Librera Reader';
+  @State title: string = 'HowRead';
   @State status: string = 'initializing...';
   @State recentBooks: RecentBook[] = [];
   @State starredBooks: RecentBook[] = [];

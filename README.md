@@ -129,13 +129,16 @@ the repository.
 
 For this project only Analytics is used, so a spakling plan is all you need.
 
-## Librera Build on MuPdf
+## HowRead Build on MuPdf (Android)
+
+The Android Gradle project lives in `android/` (repo root holds the shared C/C++
+engine `Builder/` + `prebuilt/` + the other platforms, see MULTI_PLATFORM.md).
 
 ~~~~
 cd Builder
 ./link_to_mupdf_x.x.x.sh (Change the paths to mupdf and jniLibs folders)
-cd ..
-./gradlew assembleLibrera
+cd ../android
+./gradlew assembleGoogle
 ~~~~
 
 ## Building for F-Droid for Android
@@ -145,11 +148,14 @@ If you wish to build for F-Droid (e.g. not using google services, Internet) you 
 ~~~~
 cd Builder
 ./link_to_mupdf_x.x.x.sh
-cd ..
+cd ../android
 ./gradlew assembleFdroid
 ~~~~
 
-F-Droid build does also not need a **google-services.json**
+F-Droid build does also not need a **google-services.json**.
+Note: all flavors share one version from app/gradle.properties (unified
+2026-09-02) — fdroid no longer uses a fixed 9.4.21/7174 and may be built in
+the same gradle invocation as google/pro.
 
 ## Librera depends on:
 

@@ -1125,3 +1125,120 @@ AI 模型配置(aiProtocol/aiBaseUrl/aiModel/aiMaxTokens/aiThinking)存在 `app-
 - app-BookStates int 状态条目随同步完整轮回；配置变化后 10~15 秒内自动同步一次，静置 60 秒无循环。
 - 定时同步 7 档设置/回读正常；备份 zip 含最新 app-NetworkSources.json；跨机型 zip 导入后设置文件被当前机型目录收养；软件说明与首页"我的文件"行按预期显示。
 - 定时同步默认打开，默认间隔 15 分钟（此前默认关闭）；已有设备如显示关闭，在同步对话框选一次即可。
+
+
+## [2026-09-02] 广告 SDK 模块化：多商店渠道化（AdsProvider 抽象 + F-Droid 零广告整改）
+
+### 背景
+为支持按商店发布（Google Play/小米/华为等渠道可各接不同广告 SDK；F-Droid 政策禁止任何广告 SDK），按根目录 MULTI_PLATFORM.md 方案落地：平台→商店分层、广告代码 provider 化。
+
+### 改动
+- 新增广告抽象层（main，零第三方依赖）：`com.foobnix.ads.AdsProvider` 接口 + `RewardListener` + `NoAdsProvider`；`com.foobnix.pdf.info.ADS` 改为纯门面：公开方法与计时/测试设备逻辑保留，SDK 调用全部委托 `AdsProviderFactory.get()`；main 源码不再出现任何 com.google.android.gms.ads / com.google.android.ump 引用。
+- 广告实现按变体源集编译（同 FQCN 工厂、组间互斥，仿 LibreraBuildConfig 模式）：
+  - `app/src/admobAds`（`AdMobAdsProvider`）：集中原 LibreraApp 的 MobileAds 初始化与测试设备、MainTabs2/PrefFragment2 的 UMP 同意流程与隐私选项、原 ADS 内横幅/插屏/激励实现；挂 6 个带广告 flavor；
+  - `app/src/noAds`（`NoAdsProvider`）：挂 fdroid/pro，APK 不含任何广告 SDK 代码。
+- 广告位 meta-data（APPLICATION_ID/BANNER/FULLSCREEN/REWARD）从 main Manifest 迁到 `src/admobAds/AndroidManifest.xml`，仅带广告渠道合并；无广告渠道清单零广告痕迹。
+- 删除 `libPro/` 模块（原 GMS/UMP 同包名 no-op 假类，被接口层取代）；settings.gradle.kts 与 app/build.gradle 同步摘除。
+- 激励广告回调从 GMS OnUserEarnedRewardListener 换为自有 RewardListener（AdsFragmentActivity/ViewBinder 等调用点适配）。
+- 新增目录骨架：`app/src/{xiaomi,huawei}`（渠道预留，上架时注册 flavor）、`platform/{ios,desktop}`（预留）、`ci/`（构建与合规闸门说明）、`store/`（按平台/商店的发布物清单，含 fastlane 定位说明）；根新增 `MULTI_PLATFORM.md` 方案文档。
+- 新增闸门工具：`Z:\opt\librera\bench\scan_apk_ads.py`（APK dex/清单字节扫描广告 SDK 标记）。
+
+### 验证（全部通过）
+- Ubuntu server 三变体编译全绿：assembleLibreraDebug / assembleFdroidDebug / assembleProDebug。注意：**fdroid 必须单独一次调用构建**——app/build.gradle 版本 ext 按整次调用的任务串是否含 "Fdroid" 取值，fdroid 与 librera/pro 同批会把同批全部带成 fdroid 版本号（9.4.21/7174）。
+- 零广告闸门：fdroid（9.4.21）与 pro（0.9.0）arm64 APK 扫描 PASS（无 gms.ads / ump / play-services-ads 等任何标记）；对照 librera APK 含 AdMob 实现类（预期）。
+- MI9 实机：安装 HowRead-0.9.0-arm64（debug），启动 MainTabs2 正常：进程存活、底部导航与设置菜单渲染、全程 logcat 无 FATAL/异常。
+- 静态 grep：main / fdroid / pro / gmsStubs 源集无 com.google.android.gms.ads、com.google.android.ump、:libPro 残留。
+
+## [2026-09-02] 平台目录化迁移：一级目录 android/ harmony/ ios/ desktop/；主渠道 flavor librera 改名 google
+
+### 背景
+按 MULTI_PLATFORM.md 方案把仓库目录按平台对齐：安卓 Gradle 工程从仓库根下沉 android/，
+ios/desktop 预留位提升为一级目录；安卓主渠道（Google Play/官网）flavor 由 librera 改名 google。
+
+### 目录迁移
+- 仓库一级目录 = android/（安卓 Gradle 工程）+ harmony/（鸿蒙）+ ios/ desktop/（预留占位）
+  + 根共享层（Builder/ prebuilt/ scripts/）+ 文档/发布（docs/ store/ ci/ README CHANGES …）。
+- 迁入 android/：build/settings/gradle.properties、gradle/、gradlew*、app/、libDepFree/
+  libDepPro/ libReflow/、local.properties、howread.keystore、keystore.pkcs12、fastlane/
+  （Play 商店元数据）、com_files.txt/net_files.txt。
+- 删除：KMP 试验种子 composeApp/ shared/ iosApp/（settings 已注释、零构建引用）；
+  根 build/ 与 .gradle/ 可再生缓存；原 platform/ 占位目录（内容提升为 ios/ desktop/）。
+- 留在根的共享资产未动：Builder/（harmony NAPI CMake 引 ../../Builder/mupdf-1.23.7）、
+  prebuilt/（restore-harmony-libs.sh 引 prebuilt/harmony）、scripts/（离线种子）。
+- 构建引用适配：android/app/build.gradle 的 jniLibs 路径改 `${rootDir}/../prebuilt/...`；
+  android/settings.gradle.kts 加 `:Builder` projectDir=../Builder（模块留在根）。
+
+### flavor librera → google
+- app/src/librera → app/src/google；LibreraBuildConfig.FLAVOR="google"（运行时代码无分支依赖，仅非空校验）。
+- app/build.gradle：flavor 块名、manifest 占位符属性键 librera_* → google_*
+  （google_appGdriveKey/admobAppId/BannerId/FullId/RewardId）、admobAds 源集循环列表、
+  googleImplementation 依赖×2、APK 文件名品牌判断（"Google" 主渠道仍无标签
+  HowRead-0.9.0-*.apk）。manifest 元数据键 librera.ADMOB_*、deep-link scheme "librera"、
+  内部品牌遗留（Librera profile/云路径常量等）有意保留，未改。
+- 服务器 ~/.gradle/gradle.properties 无 librera_* 键（广告位一直用测试 ID 兜底）；
+  RELEASE_STORE_FILE 路径已同步为 android/howread.keystore。
+- 文档/工具链同步：根 MULTI_PLATFORM.md（新目录树+迁移历史）、README.md（构建命令）、
+  store/android/google README、Z:\opt\librera 的 build_remote.sh（gradle 根=android/、
+  flavor 表）、build-librera.ps1（监听/轮询/产物路径）、BUILD-README.md、
+  bench 图标/重品牌脚本路径前缀、Z:\opt\zcode\AGENTS.md（路径/命令/flavor/警示）。
+
+### 验证（全部通过）
+- Ubuntu server（cd …/LibreraReader/android）：
+  `./gradlew :app:assembleGoogleDebug :app:assembleProDebug` → 0.9.0/7198；
+  单独 `:app:assembleFdroidDebug` → 9.4.21/7174。
+- 产物命名正确：google=HowRead-0.9.0-arm64.apk（无标签）、pro=HowRead-Pro-…、fdroid=HowRead-Fdroid-…。
+- APK 内含 lib/arm64-v8a/libMuPDF.so + liblame.so（../prebuilt jniLibs 路径生效）。
+- fdroid/pro 零广告闸门扫描 PASS；MI9 实机安装 google 包（0.9.0）启动正常、logcat 无异常。
+- 残留复查：android/ 与文档中无 assembleLibrera / src/librera / "Librera" flavor 引用。
+- 鸿蒙侧零改动（Builder/prebuilt 路径未变）。
+
+## [2026-09-02] 品牌可见文案清理：Play 商店描述与鸿蒙显示名改 HowRead
+
+### 背景
+全仓 "librera" 遗留审计（255 文件命中）后按确认范围清理**用户可见**残留；
+内部包名（mobi.librera 等）与持久化/署名标识按审计分类保留。
+
+### 改动
+- `android/fastlane/metadata/android/en-US/full_description.txt`：商店描述品牌全部
+  改为 HowRead；修正两处与现状不符的上游文案（FD 与主渠道差异 = 无 GMS/广告；
+  minSdk 24 → Android 7.0+）；末尾注明为 Librera 的开源分支并保留原作者捐赠链接。
+- 鸿蒙 `harmony/entry/src/main/resources/base/element/string.json`：module_desc /
+  EntryAbility_desc / EntryAbility_label 显示名改为 HowRead（原先 Librera Reader /
+  Librera Reader for HarmonyOS / Librera）。
+- `harmony/entry/src/main/ets/pages/Index.ets`：顶栏标题 'Librera Reader' → 'HowRead'。
+
+### 审计分类备忘（未清理项及原因）
+- 有意保留：备份/同步持久化标识（payload 'librera-harmony'、librera_backup.json、
+  profile "Librera"、/Librera.Cloud、scheme、meta 键）、上游版权与历史（README 上游段/
+  LICENSE/CHANGES/docs 官网）、引擎与签名命名（Builder platform/librera、
+  libmupdf-librera.c、librera-sign.p12）、仓库/共享盘路径、com.foobnix 主包空间。
+- 可选未做：约 40 个 values-* 语言包品牌词、内部类/包清理（LibreraApp/
+  LibreraBuildConfig×9/LibreraAppGlideModule/mobi.librera→mobi.howread 等，待另行确认）。
+
+### 验证
+- 鸿蒙 HAP 构建成功（BUILD SUCCESSFUL，CompileArkTS/PackageHap/SignHap 通过）。
+- 复查三文件残留仅剩署名与备份标识（有意）。
+
+## [2026-09-02] 版本号统一：fdroid 不再固定 9.4.21/7174，全 flavor 同用 0.9.0/7198
+
+### 背景
+此前 fdroid 沿用上游惯例固定版本（9.4.21/7174，`-fdroid` 后缀），与主渠道 0.9.0 不一致；
+本次移除特判，所有 flavor 统一读取 app/gradle.properties 版本号。
+
+### 改动
+- `android/app/build.gradle`：删除 ext FDroidCodeNumber=7174 / FDroidVersionNumber="9.4.21"
+  与"任务串含 Fdroid 则取 fdroid 版本"的分支；versionCode/Name 一律来自
+  app/gradle.properties（当前 appCodeNumber=7198 → 0.9.0/7198）。
+- 删除 fdroid flavor 的 `versionNameSuffix '-fdroid'`（版本名不再带后缀）。
+- 附带收益：fdroid 与 google/pro **可同批构建**（不再有版本串污染问题）；
+  产物命名统一 HowRead-Fdroid-0.9.0-*.apk。
+- 文档同步：MULTI_PLATFORM.md（构建命令/矩阵/现状）、store/android/fdroid README、
+  Z:\opt\zcode\AGENTS.md（构建注释与 gotcha 13）、根 README.md、BUILD-README.md
+  （产物名 0.9.0）、build_remote.sh 头部说明。
+- 清理改名前的旧构建输出目录 android/app/build/outputs/apk/librera（可再生残留）。
+
+### 验证（全部通过）
+- fdroid 单独构建：Version [0.9.0 - 7198]，产物 HowRead-Fdroid-0.9.0-arm64.apk，
+  零广告闸门扫描 PASS。
+- google+fdroid+pro 同批构建：Version [0.9.0 - 7198]，BUILD SUCCESSFUL，
+  三个渠道产物版本一致（HowRead / HowRead-Fdroid / HowRead-Pro 均 0.9.0）。
