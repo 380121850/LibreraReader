@@ -31,7 +31,6 @@ import com.foobnix.android.utils.ResultResponse;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.android.utils.Views;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppState;
@@ -725,32 +724,9 @@ public class FileInformationDialog {
         builder.setMessage("⛔" + a.getString(R.string.do_you_want_to_delete_this_file_1) + "\n\n\"" + name + "\"")
                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                    @Override public void onClick(final DialogInterface dialog, final int id) {
-
-                       if (Clouds.isLibreraSyncRootFolder(file.getPath())) {
-
-                           new AsyncProgressResultToastTask(a) {
-
-                               @Override protected Boolean doInBackground(Object... objects) {
-                                   try {
-                                       GFile.deleteRemoteFile(file);
-                                       a.runOnUiThread(onDeleteAction);
-                                       //GFile.runSyncService(a);
-                                   } catch (Exception e) {
-                                       LOG.e(e);
-                                       return false;
-                                   }
-                                   return true;
-                               }
-
-                           }.execute();
-
-                       } else {
-                           onDeleteAction.run();
-                           AppData.get()
-                                  .removeRecent(new FileMeta(file.getPath()));
-
-                       }
-
+                       onDeleteAction.run();
+                       AppData.get()
+                              .removeRecent(new FileMeta(file.getPath()));
                    }
                })
                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

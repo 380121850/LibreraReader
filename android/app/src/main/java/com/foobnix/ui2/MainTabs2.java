@@ -52,7 +52,6 @@ import com.foobnix.android.utils.StringDB;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.webdav.WebDavSyncer;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.ext.CacheZipUtils.CacheDir;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppData;
@@ -78,7 +77,6 @@ import com.foobnix.pdf.info.view.MyProgressBar;
 import com.foobnix.pdf.info.wrapper.DocumentController;
 import com.foobnix.pdf.info.wrapper.UITab;
 import com.foobnix.pdf.search.activity.HorizontalViewActivity;
-import com.foobnix.pdf.search.activity.msg.GDriveSycnEvent;
 import com.foobnix.pdf.search.activity.msg.MessageSync;
 import com.foobnix.pdf.search.activity.msg.MessegeBrightness;
 import com.foobnix.pdf.search.activity.msg.MsgCloseMainTabs;
@@ -95,7 +93,6 @@ import com.foobnix.ui2.fragment.RecentFragment2;
 import com.foobnix.ui2.fragment.SearchFragment2;
 import com.foobnix.ui2.fragment.UIFragment;
 import com.foobnix.work.SearchAllBooksWorker;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
 
 import org.ebookdroid.common.settings.books.SharedBooks;
 import org.ebookdroid.ui.viewer.VerticalViewActivity;
@@ -208,10 +205,9 @@ public class MainTabs2 extends AdsFragmentActivity {
     private DrawerLayout drawerLayout;
 
     public static boolean isPullToRefreshEnable(Context a, View swipeRefreshLayout) {
-        if (a == null || swipeRefreshLayout == null) {
-            return false;
-        }
-        return AppSP.get().isEnableSync && GoogleSignIn.getLastSignedInAccount(a) != null && BookCSS.get().isSyncPullToRefresh;
+        // Google Drive sync was removed from all builds (2026-09), so the
+        // pull-to-refresh sync is never enabled.
+        return false;
     }
 
     public static void startActivity(Activity c, int tab) {
@@ -306,23 +302,6 @@ public class MainTabs2 extends AdsFragmentActivity {
                 BrowseFragment2 fr = (BrowseFragment2) uiFragment;
                 fr.displayAnyPath(pathSAF);
             }
-        } else if (requestCode == GFile.REQUEST_CODE_SIGN_IN) {
-            GoogleSignIn.getSignedInAccountFromIntent(data).addOnSuccessListener(googleAccount -> {
-                AppSP.get().isEnableSync = true;
-                Toast.makeText(this, R.string.success, Toast.LENGTH_SHORT).show();
-                EventBus.getDefault().post(new GDriveSycnEvent());
-                GFile.runSyncService(MainTabs2.this);
-
-                swipeRefreshLayout.setEnabled(isPullToRefreshEnable());
-
-                AppSP.get().save();
-            }).addOnFailureListener(exception -> {
-                LOG.e(exception);
-                Toast.makeText(this, R.string.fail, Toast.LENGTH_SHORT).show();
-                AppSP.get().isEnableSync = false;
-                swipeRefreshLayout.setEnabled(false);
-                AppSP.get().save();
-            });
         }
     }
 
@@ -339,7 +318,6 @@ public class MainTabs2 extends AdsFragmentActivity {
             BrightnessHelper.applyBrigtness(this);
             BrightnessHelper.updateOverlay(overlay);
     //    }
-        GFile.runSyncService(this);
     }
 
     @Override
@@ -399,12 +377,6 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         fab = findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
-        fab.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Dialogs.showSyncLOGDialog(MainTabs2.this);
-            }
-        });
         fab.setBackgroundResource(R.drawable.bg_circular);
         TintUtil.setDrawableTint(fab.getBackground().getCurrent(), TintUtil.color);
 
@@ -428,8 +400,8 @@ public class MainTabs2 extends AdsFragmentActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                // Google Drive sync removed (2026-09); pull-to-refresh is inert.
                 swipeRefreshLayout.setRefreshing(false);
-                GFile.runSyncService(MainTabs2.this, true);
             }
         });
 
@@ -566,18 +538,12 @@ public class MainTabs2 extends AdsFragmentActivity {
             @Override
             public void onDrawerSlide(View arg0, float arg1) {
                 LOG.d("drawerLayout-onDrawerSlide");
-                if (AppSP.get().isEnableSync) {
-                    swipeRefreshLayout.setEnabled(false);
-                }
             }
 
             @Override
             public void onDrawerOpened(View arg0) {
                 LOG.d("drawerLayout-onDrawerOpened");
                 showRandomQuote();
-                if (AppSP.get().isEnableSync) {
-                    swipeRefreshLayout.setEnabled(false);
-                }
             }
 
             @Override
@@ -604,7 +570,6 @@ public class MainTabs2 extends AdsFragmentActivity {
         } else {
             indicator = findViewById(R.id.slidingTabs2);
         }
-        indicator.addSwipeRefreshLayout(swipeRefreshLayout);
         indicator.setVisibility(View.VISIBLE);
         indicator.init();
 
@@ -1417,9 +1382,6 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     @Override
     public void onDestroy() {
-
-        GFile.timeout = 0;
-        GFile.runSyncService(this);
 
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);

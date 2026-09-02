@@ -34,11 +34,11 @@ LibreraReader/                          ← 单仓库（git 根）
 │   ├─ fastlane/                        Play 商店元数据（纯安卓）
 │   ├─ howread.keystore keystore.pkcs12 local.properties
 │   └─ app/src/
-│       ├─ main/                        [广告无关] 平台共享代码
+│       ├─ main/                        [广告/GMS 无关] 平台共享代码
 │       ├─ google/                      flavor=google（主渠道 Google Play/官网）
-│       ├─ fdroid/  xiaomi/  huawei/    F-Droid / 预留渠道
-│       ├─ admobAds/ noAds/             AdMob 实现 / 零广告实现（按渠道编入）
-│       └─ gmsStubs/                    登录 stub（fdroid/pro）
+│       ├─ fdroid/  pro/                F-Droid / Pro（均 GMS-free、零广告）
+│       ├─ xiaomi/  huawei/             预留渠道
+│       └─ admobAds/ noAds/             AdMob 实现（仅 google）/ 零广告实现（fdroid/pro）
 ├─ harmony/                             [平台] 鸿蒙 NEXT 工程（AppScope+entry+NAPI）
 ├─ ios/                                 [平台·预留] 未来 iOS（SwiftUI + .xcframework）
 ├─ desktop/                             [平台·预留] 未来 Win/Linux（暂缓）
@@ -56,16 +56,25 @@ LibreraReader/                          ← 单仓库（git 根）
 已删除（2026-09-02）：KMP 试验种子 `composeApp/ shared/ iosApp/`（settings 曾注释、
 不进任何构建，方案弃用）、原 `platform/` 占位目录（ios/desktop 已提升为一级）。
 
+已删除（2026-09-02，GMS/Drive 彻底解耦）：Google Drive 同步功能在**所有版本里都是
+死的**（`GFile.java` 依赖的 `com.google.api.client.*`/`com.google.api.services.drive.*`/
+`GoogleSignIn` 真类全部来自 main 里手写的 14 个 `com/google/**` 假类，`:appLibDrive`
+模块被注释且不存在，`getLastSignedInAccount` 恒返回 null，UI 入口早已隐藏）。因此整体删除：
+`GFile.java` + 14 个 `com/google/**` 假类 + `src/gmsStubs/`（5 个假类）+
+`SynctornizatoinWorker` + `GDriveSycnEvent` + `GoogleDriveFragment2` + 12 个 main 调用点。
+main 从此零 GMS、零 Google 类型。同时删除 5 个上游遗留 UI 版本 flavor
+（pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader）及其源集与专属图标。
+
 ### 广告代码分层（2026-09-02 落地）
 - 接口（main，零依赖）：`com.foobnix.ads.AdsProvider` + `RewardListener`；
   `com.foobnix.pdf.info.ADS` 纯门面（策略计时在门面，SDK 调用全委托）。
 - 实现按变体编译（同 FQCN `AdsProviderFactory`，组间互斥）：
-  - `src/admobAds`（`AdMobAdsProvider` + manifest overlay）：挂 6 个带广告 flavor
-    （google/pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader）；
+  - `src/admobAds`（`AdMobAdsProvider` + manifest overlay）：仅挂 **google**（唯一带广告 flavor）；
   - `src/noAds`（`NoAdsProvider`）：挂 fdroid/pro → **APK 无任何广告 SDK 代码**。
 - 新增广告网络 = 新源集实现 AdsProvider + 按渠道挂载；每包只编一个 provider；
   广告位 ID 经 manifest placeholder 按 flavor 注入。
-- 原 `libPro/`（GMS/UMP no-op 假类）已删除；main grep 断言无 gms.ads/ump 引用。
+- 原 `libPro/`（GMS/UMP no-op 假类）已删除；GMS/Drive 假类（`com/google/**` + gmsStubs）
+  已删除；main grep 断言无 `gms.ads`/`ump`/`com.google.api`/`com.google.android.gms` 引用。
 
 ## 3. 构建命令（Ubuntu server；禁止 Windows 侧构建）
 
@@ -84,7 +93,7 @@ ssh ... "cd /docker/opt/librera/LibreraReader/android && ./gradlew :app:assemble
 
 | 平台 | 商店 | 代码形态 | 广告方案 | 关键要求 |
 |---|---|---|---|---|
-| Android | F-Droid | flavor fdroid | 无（NoAdsProvider，APK 零广告类） | 全开源依赖；版本与主渠道统一（app/gradle.properties）；去 USE_BIOMETRIC；CI 闸门 |
+| Android | F-Droid | flavor fdroid | 无（NoAdsProvider，APK 零广告类） | 全开源依赖；**零广告 + 零 GMS**（无 `com.google.android.gms`/`com.google.api`）；版本与主渠道统一；去 USE_BIOMETRIC；CI 闸门 |
 | Android | Google Play/官网 | flavor google（主渠道） | AdMob（src/admobAds；google_* 属性→manifest） | DATA SAFETY/隐私页；UMP 内置 |
 | Android | 小米 | [预留] src/xiaomi | 按需 AdMob 或穿山甲/优量汇（新源集） | 备案/隐私；加固后重签 |
 | Android | 华为(安卓包) | [预留] src/huawei | 华为 Ads(HMS) 或先无广告 | 无 GMS；AGC 签名 |
@@ -93,8 +102,10 @@ ssh ... "cd /docker/opt/librera/LibreraReader/android && ./gradlew :app:assemble
 | Desktop | Win/Linux | [预留] desktop/ | 无 | 暂缓（JVM/Compose 或 C++/Qt） |
 
 ## 5. 各端现状与差距
-- **Android**（android/）：app 模块 ~1083 Java 文件；flavor 单维（版本×商店混在，
-  演进可选 edition×store 双维）；版本号：app/gradle.properties
+- **Android**（android/）：app 模块 Java 文件；flavor 现为 3 个（google 主渠道带 AdMob；
+  fdroid/pro 均 GMS-free 零广告）+ 预留 xiaomi/huawei；5 个上游遗留 UI 版本
+  （pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader）与 Google Drive 同步（GMS）已于
+  2026-09-02 删除；版本号：app/gradle.properties
   （appVersionNumberBase/Index、appCodeNumber=7198）；各 flavor 同版本（0.9.0）。
 - **鸿蒙**（harmony/）：NEXT API 24；ArkTS 10 文件；NAPI 22 函数；缺口表见 PORTING_PLAN.md。
 - **可移植逻辑盘点**：`com/foobnix/ext`（格式解析近零 Android 依赖）、model/dao2、

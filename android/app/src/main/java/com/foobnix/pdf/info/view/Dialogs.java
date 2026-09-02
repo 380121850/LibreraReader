@@ -48,7 +48,6 @@ import com.foobnix.android.utils.Vibro;
 import com.foobnix.android.utils.Views;
 import com.foobnix.android.utils.WebViewUtils;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.hypen.HypenUtils;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
@@ -79,7 +78,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 public class Dialogs {
@@ -497,42 +495,6 @@ public class Dialogs {
             }
         });
 
-    }
-
-    public static void showSyncLOGDialog(Activity a) {
-        TextView result = new TextView(a);
-
-        final AtomicBoolean flag = new AtomicBoolean(true);
-
-        new Thread(() -> {
-            while (flag.get()) {
-                a.runOnUiThread(() -> result.setText(GFile.debugOut));
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-
-                }
-            }
-        }, "@T showSyncLOGDialog").start();
-
-
-        result.setText(GFile.debugOut);
-
-        result.setTextSize(12);
-        result.setText(GFile.debugOut);
-        result.setMinWidth(Dips.dpToPx(1000));
-        result.setMinHeight(Dips.dpToPx(1000));
-
-        TextView t = UI.uText(a, a.getString(R.string.clear_log));
-        t.setTextSize(16);
-        t.setOnClickListener(v -> GFile.debugOut = "");
-
-        AlertDialogs.showViewDialog(a, new Runnable() {
-            @Override
-            public void run() {
-                flag.set(false);
-            }
-        }, t, result);
     }
 
     public static void testWebView(final Activity a, final String path) {

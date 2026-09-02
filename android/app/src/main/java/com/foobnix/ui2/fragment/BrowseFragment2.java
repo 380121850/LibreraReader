@@ -58,10 +58,8 @@ import com.foobnix.android.utils.StringDB;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.android.utils.Views;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppProfile;
-import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.model.SimpleMeta;
 import com.foobnix.pdf.info.Android6;
@@ -86,7 +84,6 @@ import com.foobnix.pdf.search.activity.msg.UpdateAllFragments;
 import com.foobnix.pdf.info.widget.ChooserDialogFragment;
 import com.foobnix.webdav.AddWebDavDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
-import com.foobnix.pdf.search.view.AsyncProgressResultToastTask;
 import com.foobnix.pdf.search.view.AsyncProgressTask;
 import com.foobnix.work.SearchAllBooksWorker;
 import com.foobnix.sys.TempHolder;
@@ -480,19 +477,6 @@ import java.util.Map;
 
                             @Override public boolean onMenuItemClick(MenuItem item) {
                                 displayAnyPath(BookCSS.get().downlodsPath);
-                                return false;
-                            }
-                        })
-                        .setIcon(R.drawable.glyphicons_336_folder);
-                }
-                if (AppSP.get().isEnableSync) {
-                    menu.getMenu()
-                        .add("HowRead" + "/" + "Sync")
-                        .setOnMenuItemClickListener(new OnMenuItemClickListener() {
-
-                            @Override public boolean onMenuItemClick(MenuItem item) {
-
-                                displayAnyPath(AppProfile.SYNC_FOLDER_BOOKS.getPath());
                                 return false;
                             }
                         })
@@ -1949,34 +1933,9 @@ import java.util.Map;
         AlertDialogs.showOkDialog(a, getString(R.string.delete_the_directory_all_the_files_in_the_directory_),
                 new Runnable() {
                     @Override public void run() {
-                        if (Clouds.isLibreraSyncRootFolder(path)) {
-
-                            new AsyncProgressResultToastTask(a) {
-
-                                @Override protected Boolean doInBackground(Object... objects) {
-                                    try {
-                                        GFile.deleteRemoteFile(new File(path));
-                                        a.runOnUiThread(() -> {
-                                            final boolean result = ExtUtils.deleteRecursive(new File(path));
-                                            AlertDialogs.showResultToasts(a, result);
-                                            resetFragment();
-                                        });
-                                        //GFile.runSyncService(a);
-                                    } catch (Exception e) {
-                                        LOG.e(e);
-                                        return false;
-                                    }
-                                    return true;
-                                }
-
-                            }.execute();
-
-                        } else {
-                            final boolean result = ExtUtils.deleteRecursive(new File(path));
-                            AlertDialogs.showResultToasts(a, result);
-                            resetFragment();
-                        }
-
+                        final boolean result = ExtUtils.deleteRecursive(new File(path));
+                        AlertDialogs.showResultToasts(a, result);
+                        resetFragment();
                     }
                 });
 

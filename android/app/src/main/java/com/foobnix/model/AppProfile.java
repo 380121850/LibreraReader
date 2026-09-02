@@ -24,7 +24,6 @@ import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
 import com.foobnix.android.utils.TxtUtils;
-import com.foobnix.drive.GFile;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.FontExtractor;
@@ -329,9 +328,7 @@ public class AppProfile {
             @Override protected Boolean doInBackground(Object... objects) {
                 try {
                     final File file = new File(SYNC_FOLDER_ROOT, PROFILE_PREFIX + name);
-                    GFile.deleteRemoteFile(file);
                     ExtUtils.deleteRecursive(file);
-                    //GFile.runSyncService(a);
                 } catch (Exception e) {
                     LOG.e(e);
                     return false;
@@ -498,7 +495,6 @@ public class AppProfile {
                       create.dismiss();
 
                       ceateProfiles(a, text);
-                      GFile.runSyncService(a);
 
                       onRefresh.run();
 

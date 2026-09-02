@@ -18,18 +18,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.IntegerResponse;
 import com.foobnix.android.utils.LOG;
-import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.sys.DoubleClickListener;
-import com.foobnix.ui2.MainTabs2;
 import com.foobnix.ui2.adapter.TabsAdapter2;
 
 /**
@@ -60,7 +57,6 @@ public class SlidingTabLayout extends HorizontalScrollView {
     private static int myPOS = POS_VERTICAL;
     private static int TAB_VIEW_PADDING_DIPS = myPOS == POS_HORIZONTAL ? 10 : 7;
     private final SlidingTabStrip mTabStrip;
-    SwipeRefreshLayout swipeRefreshLayout;
     IntegerResponse onDoubleClickAction;
     IntegerResponse onTabReselect;
     private int mTitleOffset;
@@ -94,10 +90,6 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
     }
 
-    public void addSwipeRefreshLayout(SwipeRefreshLayout swipeRefreshLayout) {
-        this.swipeRefreshLayout = swipeRefreshLayout;
-    }
-
     public void setOnDoubleClickAction(IntegerResponse onDoubleClickAction) {
         this.onDoubleClickAction = onDoubleClickAction;
     }
@@ -116,25 +108,6 @@ public class SlidingTabLayout extends HorizontalScrollView {
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         LOG.d("onTouchEvent-ev", ev);
-        if (swipeRefreshLayout != null && AppSP.get().isEnableSync) {
-            final int action = ev.getAction();
-
-            switch (action & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE: {
-                    swipeRefreshLayout.setEnabled(false);
-                    break;
-                }
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL: {
-                    if (MainTabs2.isPullToRefreshEnable(getContext(), swipeRefreshLayout)) {
-                        swipeRefreshLayout.setEnabled(true);
-                    }
-
-                    break;
-                }
-            }
-        }
         return super.onTouchEvent(ev);
     }
 

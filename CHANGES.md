@@ -5,6 +5,34 @@
 
 ---
 
+## [2026-09-02] F-Droid 彻底去 GMS：删除 Google Drive 同步 + 删除 5 个上游遗留版本
+
+**背景**：F-Droid 上架要求包内不得含任何广告 SDK。广告 SDK 解耦此前已完成（`src/admobAds` vs `src/noAds` 互斥源集 + `libDepFree` 依赖隔离，fdroid 字节扫描 PASS）。但审计发现代码里还残留"打桩"——Google Drive 同步功能在**所有版本里都是死的**：`GFile.java` 用到的 `com.google.api.client.*` / `com.google.api.services.drive.*` / `GoogleSignIn` 真类全部来自 main 里手写的 14 个 `com/google/**` 假类（`:appLibDrive` 模块被注释且不存在，`libs.versions.toml` 无任何真 Drive 依赖），`getLastSignedInAccount` 恒返回 null，UI 入口早已隐藏。经确认，本次将 GMS/Drive 从所有版本彻底删除，并顺带删除 5 个上游遗留 UI 版本 flavor。
+
+**1. 删除 Google Drive / GMS（所有 flavor）**：
+- 删除文件：`GFile.java` + `GFile.java.stub`、main 下 14 个 `com/google/**` 假类（2 个 android.gms + 12 个 api client/drive）、`src/gmsStubs/`（5 个假类整目录）、`SynctornizatoinWorker.java`、`GDriveSycnEvent.java`、`GoogleDriveFragment2.java`、`fragment_google_drive.xml`。
+- 清理 12 个 main 调用点：`UITab`（删枚举项 GoogleDrive2Fragment，`isShowCloudsPreferences` 改恒 false）、`MainTabs2`（删 sign-in 分支、pull-to-refresh 同步、drawer 同步块、fab 同步日志入口）、`PrefFragment2`（删 updateSyncInfo/onSync 订阅与 sync section 绑定）、`AppsConfig`（删 `isGooglePlayServicesAvailable` 及广告前置判断）、`AppProfile`/`FileInformationDialog`/`BrowseFragment2`（删 `deleteRemoteFile` 分支）、`FileMetaComparators`（`BY_SYNC_DATE` 改恒等比较）、`Dialogs`（删 `showSyncLOGDialog`）、`SlidingTabLayout`（删 swipeRefresh 联动）、`HorizontalViewActivity`/`VerticalViewActivity`（删 `runSyncService`）、`ShareDialog`（死 import）、`AppSP`（删 `isEnableSync` 字段）。
+- `fragment_preferences.xml` 删孤儿 sync 视图（syncHeader/signIn/syncInfo/syncInfo2/isEnableSync/isEnableSyncSettings），保留 section8 容器。
+- 结果：**main 从此零 `com.google.android.gms` / `com.google.api` 类型**（grep 断言 0 命中）。
+
+**2. 删除 5 个上游遗留 UI 版本**（pdf_classic/ebooka/pdf_v2/tts_reader/epub_reader）：
+- `app/build.gradle` 删 5 个 flavor 块；admobAds 源集只挂 google；`dep_free`（play-services-ads+UMP）只挂 google；`dep_pro`（junrar+Play Review）挂 google+pro；gmsStubs 挂载移除。
+- 删 5 个源集目录（各含 LibreraBuildConfig + strings.xml）+ 10 个专属图标（5 组 mipmap png + 5 个 adaptive icon xml）；`drag_popup.xml` 的 `icon_pdf_droid` 改 `icon_pdf_pro`。
+- flavor 现为 3 个：**google**（主渠道，AdMob）/ **fdroid** / **pro**（后两者 GMS-free、零广告）+ 预留 xiaomi/huawei。
+
+**3. 工具链/文档同步**：`build-librera.ps1`（ValidateSet）、`build_remote.sh`、`BUILD-README.md`、`AGENTS.md`（新增 gotcha 14）、`MULTI_PLATFORM.md`（目录树 + 广告分层 + 矩阵）、`store/android/fdroid/README.md`。
+
+**验证（Ubuntu server + MI9）**：
+- 三渠道同批 `assembleGoogleDebug assembleProDebug assembleFdroidDebug` → BUILD SUCCESSFUL，全部 0.9.0/7198。
+- 三个 APK 均含 `lib/arm64-v8a/libMuPDF.so`（jniLibs 路径生效）。
+- fdroid APK：`scan_apk_ads.py` 零广告标记 PASS；dex + manifest/arsc 字节扫描 `com/google/android/gms` / `com/google/api/client` / `com/google/api/services/drive` **全部 0 命中**（零 GMS）。
+- google APK 反向断言：仍含 AdMob（dex 1013 命中）且零 Drive 假类（0 命中）。
+- pro APK：ads/drive/api-client 均 0 命中；仅含 `play-services-basement`（`com/google/android/gms/common|tasks`，由 Play Review 评分库传递引入，非广告非登录非 Drive）。
+- main 源码 grep 断言：GFile/SynctornizatoinWorker/GoogleDriveFragment2/GDriveSycnEvent/com.google.android.gms/com.google.api.client/com.google.api.services.drive/isEnableSync 全部 0 文件命中。
+- MI9 安装 google debug HowRead-0.9.0-arm64：启动成功，MainTabs2 前台 resumed，进程稳定，crash 缓冲区为空，无 NoClassDefFound/FATAL。
+
+---
+
 ## [2026-09-02] 书籍菜单新增"AI 简介书籍"；长按书籍同时选中并弹菜单
 
 **1. 书籍菜单新增"✨ AI 简介书籍"**（`ShareDialog.show()`，长按或右下角 ⋮ 弹出的菜单，位于"文件信息"上方）：点击后把文件名 + 元数据标题/作者/注释（注释为空时回退到书籍概述）发给已配置的 AI 模型，提示词末尾固定追加"请简要介绍一下这本书籍的内容，不需要思考，直接输出回答！"；对话框先显示"AI 思考中…"（保存按钮置灰），回复到达后显示全文并启用"保存到笔记"——点击按 `AppBookmark`（isAiNote）写入书签笔记页，可随同步传播。未配置 AI 时仅 Toast 提示。修复过程中发现点击分发链的 `else if (cond && which == i++)` 分支顺序必须与 items 添加顺序一致，否则点 AI 会打开文件信息（首轮构建已修复验证）。

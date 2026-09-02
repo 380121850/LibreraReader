@@ -25,7 +25,6 @@ import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.mobi.parser.IOUtils;
 import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppData;

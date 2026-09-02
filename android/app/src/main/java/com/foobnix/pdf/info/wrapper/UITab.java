@@ -6,7 +6,6 @@ import com.foobnix.ui2.fragment.BookmarksFragment2;
 import com.foobnix.ui2.fragment.BrowseFragment2;
 import com.foobnix.ui2.fragment.DashboardFragment2;
 import com.foobnix.ui2.fragment.FavoritesFragment2;
-import com.foobnix.ui2.fragment.GoogleDriveFragment2;
 import com.foobnix.ui2.fragment.OpdsFragment2;
 import com.foobnix.ui2.fragment.PrefFragment2;
 import com.foobnix.ui2.fragment.RecentFragment2;
@@ -25,8 +24,6 @@ public enum UITab {
     BookmarksFragment(4, BookmarksFragment2.PAIR.first, BookmarksFragment2.PAIR.second, BookmarksFragment2.class, true), //
     OpdsFragment(5, OpdsFragment2.PAIR.first, OpdsFragment2.PAIR.second, OpdsFragment2.class, true), //
     PrefFragment(6, PrefFragment2.PAIR.first, PrefFragment2.PAIR.second, PrefFragment2.class, true), //
-    //CloudsFragment(7, CloudsFragment2.PAIR.first, CloudsFragment2.PAIR.second, CloudsFragment2.class, true), //
-    GoogleDrive2Fragment(7, GoogleDriveFragment2.PAIR.first, GoogleDriveFragment2.PAIR.second, GoogleDriveFragment2.class, true), //
     // index 9: 8 is reserved by the WebDAV-merge migration in AppState.loadInit
     DashboardFragment(9, DashboardFragment2.PAIR.first, DashboardFragment2.PAIR.second, DashboardFragment2.class, true); //
 
@@ -149,9 +146,9 @@ public enum UITab {
     }
 
     public static boolean isShowCloudsPreferences() {
-        synchronized (AppState.get().tabsOrder9) {
-            return AppState.get().tabsOrder9.contains(UITab.GoogleDrive2Fragment.index + "#1");
-        }
+        // Google Drive sync was removed from all builds (2026-09); the clouds
+        // preference tab no longer exists, so this is always false.
+        return false;
     }
 
     public boolean isVisible() {
@@ -163,9 +160,6 @@ public enum UITab {
             case StarsFragment:
             case BookmarksFragment:
             case OpdsFragment:
-            // Google Drive sync is removed from all builds (Drive SDK stripped
-            // from libDepPro; the stub classes are inert)
-            case GoogleDrive2Fragment:
                 return false;
             default:
                 return isVisible;

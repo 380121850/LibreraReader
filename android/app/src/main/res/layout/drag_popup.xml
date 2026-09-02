@@ -36,7 +36,7 @@
                 android:adjustViewBounds="true"
                 android:cropToPadding="true"
                 android:padding="2dip"
-                android:src="@mipmap/icon_pdf_droid"
+                android:src="@mipmap/icon_pdf_pro"
                 android:visibility="gone" />
 
             <TextView

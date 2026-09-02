@@ -53,7 +53,6 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.android.utils.Vibro;
 import com.foobnix.android.utils.Views;
-import com.foobnix.drive.GFile;
 import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppSP;
@@ -1627,7 +1626,6 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             LOG.e(e);
         }
         handlerTimer.removeCallbacks(updateTimePower);
-        GFile.runSyncService(this);
     }
 
     public synchronized void nextPage() {

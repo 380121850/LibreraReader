@@ -27,7 +27,6 @@ import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Intents;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
-import com.foobnix.drive.GFile;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppProfile;
@@ -283,7 +282,6 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
         if (handler != null) {
           //  handler.postDelayed(closeRunnable, AppState.APP_CLOSE_AUTOMATIC);
         }
-        GFile.runSyncService(this);
 
     }
 

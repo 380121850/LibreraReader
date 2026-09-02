@@ -3,7 +3,6 @@ package com.foobnix.pdf.info;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
-import com.foobnix.drive.GFile;
 import com.foobnix.model.SimpleMeta;
 import com.foobnix.ui2.adapter.FileMetaAdapter;
 
@@ -60,14 +59,11 @@ public class FileMetaComparators {
             }
         }
     };
+    // Google Drive sync was removed (2026-09); the remote last-modified time is
+    // no longer available, so this comparator keeps a stable (equal) order.
     public static Comparator<FileMeta> BY_SYNC_DATE = new Comparator<FileMeta>() {
         @Override public int compare(FileMeta o1, FileMeta o2) {
-            try {
-                return compareLong(GFile.getLastModified(new File(o1.getPath())),
-                                   GFile.getLastModified(new File(o2.getPath())));
-            } catch (Exception e) {
-                return 1;
-            }
+            return 0;
         }
     };
     public static Comparator<FileMeta> BY_RECENT_TIME = new Comparator<FileMeta>() {

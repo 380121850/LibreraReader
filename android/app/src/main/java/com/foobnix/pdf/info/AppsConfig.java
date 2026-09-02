@@ -16,8 +16,6 @@ import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.ebookdroid.droids.mupdf.codec.MuPdfDocument;
 
@@ -119,11 +117,6 @@ public class AppsConfig {
             return false;
         }
 
-        if (!isGooglePlayServicesAvailable(a)) {
-            //no ads for old android and eink
-            LOG.d("no-ads isGooglePlayServicesAvailable not available");
-            return false;
-        }
         if (Build.VERSION.SDK_INT <= 16 || Dips.isEInk()) {
             LOG.d("no-ads old device or eink");
             //no ads for old android and eink
@@ -142,12 +135,6 @@ public class AppsConfig {
             return false;
         }
         return true;
-    }
-
-    public static boolean isGooglePlayServicesAvailable(Context context) {
-        GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context);
-        return resultCode == ConnectionResult.SUCCESS;
     }
 
     public static boolean isPackageExisted(final Context a, final String targetPackage) {

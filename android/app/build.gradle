@@ -193,81 +193,6 @@ android {
                     appSafeMode  : "false"
             ]
         }
-        pdf_classic {
-            dimension = "version"
-            applicationId = "com.howread.reader.classic"
-            manifestPlaceholders = [
-                    appName      : "PDF Reader",
-                    appIcon      : "@mipmap/icon_pdf_classic",
-                    appRoundIcon : "@mipmap/launcher_classic",
-                    appGdriveKey : project.findProperty('pdf_classic_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('pdf_classic_admobAppId') ?: sampleAdmobAppId,
-                    admobBannerId: project.findProperty('pdf_classic_admobBannerId') ?: sampleAdmobBanner,
-                    admobFullId  : project.findProperty('pdf_classic_admobFullId') ?: sampleAdmobFull,
-                    admobRewardId: project.findProperty('pdf_classic_admobRewardId') ?: sampleAdmobReward,
-                    appSafeMode  : "true"
-            ]
-        }
-        ebooka {
-            dimension = "version"
-            applicationId = "com.howread.reader.book"
-            manifestPlaceholders = [
-                    appName      : "Book Reader",
-                    appIcon      : "@mipmap/icon_pdf_droid",
-                    appRoundIcon : "@mipmap/launcher_droid",
-                    appGdriveKey : project.findProperty('ebooka_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('ebooka_admobAppId') ?: sampleAdmobAppId,
-                    admobBannerId: project.findProperty('ebooka_admobBannerId') ?: sampleAdmobBanner,
-                    admobFullId  : project.findProperty('ebooka_admobFullId') ?: sampleAdmobFull,
-                    admobRewardId: project.findProperty('ebooka_admobRewardId') ?: sampleAdmobReward,
-                    appSafeMode  : "false"
-            ]
-        }
-        pdf_v2 {
-            dimension = "version"
-            applicationId = "com.howread.reader.pdf"
-            manifestPlaceholders = [
-                    appName      : "PDF Reader",
-                    appIcon      : "@mipmap/icon_pdf_2",
-                    appRoundIcon : "@mipmap/launcher_pdf_v2",
-                    appGdriveKey : project.findProperty('pdf_v2_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('pdf_v2_admobAppId') ?: sampleAdmobAppId,
-                    admobBannerId: project.findProperty('pdf_v2_admobBannerId') ?: sampleAdmobBanner,
-                    admobFullId  : project.findProperty('pdf_v2_admobFullId') ?: sampleAdmobFull,
-                    admobRewardId: project.findProperty('pdf_v2_admobRewardId') ?: sampleAdmobReward,
-                    appSafeMode  : "false"
-            ]
-        }
-        tts_reader {
-            dimension = "version"
-            applicationId = "com.howread.reader.tts"
-            manifestPlaceholders = [
-                    appName      : "TTS Reader",
-                    appIcon      : "@mipmap/icon_tts_reader_app",
-                    appRoundIcon : "@mipmap/launcher_tts_reader_app",
-                    appGdriveKey : project.findProperty('tts_reader_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('tts_reader_admobAppId') ?: sampleAdmobAppId,
-                    admobBannerId: project.findProperty('tts_reader_admobBannerId') ?: sampleAdmobBanner,
-                    admobFullId  : project.findProperty('tts_reader_admobFullId') ?: sampleAdmobFull,
-                    admobRewardId: project.findProperty('tts_reader_admobRewardId') ?: sampleAdmobReward,
-                    appSafeMode  : "false"
-            ]
-        }
-        epub_reader {
-            dimension = "version"
-            applicationId = "com.howread.reader.epub"
-            manifestPlaceholders = [
-                    appName      : "Epub Reader",
-                    appIcon      : "@mipmap/icon_epub_reader",
-                    appRoundIcon : "@mipmap/launcher_epub_reader",
-                    appGdriveKey : project.findProperty('epub_reader_appGdriveKey') ?: '',
-                    admobAppId   : project.findProperty('epub_reader_admobAppId') ?: sampleAdmobAppId,
-                    admobBannerId: project.findProperty('epub_reader_admobBannerId') ?: sampleAdmobBanner,
-                    admobFullId  : project.findProperty('epub_reader_admobFullId') ?: sampleAdmobFull,
-                    admobRewardId: project.findProperty('epub_reader_admobRewardId') ?: sampleAdmobReward,
-                    appSafeMode  : "false"
-            ]
-        }
     }
 
     def abiCodes = ['armeabi-v7a': 0, 'arm64-v8a': 1, 'x86': 2, 'x86_64': 3]
@@ -313,13 +238,12 @@ android {
 
     sourceSets {
         fdroid { assets.srcDirs = ['src/fdroid/assets', 'src/fdroid/assets/'] }
-        // GMS stub classes stand in for the removed play-services deps.
-        // Flavors that pull real play-services-base transitively (libDepFree's
-        // play-services-ads) must NOT compile them: the same classes exist in
-        // play-services-base and clash at dex merge. Only GMS-free flavors
-        // (fdroid, pro) compile the stubs from src/gmsStubs.
-        fdroid { java.srcDirs += ['src/gmsStubs/java', 'src/noAds/java'] }
-        pro { java.srcDirs += ['src/gmsStubs/java', 'src/noAds/java'] }
+        // The GMS-free flavors (fdroid, pro) compile the no-op ad provider from
+        // src/noAds so their APKs contain no ad-SDK code at all (F-Droid
+        // requirement). Google Drive / GMS was removed from all builds (2026-09),
+        // so there is no longer a gmsStubs source set to mount.
+        fdroid { java.srcDirs += ['src/noAds/java'] }
+        pro { java.srcDirs += ['src/noAds/java'] }
         // Native libraries are vendored under prebuilt/native/ at the REPO ROOT
         // (committed .so for all 4 ABIs, shared layer beside Builder/). Setting
         // srcDirs replaces the default src/main/jniLibs lookup so Gradle packages
@@ -328,14 +252,14 @@ android {
         main { jniLibs.srcDirs = ["${rootDir}/../prebuilt/native/mupdf-1.23.7"] }
     }
 
-    // Ad-provider implementation sources. Ad-enabled flavors compile the real
-    // AdMob implementation (they pull play-services-ads through libDepFree)
-    // and merge src/admobAds/AndroidManifest.xml (ad unit ids); the GMS-free
-    // flavors (fdroid, pro) compile the no-op provider from src/noAds so their
-    // APKs contain no ad-SDK code at all (F-Droid requirement). Both groups
-    // provide the same AdsProviderFactory class name, like the
+    // Ad-provider implementation sources. The ad-enabled flavor (google)
+    // compiles the real AdMob implementation (it pulls play-services-ads through
+    // libDepFree) and merges src/admobAds/AndroidManifest.xml (ad unit ids); the
+    // GMS-free flavors (fdroid, pro) compile the no-op provider from src/noAds
+    // so their APKs contain no ad-SDK code at all (F-Droid requirement). Both
+    // groups provide the same AdsProviderFactory class name, like the
     // LibreraBuildConfig pattern — never compiled into the same variant.
-    ['google', 'pdf_v2', 'ebooka', 'tts_reader', 'pdf_classic', 'epub_reader'].each { fl ->
+    ['google'].each { fl ->
         sourceSets[fl].java.srcDirs += ['src/admobAds/java']
         sourceSets[fl].manifest.srcFile('src/admobAds/AndroidManifest.xml')
     }
@@ -424,22 +348,13 @@ dependencies {
 
     def dep_free = project(':libDepFree')
 
-
+    // libDepFree carries play-services-ads + UMP; only the ad-enabled google
+    // flavor links it. fdroid/pro stay GMS-free (no ad SDK at all).
     googleImplementation dep_free
-    pdf_v2Implementation dep_free
-    ebookaImplementation dep_free
-    tts_readerImplementation dep_free
-    pdf_classicImplementation dep_free
-    epub_readerImplementation dep_free
     def dep_pro = project(':libDepPro')
 
-
+    // libDepPro carries junrar + Play Review (non-ad GMS deps).
     googleImplementation dep_pro
-    pdf_v2Implementation dep_pro
-    ebookaImplementation dep_pro
-    tts_readerImplementation dep_pro
-    pdf_classicImplementation dep_pro
-    epub_readerImplementation dep_pro
     proImplementation dep_pro
 
 /** Testing **/
