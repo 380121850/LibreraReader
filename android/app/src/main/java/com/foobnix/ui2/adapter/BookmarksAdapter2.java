@@ -32,6 +32,12 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
     public boolean withTitle = true;
     public boolean withPageNumber = true;
     private ResultResponse<AppBookmark> onDeleteClickListener;
+    private OnMoreClickListener onMoreClickListener;
+
+    /** "⋮" menu on a merged-notes row; carries the anchor view so the popup opens at the button. */
+    public interface OnMoreClickListener {
+        void onMoreClick(AppBookmark item, View anchor);
+    }
 
     // Formats note timestamps as "yyyy-MM-dd HH:mm"
     private static final java.text.SimpleDateFormat NOTE_TIME_FORMAT =
@@ -65,6 +71,7 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
             holder.title.setText(countStart > 0 ? item.text.substring(0, countStart).trim() : fileName);
             holder.page.setVisibility(View.GONE);
             holder.remove.setVisibility(View.GONE);
+            holder.moreMenu.setVisibility(View.GONE);
 
             // Book headers use full-height text area for the title
             holder.text.setVisibility(View.GONE);
@@ -86,7 +93,11 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
                 }
             }
 
-            holder.title.setText(ExtUtils.getFileName(item.getPath()));
+            // The merged-notes row (isAiNote with a per-note list) is a notes
+            // aggregate, not a bookmark: show its own "笔记 (N)" label instead of
+            // the book file name so the row identity matches its type.
+            holder.title.setText(item.isAiNote && item.notes != null ? item.text
+                    : ExtUtils.getFileName(item.getPath()));
             if (item.isAiNote) {
                 // AI reading note: show a short title in the list; the full merged
                 // content (all notes, newest first) is shown in a dialog on click.
@@ -104,6 +115,22 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
             });
             holder.remove.setImageResource(withPageNumber ? R.drawable.glyphicons_599_menu_close : R.drawable.glyphicons_578_share);
             TintUtil.setTintImageNoAlpha(holder.remove, holder.remove.getResources().getColor(R.color.lt_grey_dima));
+
+            // The "⋮" menu is only offered on the merged-notes row (a notes
+            // aggregate); regular bookmarks and single notes keep it hidden.
+            boolean isMergedNotes = item.isAiNote && item.notes != null;
+            holder.moreMenu.setVisibility(isMergedNotes ? View.VISIBLE : View.GONE);
+            if (isMergedNotes) {
+                holder.moreMenu.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (onMoreClickListener != null) {
+                            onMoreClickListener.onMoreClick(item, v);
+                        }
+                    }
+                });
+                TintUtil.setTintImageNoAlpha(holder.moreMenu, holder.moreMenu.getResources().getColor(R.color.lt_grey_dima));
+            }
 
             if (withTitle) {
                 //holder.title.setVisibility(View.VISIBLE);
@@ -141,9 +168,14 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
         this.onDeleteClickListener = onDeleteClickListener;
     }
 
+    public void setOnMoreClickListener(OnMoreClickListener onMoreClickListener) {
+        this.onMoreClickListener = onMoreClickListener;
+    }
+
     public class BookmarksViewHolder extends RecyclerView.ViewHolder {
         public TextView page, text, title;
         public ImageView remove;
+        public ImageView moreMenu;
         public CardView parent;
         public ImageView image, cloudImage;
 
@@ -155,6 +187,7 @@ public class BookmarksAdapter2 extends AppRecycleAdapter<AppBookmark, BookmarksV
             image = (ImageView) view.findViewById(R.id.image);
             cloudImage = (ImageView) view.findViewById(R.id.cloudImage);
             remove = view.findViewById(R.id.remove);
+            moreMenu = view.findViewById(R.id.moreMenu);
             parent = (CardView) view;
         }
     }

@@ -5,6 +5,7 @@
 .DS_Store
 /build
 /android/build
+/android/build/reports/problems/problems-report.html
 /captures
 .externalNativeBuild
 /.idea*

@@ -2,6 +2,7 @@ package com.foobnix.ui2.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,8 +19,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.util.Pair;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,20 +30,26 @@ import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Keyboards;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.ResultResponse;
+import com.foobnix.android.utils.ResultResponse2;
 import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.dao2.FileMeta;
 import com.foobnix.model.AppBookmark;
 import com.foobnix.model.AppState;
+import com.foobnix.model.MyPath;
 import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.view.AlertDialogs;
 import com.foobnix.pdf.info.view.MyPopupMenu;
+import com.foobnix.pdf.info.widget.ChooserDialogFragment;
 import com.foobnix.pdf.info.widget.FileInformationDialog;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
+import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.adapter.BookmarksAdapter2;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,6 +105,7 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setAdapter(bookmarksAdapter);
         bookmarksAdapter.setOnDeleteClickListener(onDeleteResponse);
+        bookmarksAdapter.setOnMoreClickListener((item, anchor) -> showNoteExportMenu(item, anchor));
 
         bookmarksAdapter.setOnItemClickListener(onItemClickListener);
         bookmarksAdapter.setOnItemLongClickListener(new ResultResponse<AppBookmark>() {
@@ -459,6 +469,124 @@ public class BookmarksFragment2 extends UIFragment<AppBookmark> {
             return false;
         }
     };
+
+    /** "⋮" on a merged-notes row: open a small menu to export the notes as TXT (default) or Markdown. */
+    private void showNoteExportMenu(final AppBookmark notes, View anchor) {
+        if (notes == null) {
+            return;
+        }
+        MyPopupMenu menu = new MyPopupMenu(anchor);
+        menu.getMenu(R.drawable.glyphicons_302_square_download, R.string.notes_export_txt,
+                () -> exportNotesToFile(notes, "txt"));
+        menu.getMenu(R.drawable.glyphicons_302_square_download, R.string.notes_export_md,
+                () -> exportNotesToFile(notes, "md"));
+        menu.show();
+    }
+
+    /**
+     * Exports all notes of a book (the merged-notes entry) to a user-chosen file
+     * in the given format ("txt" or "md"). Reuses the same "pick folder +
+     * filename" picker as the bookmarks export; each note is rendered with its
+     * timestamp, a position line (page / percent where the note was taken), the
+     * note body and the AI answer.
+     */
+    private void exportNotesToFile(final AppBookmark merged, final String format) {
+        final FragmentActivity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        String bookName = ExtUtils.getFileName(merged.getPath());
+        String sampleName = TxtUtils.fixFileName(bookName + "-notes." + format);
+        final String content = renderNotesForExport(merged, format);
+
+        ChooserDialogFragment.createFile(activity, sampleName).setOnSelectListener(new ResultResponse2<String, Dialog>() {
+            @Override
+            public boolean onResultRecive(String nPath, Dialog dialog) {
+                File toFile = new File(nPath);
+                if (toFile == null || toFile.getName().trim().length() == 0) {
+                    Toast.makeText(activity, "Invalid File name", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                // The picker's filename is fully editable: if the user dropped or
+                // changed the extension, force the one of the chosen format.
+                String name = toFile.getName();
+                if (!name.toLowerCase(Locale.US).endsWith("." + format)) {
+                    toFile = new File(toFile.getParent(), name + "." + format);
+                }
+                try (FileWriter writer = new FileWriter(toFile)) {
+                    writer.write(content);
+                    writer.flush();
+                    Toast.makeText(activity, R.string.success, Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    LOG.e(e);
+                    Toast.makeText(activity, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                }
+                dialog.dismiss();
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Renders all notes of the merged entry (newest first) for export. TXT keeps
+     * the plain style of {@link #mergeNotes}; MD maps it to light standard
+     * Markdown (## heading, > position quote, **AI:** bold, --- separator).
+     * Each note gets a position line under its timestamp: "page X / Y (P%)" when
+     * the book's page count is known from the AppDB cache, "P%" otherwise.
+     */
+    private String renderNotesForExport(AppBookmark merged, String format) {
+        boolean md = "md".equals(format);
+        if (merged.notes == null || merged.notes.isEmpty()) {
+            // Defensive fallback: no per-note list, reuse the pre-rendered content
+            return TxtUtils.isNotEmpty(merged.aiAnswer) ? merged.aiAnswer : merged.text;
+        }
+        Integer pages = null;
+        try {
+            FileMeta m = AppDB.get().load(MyPath.toAbsolute(merged.getPath()));
+            if (m != null && m.getPages() != null && m.getPages() > 0) {
+                pages = m.getPages();
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        // Local instance on purpose: export may run off the UI thread and
+        // SimpleDateFormat is not thread-safe when shared.
+        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+        StringBuilder sb = new StringBuilder();
+        for (AppBookmark n : merged.notes) {
+            if (sb.length() > 0) {
+                sb.append(md ? "\n\n---\n\n" : "\n\n-----------------\n\n");
+            }
+            String time = "[" + fmt.format(n.getTime()) + "]";
+            String percent = TxtUtils.percentFormatInt(n.getPercent());
+            String position;
+            if (pages != null) {
+                int page = Math.max(1, Math.round(n.getPercent() * pages));
+                position = getString(R.string.note_export_position_page, page, pages, percent);
+            } else {
+                position = getString(R.string.note_export_position_percent, percent);
+            }
+            if (md) {
+                sb.append("## ").append(time).append("\n");
+                sb.append("> ").append(position).append("\n\n");
+            } else {
+                sb.append(time).append("\n");
+                sb.append(position).append("\n\n");
+            }
+            boolean hasBody = false;
+            if (TxtUtils.isNotEmpty(n.text)) {
+                sb.append(n.text);
+                hasBody = true;
+            }
+            if (TxtUtils.isNotEmpty(n.aiAnswer)) {
+                if (hasBody) {
+                    sb.append("\n\n");
+                }
+                sb.append(md ? "**AI:** " : "AI: ").append(n.aiAnswer);
+            }
+        }
+        return sb.toString();
+    }
 
     @Override
     public List<AppBookmark> prepareDataInBackground() {

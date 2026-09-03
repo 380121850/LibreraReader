@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/bg_pdf_reader"  />
-    
-    <foreground>
-    <inset
-      android:drawable="@mipmap/adaptive_pdf_reader"
-      android:inset="23%" />
-  </foreground>
+    <background android:drawable="@drawable/bg_pdf_reader" />
+
+    <!-- full-bleed: same as icon_pdf_pro, no inset ring for launchers that
+         don't paint the background under a foreground cutout (MIUI) -->
+    <foreground android:drawable="@mipmap/adaptive_pdf_reader" />
 
     <monochrome android:drawable="@drawable/glyphicons_589_book_open_icon" />
-  
-    
+
 </adaptive-icon>

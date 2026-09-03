@@ -88,6 +88,19 @@
 
 
                 <ImageView
+                    android:id="@+id/moreMenu"
+                    android:layout_width="@dimen/wh_button_touch"
+                    android:layout_height="@dimen/wh_button_touch"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="0"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:contentDescription="@string/book_menu"
+                    android:padding="2dip"
+                    android:src="@drawable/glyphicons_498_more_vertical"
+                    android:tint="@color/lt_grey_dima"
+                    android:visibility="gone" />
+
+                <ImageView
                     android:id="@+id/remove"
                     android:layout_width="@dimen/wh_button_touch"
                     android:layout_height="@dimen/wh_button_touch"

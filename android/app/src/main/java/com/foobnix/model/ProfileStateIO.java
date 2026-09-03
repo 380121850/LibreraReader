@@ -297,29 +297,50 @@ public class ProfileStateIO {
         }
     }
 
-    /** Fill a missing local AI key from app-AI.json (after import / sync). */
+    /**
+     * Apply the merged app-AI.json key to the local encrypted store (after
+     * import / sync). The file holds the post-merge value, so this fills a
+     * missing key (restore) and also converges a conflict to the server copy
+     * (mergeAi resolves "both set, different" to the server). Safe to apply
+     * whenever it differs from the store: exportAi re-mirrors the store into
+     * the file at the start of every sync, so a key just saved in the AI
+     * dialog is already in the file before the merge and is never clobbered
+     * by a stale value.
+     */
     public static void importAi(Context c) {
         try {
             if (AppProfile.syncAI == null || !AppProfile.syncAI.isFile() || c == null) {
                 return;
             }
             LinkedJSONObject o = IO.readJsonObject(AppProfile.syncAI);
-            String remote = o.optString(K_API_KEY, "");
-            if (TxtUtils.isNotEmpty(remote) && TxtUtils.isEmpty(AiCredentials.load(c))) {
-                AiCredentials.save(c, remote);
+            String fileKey = o.optString(K_API_KEY, "");
+            if (!fileKey.equals(AiCredentials.load(c))) {
+                AiCredentials.save(c, fileKey);
             }
         } catch (Exception e) {
             LOG.e(e);
         }
     }
 
-    /** Union of the AI key file: whichever side holds a non-empty key wins. */
-    public static LinkedJSONObject mergeAi(Context c, LinkedJSONObject remote) {
+    /**
+     * Merge of the AI key file for WebDavSyncer.syncMergedObjectFile: a set key
+     * beats an unset one, and a real conflict (both sides set, different)
+     * resolves to the server copy. A freshly reset device (empty local key)
+     * therefore recovers the server key instead of its just-exported empty
+     * file winning a whole-file mtime race and clobbering the server.
+     */
+    public static LinkedJSONObject mergeAi(LinkedJSONObject local, LinkedJSONObject remote) {
         try {
-            String localKey = c == null ? "" : AiCredentials.load(c);
+            String localKey = local == null ? "" : local.optString(K_API_KEY, "");
             String remoteKey = remote == null ? "" : remote.optString(K_API_KEY, "");
             LinkedJSONObject out = new LinkedJSONObject();
-            out.put(K_API_KEY, TxtUtils.isNotEmpty(localKey) ? localKey : remoteKey);
+            if (TxtUtils.isEmpty(localKey)) {
+                out.put(K_API_KEY, remoteKey);
+            } else if (TxtUtils.isEmpty(remoteKey)) {
+                out.put(K_API_KEY, localKey);
+            } else {
+                out.put(K_API_KEY, remoteKey); // both set: the server copy wins
+            }
             return out;
         } catch (Exception e) {
             return remote;

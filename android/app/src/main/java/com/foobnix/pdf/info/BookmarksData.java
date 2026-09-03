@@ -66,9 +66,13 @@ public class BookmarksData {
             }
             IO.writeObjSync(bookmark.file, obj);
             // remember the deletion so the next WebDAV sync removes the
-            // bookmark from the server instead of merging it back
+            // bookmark from the server instead of merging it back: the "b"
+            // marker suppresses the whole-book merge for one round, and the
+            // per-key tombstone drops exactly this entry from the server so a
+            // partial delete (book still has progress / other notes) converges.
             if (TxtUtils.isNotEmpty(bookmark.getPath())) {
                 SharedBooks.DeletedBooks.record(bookmark.getPath(), "b");
+                SharedBooks.DeletedBooks.recordKey(bookmark.getPath(), bookmark.t);
             }
         } catch (Exception e) {
             LOG.e(e);

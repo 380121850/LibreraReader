@@ -70,7 +70,9 @@ public class SharedBooks {
      * Locally deleted reading progress / bookmarks, consumed by the next
      * WebDAV sync: the deleted parts are not merged back from the server and
      * the server books/&lt;hash&gt;.json is removed when nothing remains for
-     * the book. Value = {"p": time, "b": time}, p = progress, b = bookmarks.
+     * the book. Value = {"p": time, "b": time, "keys": {"&lt;createTime&gt;": time}},
+     * p = progress, b = bookmarks, keys = the specific bookmark creation-time
+     * keys deleted for the book (so a partial delete propagates per-entry).
      */
     public static class DeletedBooks {
 
@@ -97,6 +99,80 @@ public class SharedBooks {
             return AppProfile.syncDeletedBooks == null
                     ? new LinkedJSONObject()
                     : IO.readJsonObject(AppProfile.syncDeletedBooks);
+        }
+
+        /**
+         * Record that a specific bookmark (by its creation-time key) was
+         * deleted for the book. Accumulates in a per-book "keys" set so the
+         * next WebDAV sync can drop exactly those entries from the server
+         * instead of union-merging them back.
+         */
+        public static void recordKey(String path, long key) {
+            try {
+                if (AppProfile.syncDeletedBooks == null || TxtUtils.isEmpty(path)) {
+                    return;
+                }
+                final String name = ExtUtils.getFileName(path);
+                LinkedJSONObject root = IO.readJsonObject(AppProfile.syncDeletedBooks);
+                LinkedJSONObject marks = root.optJSONObject(name);
+                if (marks == null) {
+                    marks = new LinkedJSONObject();
+                    root.put(name, marks);
+                }
+                LinkedJSONObject keys = marks.optJSONObject("keys");
+                if (keys == null) {
+                    keys = new LinkedJSONObject();
+                    marks.put("keys", keys);
+                }
+                keys.put("" + key, System.currentTimeMillis());
+                IO.writeObjSync(AppProfile.syncDeletedBooks, root);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        }
+
+        /** The set of creation-time keys deleted for the book (empty when none). */
+        public static Set<String> keysOf(LinkedJSONObject markers, String name) {
+            Set<String> out = new HashSet<>();
+            LinkedJSONObject marks = markers.optJSONObject(name);
+            if (marks == null) {
+                return out;
+            }
+            LinkedJSONObject keys = marks.optJSONObject("keys");
+            if (keys == null) {
+                return out;
+            }
+            Iterator<String> it = keys.keys();
+            while (it.hasNext()) {
+                out.add(it.next());
+            }
+            return out;
+        }
+
+        /**
+         * Drop the per-book "keys" set once the sync has propagated it to the
+         * server, keeping any "p"/"b" kind markers. The book entry is removed
+         * entirely when nothing else remains.
+         */
+        public static void clearKeys(String path) {
+            try {
+                if (AppProfile.syncDeletedBooks == null || TxtUtils.isEmpty(path)) {
+                    return;
+                }
+                final String name = ExtUtils.getFileName(path);
+                LinkedJSONObject root = IO.readJsonObject(AppProfile.syncDeletedBooks);
+                LinkedJSONObject marks = root.optJSONObject(name);
+                if (marks == null) {
+                    return;
+                }
+                marks.remove("keys");
+                if (marks.length() == 0) {
+                    root.remove(name);
+                }
+                IO.writeObjSync(AppProfile.syncDeletedBooks, root);
+            } catch (Exception e) {
+                LOG.e(e);
+            }
         }
 
         public static void clear() {

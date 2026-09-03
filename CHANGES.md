@@ -5,6 +5,142 @@
 
 ---
 
+## [2026-09-03] 修复：桌面图标"書"字顶部被 launcher 圆角蒙版裁切
+
+**问题**：上一条修复（去 inset 全出血）后，米色牌铺满画布，但"書"字在牌内位置偏上（顶距图顶仅 ~10%），launcher 的圆角蒙版把"書"字顶部裁掉了，"書"字不完整。
+
+**根因**：adaptive 前景 `adaptive_pdf_reader.png`（192×192）由 `gen_icons3.ps1` 从源图 cover 铺满生成，"書"字+书内容整体偏上，"書"字顶落在 adaptive 安全区（中央 66dp，约 19% 起）之外，被 launcher 圆角裁切。
+
+**修复**（重新生成 `mipmap-xxxhdpi/adaptive_pdf_reader.png`，432×432）：
+- 源改用 1536×1536 高清设计图 `howread_cleaned.png`（gen_icons3 去水印输出，比原 192px 小图清晰得多）。
+- 米色牌背景仍**全出血铺满**画布（保住 MIUI 绿边修复），背景用牌四边采样色做平滑米色渐变（top #E8E1DA→bot #D4D0CF，左右微混），与裁出的 artwork 米色边缘无缝。
+- "書+书"内容从源图裁出（排除牌投影/边缘），缩小并**下移**：顶 24%、底 87%、水平居中——"書"字完整落在安全区内，书底仍在安全区内。
+- 脚本 `Z:\opt\librera\bench\gen_adaptive_v3.py`（可复现）。
+
+**效果**：三 flavor 图标"書"字完整、位置居中、全出血无透明环（MIUI 无绿边）、高清无虚化。
+
+**验证（MI9 真机，MIUI，adb `48fee174`）**：三 flavor（google/pro/fdroid）debug 均 BUILD SUCCESSFUL（22s）。逐一安装并桌面截图放大确认：Pro（好好读 Pro）、google（好好读）、fdroid（好好读 FD）三版图标"書"字均**完整**、米色牌铺满圆角方块、**边缘无绿色色带**。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 修复：Pro 版桌面图标在 MIUI（小米 12S）上有一圈绿色边缘
+
+**问题**：小米 12S（MIUI）上 HowRead Pro 的桌面图标（米色"書+书"圆角牌）边缘有一圈绿色色带。
+
+**根因**（`mipmap-anydpi-v26/icon_pdf_pro.xml`）：Android 8.0+ 走自适应图标，前景层是铺满画布的米色牌 PNG（`adaptive_pdf_reader.png`，192×192 全不透明），但被套了 `inset=23%`——把牌缩到中央 54%，四周留 **23% 透明环**。MIUI launcher 对自适应图标套自己的蒙版/底色，**不**像 AOSP 那样把 app 背景层填到前景透明环下面，于是透明环透出 launcher 底色，实测一圈偏绿色带（RGB ≈ #418050~#9DB769，非 app 内任何颜色）。附带问题：pro 背景层 `bg_pdf_reader_pro.xml` 是**蓝色渐变**，与米色牌配色冲突。google 版 `icon_pdf_reader.xml` 是同样的 inset 反模式（背景米色，绿边不明显）。
+
+**修复**（3 个 XML，纯资源改动，复用现有 PNG，不重新生成图片）：
+1. `mipmap-anydpi-v26/icon_pdf_pro.xml`：去掉 `<inset>` 包裹，前景直接 `<foreground android:drawable="@mipmap/adaptive_pdf_reader" />` 全出血铺满 108dp 画布——消除透明环，"書+书" artwork 在中央安全区内，launcher 裁圆角时四角被裁也无感。
+2. `mipmap-anydpi-v26/icon_pdf_reader.xml`（google 版）：同样去掉 `<inset>`，消除同款反模式。
+3. `drawable/bg_pdf_reader_pro.xml`：蓝色渐变（#2b549a→#337ef7）改为与米色牌边缘一致的米色渐变（#C9C8C6→#E9E2DB，复用 `bg_pdf_reader` 配色）——个别 launcher 在蒙版边缘露出背景层时也能与牌无缝融合，不再有色差/绿边。
+
+**效果**：自适应图标自包含（全出血前景 + 同色背景双保险），任何 launcher 上都不再有透明环/绿边；pro 与 google 图标风格统一。
+
+**验证（MI9 真机，MIUI，adb `48fee174`）**：三 flavor（google/pro/fdroid）debug 均 BUILD SUCCESSFUL（21s）。安装 pro 版后桌面截图：图标为**铺满的米色"書+书"牌、边缘无绿色色带**（修复前同一位置实测 9727 个绿色像素环带）；另装 google 版对照，同样全出血无绿边。API<26 旧设备仍用遗留位图 `icon_pdf_pro.png`（未动），不受影响。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 修复：WebDAV 同步只恢复 AI 的 API 链接、不恢复 API key
+
+**问题**：AI 的 API key 有备份到 WebDAV 服务器，但每次同步只恢复了 API 链接（endpoint），没有恢复 API key。
+
+**根因**（AI 的"链接"与"密钥"存两处、走两条不同同步路径，密钥那条有 mtime 竞态缺陷）：
+- API 链接 `aiBaseUrl` 存 `AppState`→`app-State.json`，走 `syncGlobalFile`（`WebDavSyncer.java:295/338`）——有 `localIsDefault` 保护 + 字段级并集 `mergeAiState`，**抗竞态**。
+- API 密钥存 `AiCredentials`（加密 SharedPreferences `"ai"`）→镜像 `app-AI.json`，走 `syncWholeFile`（`WebDavSyncer.java:313`）——**纯 mtime 新者赢，无"本地为空不赢"保护**。
+- 复现链（本地无密钥的设备——新装或本地数据丢失后）：① `exportAi`（`:304`）把本地 `app-AI.json` 写成 `{"apiKey":""}`，`writeIfChanged` 发现内容不同就重写并把 mtime 刷成"现在"；② `syncWholeFile`（`:313`）比 mtime，服务器文件是别的设备过去写的（更旧）→ 判定本地"更新"→ **空密钥上传覆盖服务器**，服务器密钥被毁；③ `importAi`（`:315`）读本地 `app-AI.json` 仍是 `{"apiKey":""}`，旧守卫 `isNotEmpty` 为假 → 不保存。结果：链接（抗竞态路径）恢复了，密钥（竞态路径）没恢复，且服务器副本被空值覆盖、bug 自我延续。佐证：`ProfileStateIO.mergeAi` 这个专为密钥文件写的合并器存在但**从未被调用**（死代码）。
+
+**修复**（2 文件，核心 1 处改动）：
+1. `ProfileStateIO.mergeAi`（`ProfileStateIO.java`）：签名从 `mergeAi(Context, remote)` 改为匹配 `JsonMerger` 接口的 `mergeAi(LinkedJSONObject local, LinkedJSONObject remote)`，实现"**设值赢未设值，真冲突（两边都有且不同）服务器赢**"（与 `mergeAiState` 同构的单字段版）：本地空+服务器有→用服务器（**修复恢复**）；本地有+服务器空→用本地（能换密钥、能播种服务器）；两边都有且不同→服务器赢（用户选定）；两边都空→空。
+2. `WebDavSyncer.doSync`（`WebDavSyncer.java:317`）：`syncWholeFile(...syncAI...)` → `syncMergedObjectFile(...syncAI..., ProfileStateIO::mergeAi)`。`syncMergedObjectFile` 提供**结构性抗竞态**：GET 临时错误不碰任何东西；远端缺失（404）则上传本地；否则 `merged = mergeAi(local, remote)`，本地变了写本地、服务器变了上传。
+3. `ProfileStateIO.importAi`（`ProfileStateIO.java`）：从"仅本地为空时填"改为"文件值≠本地加密存储就应用"——合并后 `app-AI.json` 已含正确密钥，`importAi` 负责把文件值落到加密存储，既补缺失（恢复）也收敛冲突（服务器赢）。安全：`exportAi` 每轮同步开头都会把本地存储重新镜像进文件，用户在 AI 对话框刚保存的密钥在合并前已在文件里，不会被旧值覆盖。
+
+**效果**：本地重置/新装设备同步后从服务器恢复密钥；本地改密钥（服务器空）能上传；两边冲突服务器赢；不再出现"空密钥覆盖服务器"的竞态。与 `app-State.json` 用 `mergeAiState` 处理 AI 模型配置完全同构。
+
+**验证（模拟器 MedicineAVD，fdroid 无广告版 `com.howread.reader.pro`）**：三 flavor（google/pro/fdroid）debug 均 BUILD SUCCESSFUL。用本地最小 WebDAV 服务器（`http://10.0.2.2:8099`，模拟器可直达 Windows 宿主）造三种场景：① **本地无密钥 + 服务器有**（`sk-server-key-AAA111`）→ 同步后本地 `ai.xml` 生成、AI 设置页显示该密钥（掩码），服务器密钥**未被空值覆盖**（修复前此场景服务器密钥会被毁）；② **本地有密钥 + 服务器空** → 同步后服务器拿到本地密钥（日志 `PUT app-AI.json (33 bytes)`）；③ **两边不同密钥**（本地 AAA111 / 服务器 CCC333）→ 同步后本地收敛到服务器值 CCC333，服务器不变（日志仅 `GET` 无 `PUT`）。回归：AI 链接/模型配置（`app-State.json` 的 `aiBaseUrl/aiModel/aiProtocol/aiMaxTokens/aiThinking`）同步路径未动、字段完好，AI 设置页正常显示；其他 global 文件（recent/stats/misc/network）同步不变。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 修复：软件说明页 build 时间停留在首次 clean 构建（增量构建不刷新）
+
+**问题**：安装 9 月 3 日新构建的 APK 后，"软件说明"页显示的 build 时间仍是 9 月 2 日的。
+
+**根因**（`app/build.gradle` 的 `generateBuildTimeSource` 任务）：该任务生成 `BuildTime.java`（`BUILD_TIME` 常量，软件说明页展示），声明了 `outputs.file` 但**未声明任何 inputs**。Gradle 对"无 inputs 且输出已存在"的任务判定为 UP-TO-DATE 直接跳过，`doLast` 里的 `new Date()` 不再执行——时间戳被冻结在**首次 clean 构建**（202609022352），之后所有增量构建都复用旧文件。
+
+**修复**：任务内加 `outputs.upToDateWhen { false }`，强制每次构建都重新生成 `BuildTime.java`，时间戳与 APK 实际构建时刻一致。
+
+**验证（模拟器 MedicineAVD，pro 版 `com.howread.reader.pro`）**：三 flavor（google/pro/fdroid）debug 增量重编 BUILD SUCCESSFUL（1m27s，13 executed）；`BuildTime.java` 刷新为 `202609031655`；安装 pro 版后"软件说明"页显示 `HowRead Pro: v0.9.0 build 202609031655`（与 APK 构建时刻一致）。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 修复：书签笔记页删除一本书的笔记后被 WebDAV 同步"复活"
+
+**问题**：手机上在书签笔记页删除某本书的笔记，过一会儿笔记又被 WebDAV 服务器同步回来，删除的笔记重新出现。
+
+**根因**（`WebDavSyncer.doSync` + `SharedBooks.DeletedBooks`）：
+- 书签同步是**按创建时间键（`t`）的盲目并集**（`WebDavSyncer.java:414-432`），只增不删——服务器 `books/<hash>.json` 里有的键，只要本地没有就一律加回。
+- 删除时只记录**按书**的墓碑 `DeletedBooks.record(path,"b")`（结构 `{书名:{"b":时间戳}}`），**不记录删的是哪几条**；且该墓碑**一次性**（每轮同步结束 `DeletedBooks.clear()` 清空，`WebDavSyncer.java:479`），只压制**一轮**合并。
+- 服务器文件仅在"该书本地既无进度又无其他书签"时才整文件删除（`WebDavSyncer.java:381-388`）。
+- 复现链：删笔记后该书通常**仍有阅读进度** → 服务器文件不删 → 本轮 `delBookmarks=true` 跳过合并（笔记暂时消失）→ 行 479 清空墓碑 → **下一轮** `delBookmarks=false` → 盲目并集把服务器残留的笔记重新加回 → **复活**。
+
+**修复**（按时间键精确传播删除，3 个文件）：
+1. `SharedBooks.DeletedBooks`（`SharedBooks.java`）：新增 `recordKey(path, key)`——在 `{书名:{...}}` 下维护 `"keys"` 子对象（`{时间键:时间戳}`）累加被删时间键；`keysOf(markers, name)` 返回该书已删键集合；`clearKeys(path)` 只清除该书的 `"keys"`（保留 `"p"`/`"b"`），供同步成功发布后调用。原有 `record(path,kind)`/`all()`/`clear()` 不变。
+2. `BookmarksData.remove`（`BookmarksData.java:53-80`）：删除单条笔记时，在既有 `record(path,"b")` 之外再 `recordKey(bookmark.getPath(), bookmark.t)` 记下被删时间键。
+3. `WebDavSyncer.doSync`（`WebDavSyncer.java`）：循环内取该书 `deletedKeys = keysOf(deletedBooks, name)`；书签合并遍历时**跳过**任何在 `deletedKeys` 中的键（不重新加回本地）；发布前从 `subsetFor(localB, name)` 结果里**剔除** `deletedKeys` 中的键，使服务器文件收敛（不再残留已删笔记）；成功 `putBookInfo` 后 `clearKeys(name)` 清除已传播键。整文件删除分支（本地无进度且无书签）与旧版墓碑（只有 `"b"` 无 `"keys"`）的"整书跳过一轮"兼容均保留。
+
+**效果**：删除 → 记录时间键 → 下一轮同步从服务器剔除该键并跳过合并 → 服务器收敛 → 笔记不再复活；其他设备下次同步也拉不到已删笔记。进度删除（kind `"p"`）、同名不同文件 conflict 逻辑均不动。
+
+**验证（模拟器 MedicineAVD，fdroid 无广告版 `com.howread.reader.pro`）**：三 flavor（google/fdroid/pro）debug 均 BUILD SUCCESSFUL。用本地最小 WebDAV 服务器（`http://10.0.2.2:8099`，模拟器可直达 Windows 宿主）复现并验证：① 造出"书有笔记 + 50% 阅读进度"状态（本地与服务器一致，正是旧代码会复活的场景）；② 书签笔记页删除该笔记 → 墓碑正确写入 `{"montecristo.epub":{"b":…,"keys":{"1788411354035":…}}}`，本地书签清空、进度保留；③ **连续三次**重启触发同步，本地书签始终为空（笔记**不复活**，含旧代码复活的第三轮），墓碑已清空，进度 50% 全程保留；④ 服务器 `books/<hash>.json` 从含笔记（380 字节）收敛为**仅进度**（126 字节），已删键 `1788411354035` 不存在；⑤ 回归——删除后向同一本书新增一条笔记并同步，新键 `1788430000000` 正常上传服务器、旧已删键仍不存在（未误伤同书其他笔记）。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 笔记导出：可选格式（TXT/Markdown，默认 TXT）+ 时间行下新增"位置"行
+
+**需求**：导出笔记时可选导出格式；分析 md/pdf/doc/txt 可行性，改动大则只支持 md+txt、默认 txt。同时把笔记时间对应的书籍位置信息写入导出文件，放在时间行下面一行。
+
+**格式可行性结论**：
+- **txt**：已实现，现有导出路径即 txt。
+- **md**：极小改动——纯文本本身即合法 Markdown，`commonmark 0.29.0` 已在 classpath（仅解析用，生成不依赖它），只需换扩展名 + 轻量 md 排版（`##` 标题 / `>` 位置引用 / `**AI:**` 加粗 / `---` 分隔）。
+- **pdf**：改动大，本期不做。仓库内 `com.artifex.mupdf` Java 类与预编译 `libMuPDF.so` 导出的 JNI 符号不匹配（调用即 `UnsatisfiedLinkError`）；两条路都是大改——① 框架 `android.graphics.pdf.PdfDocument` 需手动换行 + 加载 CJK 字体（默认 Helvetica 渲染不了中文）；② 重编 `libMuPDF.so` 暴露 Story API（4 ABI native 重编）。
+- **doc/docx**：改动大，本期不做。无任何 docx 写入库（mammoth 只读 docx→HTML）；需新增 Apache POI（重）或手写 OOXML zip。
+
+按既定标准（改动大就只支持 md+txt，默认 txt）→ **本期支持 TXT + Markdown，TXT 为默认**。PDF/DOCX 留作后续可选项。
+
+**改动**：
+1. `BookmarksFragment2.java`：
+   - 合并笔记行的 "⋮" 菜单由单项拆为两项：`notes_export_txt`（默认，在前）→ `exportNotesToFile(notes, "txt")`；`notes_export_md` → `exportNotesToFile(notes, "md")`。
+   - `exportNotesToFile(merged, format)`：示例文件名 `书名-notes.<format>`（预填扩展名）；内容改由新私有方法 `renderNotesForExport(merged, format)` 从 `merged.notes`（新→旧）逐条渲染；选择器文件名完全可编辑，回调里若用户改掉扩展名则强制补回所选格式。
+   - `renderNotesForExport`：每条笔记渲染 时间行 + **位置行** + 正文 +（若有）AI 回答。位置行取一次总页数 `AppDB.get().load(MyPath.toAbsolute(path)).getPages()`：取到则 `位置：第 X / Y 页 (P%)`（`X = max(1, round(p*Y))`），取不到降级 `位置：P%`；百分比复用 `TxtUtils.percentFormatInt`（与列表口径一致）。TXT 用纯文本风格（时间行下插位置行）；MD 映射为轻量标准 Markdown。
+2. 字符串（`values/strings.xml` + `values-zh-rCN/strings.xml`）：新增 `notes_export_txt`/`notes_export_md`/`note_export_position_page`/`note_export_position_percent`；原 `notes_export` 已无引用，一并删除。
+3. **顺带修复（验证时发现）**：`BrowseFragment2.java` 的 create-file / select-file 结果此前用共享的 `BookCSS.get().dirLastPath` 拼路径，但上一条改动把导出选择器改成了**分离目录页**（`browsePath != null`），`displayAnyPath` 对分离页刻意不更新 `dirLastPath`（见 `BrowseFragment2.java:1614`），导致 `dirLastPath` 恒为 `null`，导出落盘路径变成 `null/<文件名>` 而 `FileNotFoundException`。新增 `chooserDir()`：分离页返回本页 `browsePath`，普通"我的文件"页保持原 `dirLastPath` 行为，两处结果改用 `chooserDir()` 拼接。
+
+**验证（模拟器 MedicineAVD，fdroid 无广告版 `com.howread.reader.pro`）**：三 flavor（google/fdroid/pro）debug 均 BUILD SUCCESSFUL。① 笔记行 ⋮ 菜单显示两项，TXT 在前、Markdown 在后；② TXT 导出文件内容为 `[2026-09-03 04:55]` + 下一行位置行 + 正文；③ Markdown 导出为 `## [时间]` / `> 位置：…` / 正文 样式；④ 位置行两种形态均验证——书页数未知时降级 `Position: 0%`，向 DB 注入 `PAGES=287` 并重启后为 `Position: page 1 / 287 (0%)`（英文为模拟器 locale，中文串在 values-zh-rCN）；⑤ 扩展名兜底——文件名手改为无扩展名的 `plainexport`，落盘仍为 `plainexport.md`；⑥ 普通书签行无 ⋮（仅合并笔记行有，代码层 `BookmarksAdapter2` 已确认）。鸿蒙零改动。
+
+---
+
+## [2026-09-03] 修复：笔记导出选择器"返回上一层"误跳回"我的文件"
+
+**问题**：书签笔记页 → 笔记导出 → 文件路径选择器中，停在某个书库扫描目录时点工具栏"返回上一层"，会跳回"我的文件"根视图（OPDS/WebDAV/文件夹分组），并污染底层"我的文件"标签的共享路径。
+
+**根因**：`ChooserDialogFragment` 内嵌的 `BrowseFragment2` 此前 `browsePath == null`，`path()`/`setPath()` 走共享的 `AppState.displayPath`；`onBackAction()` 的扫描目录分支（`BrowseFragment2.java:1495-1501`）命中 `scanPath.equals(path())` 时执行 `displayAnyPath(ROOT_PATH)`，即跳回"我的文件"根视图并改写共享路径。
+
+**修复**（`ChooserDialogFragment.onCreateView`）：把内嵌浏览器改为**分离目录页**——构造时注入 `folderPath = validStartDir(外部存储根)`，使 `browsePath` 非空、独立于共享路径。此后 `onBackAction()` 走分离页分支（`BrowseFragment2.java:1481-1492`）：入口根处返回 `false`（由 X/关闭按钮或系统返回关闭对话框），子目录处 `new File(browsePath).getParent()` 上移一级，全程不再触碰 `AppState.displayPath`，也不会落到扫描目录跳根分支。选择器因此锚定在真实文件树（外部存储根），"返回"沿真实目录上移。
+
+**验证（模拟器 MedicineAVD，fdroid 无广告版）**：google 版在无网络模拟器上 AdMob/UMP 阻塞窗口焦点致黑屏，改用 fdroid 版正常渲染。① 选择器打开即锚定 `/storage/emulated/0`（真实文件树，非"我的文件"根视图）；② 进入 Documents 子目录后点工具栏"返回上一层"，路径栏由 `emulated/0/Documents` 上移一级回到 `emulated/0`（**未跳回"我的文件"**）；③ 存储根处再点"返回"为空操作（与既有分离目录页行为一致，无回归）；④ 关闭对话框后底层"My files"标签仍显示根视图（OPDS/WebDAV/Library folders），共享路径未被污染。鸿蒙零改动。
+
+---
+
+## [2026-09-03] OPDS 预置目录替换 + 书签笔记页两项修复/新增
+
+**1. OPDS 预置目录替换**（`AppState.OPDS_DEFAULT`）：把内置预置目录整体替换为 5 个公版书库——Project Gutenberg（`gutenberg.org/ebooks/search.opds/`）、Wolne Lektury（`wolnelektury.pl/opds/`）、textos.info（`textos.info/opds`）、文渊阁·公版部分（`wenyuange.org/opds/`）、CBETA 电子佛典（`cbeta.org/opds/`）；图标统一复用 `assets://opds/opds.png`。删除了原 Internet Archive 与内置"获奖书单"（`SamlibOPDS.ROOT_AWARDS`，随之移除 `AppState` 里已无引用的 `SamlibOPDS` import）。解析/持久化/"恢复默认"逻辑不变；已装用户保留其 profile 里已持久化的目录列表，新预置对全新 profile 或点"恢复默认"后生效。
+
+**2. 书签笔记页·笔记聚合行名称修复**（`BookmarksAdapter2.onBindViewHolder`）：进入某本书后，笔记聚合行（`mergeNotes` 合成项，`isAiNote && notes != null`）此前复用书签行模板，标题显示的是书籍文件名，与"笔记"身份不一致（看起来像"XXX书笔记"）。现改为：笔记聚合行标题显示其自身的"笔记 (N)"标签（`item.text`），普通书签行仍显示书名；书籍 header 行、单条笔记显示不变。
+
+**3. 书签笔记页·笔记导出**（`bookmark_item.xml` + `BookmarksAdapter2` + `BookmarksFragment2`）：进入某本书后，笔记聚合行新增"⋮"按钮（`moreMenu`，仅笔记聚合行可见，header/普通书签/单条笔记隐藏，含 view-holder 复用时的可见性复位）。点"⋮"弹出菜单（`MyPopupMenu`，锚定按钮），含"笔记导出"项；选中后弹出"选文件夹+文件名"选择器（复用 `ChooserDialogFragment.createFile`，与"导出书签"一致），把该书全部笔记（`mergeNotes` 预渲染的 `aiAnswer`：时间戳+正文+AI 回答）写入所选 .txt。新增字符串 `notes_export`（Export notes / 笔记导出）。
+
+**验证（MI9）**：google debug 构建 BUILD SUCCESSFUL（0.9.0），安装启动无异常。① 我的文件·OPDS 区显示 5 个新目录（Gutenberg / Wolne Lektury / textos.info / 文渊阁 / CBETA），Internet Archive 与获奖书单已消失；② 进入《侯卫东官场笔记》单书视图，笔记聚合行标题显示"笔记 (3)"而非书名，普通书签行仍显示书名（第二本《HiFB开发指南》"笔记 (1)"同样正确）；③ 笔记聚合行"⋮"→"笔记导出"→ 选文件夹+文件名（自动填充"<书名>-notes.txt"）→ 点"选择"→ Toast"成功"，文件落盘 3674 字节，内容为 3 条笔记（时间戳+正文+AI 回答，分隔线正确）。鸿蒙零改动。
+
+---
+
 ## [2026-09-02] F-Droid 彻底去 GMS：删除 Google Drive 同步 + 删除 5 个上游遗留版本
 
 **背景**：F-Droid 上架要求包内不得含任何广告 SDK。广告 SDK 解耦此前已完成（`src/admobAds` vs `src/noAds` 互斥源集 + `libDepFree` 依赖隔离，fdroid 字节扫描 PASS）。但审计发现代码里还残留"打桩"——Google Drive 同步功能在**所有版本里都是死的**：`GFile.java` 用到的 `com.google.api.client.*` / `com.google.api.services.drive.*` / `GoogleSignIn` 真类全部来自 main 里手写的 14 个 `com/google/**` 假类（`:appLibDrive` 模块被注释且不存在，`libs.versions.toml` 无任何真 Drive 依赖），`getLastSignedInAccount` 恒返回 null，UI 入口早已隐藏。经确认，本次将 GMS/Drive 从所有版本彻底删除，并顺带删除 5 个上游遗留 UI 版本 flavor。

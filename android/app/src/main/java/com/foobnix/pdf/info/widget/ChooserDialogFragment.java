@@ -104,7 +104,17 @@ public class ChooserDialogFragment extends DialogFragment {
         FrameLayout frame = new FrameLayout(getContext());
         frame.setId(R.id.metaGenreID);
 
-        final BrowseFragment2 fr = BrowseFragment2.newInstance(getArguments());
+        // Run the embedded browser as a DETACHED folder page: it keeps its own
+        // browse path instead of the shared AppState.displayPath. Without this,
+        // pressing "up one level" while sitting on a library scan folder makes
+        // onBackAction() jump to the "My files" root view (OPDS/WebDAV/folders)
+        // and mutates the path of the underlying "My files" tab. Anchoring the
+        // detached page at the external-storage root makes "up" walk the real
+        // file tree (stopping at the root) and never touch the shared path.
+        Bundle args = getArguments() != null ? new Bundle(getArguments()) : new Bundle();
+        args.putString("folderPath", validStartDir(Environment.getExternalStorageDirectory().getPath()));
+
+        final BrowseFragment2 fr = BrowseFragment2.newInstance(args);
 
         getChildFragmentManager().beginTransaction().replace(R.id.metaGenreID, fr, "fr").commit();
 

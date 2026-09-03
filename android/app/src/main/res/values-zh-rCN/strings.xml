@@ -845,4 +845,8 @@
    <string name="note_edit_hint">输入笔记内容…</string>
    <string name="note_edit_page_fmt">第 %1$d / %2$d 页</string>
    <string name="bookmarks_and_notes">书签笔记</string>
+   <string name="notes_export_txt">笔记导出 (TXT)</string>
+   <string name="notes_export_md">笔记导出 (Markdown)</string>
+   <string name="note_export_position_page">位置：第 %1$d / %2$d 页 (%3$s)</string>
+   <string name="note_export_position_percent">位置：%1$s</string>
 </resources>

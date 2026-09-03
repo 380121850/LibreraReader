@@ -16,7 +16,6 @@ import com.foobnix.android.utils.MemoryUtils;
 import com.foobnix.android.utils.Objects;
 import com.foobnix.android.utils.Objects.IgnoreHashCode;
 import com.foobnix.android.utils.TxtUtils;
-import com.foobnix.opds.SamlibOPDS;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.Urls;
@@ -101,16 +100,11 @@ public class AppState {
             "#FFFFFF", //
             "#000000");
     public final static String OPDS_DEFAULT = "" + //
-
-            //"https://www.feedbooks.com/catalog.atom,Feedbooks,Free ebooks,assets://opds/feedbooks.ico;" + //
-            "https://m.gutenberg.org/ebooks.opds/,Project Gutenberg,Free ebooks since 1971,assets://opds/opds.png;" +
-            //
-            "https://bookserver.archive.org/catalog/,Internet Archive,Internet Archive,assets://opds/opds.png;" +
-            //
-//            "http://opds.oreilly.com/opds/,O'Reilly,O'Reilly,assets://opds/opds.png;" + //
-            //"http://www.epubbud.com/feeds/catalog.atom,ePubBud Children's books,ePubBud Children's books,assets://opds/opds.png;" + //
-
-            SamlibOPDS.ROOT_AWARDS + ",Top Books to Read, Complete award winners listing,assets://opds/rating.png;"
+            "https://www.gutenberg.org/ebooks/search.opds/,Project Gutenberg,Project Gutenberg,assets://opds/opds.png;" +
+            "https://wolnelektury.pl/opds/,Wolne Lektury,Wolne Lektury,assets://opds/opds.png;" +
+            "https://textos.info/opds,textos.info,textos.info,assets://opds/opds.png;" +
+            "https://wenyuange.org/opds/,文渊阁（公版部分）,文渊阁（公版部分）,assets://opds/opds.png;" +
+            "http://www.cbeta.org/opds/,CBETA 电子佛典,CBETA 电子佛典,assets://opds/opds.png;"
             //
             // end
             ;

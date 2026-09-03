@@ -152,6 +152,18 @@ import java.util.Map;
         }
     }
 
+    /**
+     * Directory a file/folder pick resolves against. On a detached chooser page
+     * (browsePath != null) that is the page's own current directory; the shared
+     * BookCSS.dirLastPath is intentionally NOT updated for detached pages (see
+     * displayAnyPath), so it must not be used here or the result would be
+     * "null/<name>". On the regular "My files" page keep the historical
+     * dirLastPath behaviour.
+     */
+    private String chooserDir() {
+        return browsePath != null ? browsePath : BookCSS.get().dirLastPath;
+    }
+
     public static final String EXTRA_INIT_PATH = "EXTRA_PATH";
     public static final String EXTRA_TYPE = "EXTRA_TYPE";
     public static final String EXTRA_TEXT = "EXTRA_TEXT";
@@ -190,12 +202,12 @@ import java.util.Map;
                          .show();
                 }
             } else if (fragmentType == TYPE_SELECT_FILE) {
-                onPositiveAction.onResultRecive(BookCSS.get().dirLastPath + "/" + editPath.getText());
+                onPositiveAction.onResultRecive(chooserDir() + "/" + editPath.getText());
             } else if (fragmentType == TYPE_SELECT_FILE_OR_FOLDER) {
                 onPositiveAction.onResultRecive(editPath.getText()
                                                         .toString());
             } else if (fragmentType == TYPE_CREATE_FILE) {
-                onPositiveAction.onResultRecive(BookCSS.get().dirLastPath + "/" + editPath.getText());
+                onPositiveAction.onResultRecive(chooserDir() + "/" + editPath.getText());
             }
 
         }

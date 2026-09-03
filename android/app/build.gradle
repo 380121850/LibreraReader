@@ -28,6 +28,10 @@ ext {
 def genBuildTime = tasks.register("generateBuildTimeSource") {
     def outDir = layout.buildDirectory.dir("generated/buildTime/com/foobnix/pdf/info")
     outputs.file(outDir.map { it.file("BuildTime.java") })
+    // no inputs declared: without this Gradle treats the task as UP-TO-DATE
+    // once the file exists and skips it on incremental builds, freezing the
+    // timestamp at the first (clean) build
+    outputs.upToDateWhen { false }
     doLast {
         def f = outDir.get().file("BuildTime.java").asFile
         f.parentFile.mkdirs()

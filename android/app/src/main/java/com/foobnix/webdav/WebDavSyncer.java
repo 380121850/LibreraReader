@@ -310,7 +310,11 @@ public class WebDavSyncer {
             }
             syncMergedObjectFile(s, globalUrl, AppProfile.syncBookStates, WebDavSyncer::mergeStatesMaxWins);
             syncWholeFile(s, globalUrl, AppProfile.syncStats);
-            syncWholeFile(s, globalUrl, AppProfile.syncAI);
+            // the AI key file is merged, not whole-file mtime-wins: a reset
+            // device exports an empty key right before the sync, and plain
+            // newer-wins would let that fresh empty file clobber the server
+            // copy (and then importAi would have nothing to restore)
+            syncMergedObjectFile(s, globalUrl, AppProfile.syncAI, ProfileStateIO::mergeAi);
             syncWholeFile(s, globalUrl, AppProfile.syncMisc);
             ProfileStateIO.importAi(c);
             ProfileStateIO.importMisc(c);
@@ -372,6 +376,12 @@ public class WebDavSyncer {
                     }
                     final boolean delProgress = markKind(deletedBooks, name, "p");
                     final boolean delBookmarks = markKind(deletedBooks, name, "b");
+                    // specific bookmark keys the user deleted for this book:
+                    // never re-merged from the server, and dropped from the
+                    // published info so the server converges (a partial delete
+                    // whose book still has progress/other notes would otherwise
+                    // be union-merged back on a later round)
+                    final Set<String> deletedKeys = SharedBooks.DeletedBooks.keysOf(deletedBooks, name);
                     if ((delProgress || delBookmarks)
                             && !localP.has(name) && subsetFor(localB, name).length() == 0) {
                         // everything the user deleted locally is gone here too:
@@ -410,7 +420,7 @@ public class WebDavSyncer {
                         Iterator<String> keys = rbs.keys();
                         while (keys.hasNext()) {
                             String key = keys.next();
-                            if (localB.has(key)) {
+                            if (localB.has(key) || deletedKeys.contains(key)) {
                                 continue;
                             }
                             LinkedJSONObject bm = rbs.optJSONObject(key);
@@ -429,11 +439,22 @@ public class WebDavSyncer {
                     // Never merged into on a name conflict: that info file
                     // belongs to the OTHER book with the same name.
                     if (!conflict) {
+                        LinkedJSONObject pubBm = subsetFor(localB, name);
+                        if (!deletedKeys.isEmpty()) {
+                            for (String dk : deletedKeys) {
+                                pubBm.remove(dk);
+                            }
+                        }
                         LinkedJSONObject merged = buildInfoWithHash(name, rHash,
-                                localP.optJSONObject(name), subsetFor(localB, name));
+                                localP.optJSONObject(name), pubBm);
                         if (merged != null && !merged.toString().equals(info.toString())) {
                             putBookInfo(s, booksUrl, rHash, merged);
                             uploadedHashes.add(rHash);
+                            // the deleted keys are now gone from the server:
+                            // stop carrying their tombstones (keep "p"/"b")
+                            if (!deletedKeys.isEmpty()) {
+                                SharedBooks.DeletedBooks.clearKeys(name);
+                            }
                         }
                     }
                     res.booksSynced++;
