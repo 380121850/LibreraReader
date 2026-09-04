@@ -323,7 +323,14 @@ public class BookCSS {
         if (currentHash != instance.hashCode) {
             LOG.d("Objects-save", "SAVE BookCSS");
             hashCode = currentHash;
-            IO.writeObj(AppProfile.syncCSS, instance);
+            // Write synchronously: theme/font changes are applied by restarting
+            // the activity (PrefFragment2.onTheme), and the new instance reads
+            // app-CSS.json synchronously in attachBaseContext. An async write
+            // (IO.writeObj) could still be queued behind other config saves when
+            // that read happens, so the restart would load the previous value —
+            // e.g. picking "正常" (1.0) after "增大(+7)" (1.7) never shrank back.
+            // The file is small and hash-gated, so the main-thread cost is fine.
+            IO.writeObjSync(AppProfile.syncCSS, instance);
             // the styling really changed: run one WebDAV sync for it
             // (no-op unless sync is configured; coalesced/debounced there)
             com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(c);
@@ -781,6 +788,21 @@ public class BookCSS {
 
             builder.append("}");
         }
+
+        // AI in-page bilingual (BilingualBuilder): paragraphs of translated
+        // text are injected with class="aitran" right after their source
+        // paragraph. Give them a theme-aware tinted background and drop the
+        // first-line indent so the translation reads flush under the original.
+        // MuPDF's html layout paints the block background incl. padding
+        // (verified against the native html-layout/css sources).
+        boolean isDay = AppState.get().isDayNotInvert;
+        String tranBg = isDay ? "#FDF2D8" : "#40454F";
+        builder.append(".aitran{");
+        builder.append(String.format("background-color:%s !important;", tranBg));
+        builder.append("text-indent:0 !important;");
+        builder.append("margin-top:0.4em !important;");
+        builder.append("padding:0.15em 0.5em !important;");
+        builder.append("}");
 
         String result = builder.toString();
         LOG.d("BookCSS", result);

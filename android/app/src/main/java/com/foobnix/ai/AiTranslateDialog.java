@@ -6,12 +6,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.dao2.FileMeta;
+import com.foobnix.model.AppProfile;
 import com.foobnix.model.AppState;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.wrapper.DocumentController;
@@ -20,16 +22,34 @@ import com.foobnix.ui2.AppDB;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The AI translation entry point (replaces the old "replace text" button).
  * Lets the user pick the source language (auto-detected by default, editable)
- * and the target language (en / zh-CN / ja), then opens the translation panel.
+ * and the target language (en / zh-CN / ja), then either
+ * <ul>
+ *   <li>in-page bilingual mode (default): translations are laid out inside the
+ *       book page under their source paragraph (BilingualSession), or</li>
+ *   <li>the legacy list panel (TranslatePanel).</li>
+ * </ul>
+ * When the in-page bilingual mode is already on for this book, an extra button
+ * turns it off again.
  */
 public class AiTranslateDialog {
 
     // spinner position -> BCP-47 code (kept in sync with the array resource)
     private static final String[] CODES = {LanguageDetector.EN, LanguageDetector.ZH, LanguageDetector.JA};
+
+    /** In-page bilingual needs the epub rewrite chain; mobi/azw open natively. */
+    public static boolean isBilingualFormat(String path) {
+        if (!AiTranslator.isSupportedFormat(path)) {
+            return false;
+        }
+        String p = path.toLowerCase(Locale.US);
+        return !p.endsWith(".mobi") && !p.contains(".azw")
+                && !p.endsWith(".pdb") && !p.endsWith(".prc");
+    }
 
     public static void show(final Activity a, final DocumentController dc) {
         if (a == null || dc == null) {
@@ -51,6 +71,8 @@ public class AiTranslateDialog {
         final Spinner tgtSpinner = (Spinner) view.findViewById(R.id.aiTranslateTgt);
         final TextView start = (TextView) view.findViewById(R.id.aiTranslateStart);
         final TextView cancel = (TextView) view.findViewById(R.id.aiTranslateCancel);
+        final CheckBox modeBox = (CheckBox) view.findViewById(R.id.aiTranslateMode);
+        final TextView offView = (TextView) view.findViewById(R.id.aiTranslateOff);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(a,
                 R.array.ai_translate_langs, android.R.layout.simple_spinner_item);
@@ -69,6 +91,33 @@ public class AiTranslateDialog {
                 .setView(view)
                 .create();
         dialog.show();
+
+        final boolean isBilingualActive = AppState.get().aiBilingual
+                && TxtUtils.isNotEmpty(AppState.get().aiBilingualBook)
+                && AppState.get().aiBilingualBook.equals(book.getPath());
+        final boolean bilingualPossible = isBilingualFormat(book.getPath());
+        if (modeBox != null) {
+            if (!bilingualPossible) {
+                // only the list panel works for this format
+                modeBox.setChecked(false);
+                modeBox.setVisibility(View.GONE);
+            } else {
+                modeBox.setChecked(AppState.get().aiDefaultModeBilingual);
+            }
+        }
+        if (offView != null) {
+            offView.setVisibility(isBilingualActive ? View.VISIBLE : View.GONE);
+            offView.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    dialog.dismiss();
+                    BilingualSession.stop(book.getPath());
+                    AppState.get().aiBilingual = false;
+                    AppState.get().aiBilingualBook = "";
+                    AppProfile.save(a);
+                    dc.restartActivity();
+                }
+            });
+        }
 
         // detect the source language in the background (metadata, then sampling)
         new Thread(new Runnable() {
@@ -106,10 +155,36 @@ public class AiTranslateDialog {
                     Toast.makeText(a, R.string.ai_translate_same_lang, Toast.LENGTH_SHORT).show();
                     return;
                 }
+                boolean bilingual = modeBox != null && bilingualPossible && modeBox.isChecked();
+                AppState.get().aiDefaultModeBilingual = bilingual;
                 dialog.dismiss();
-                startTranslation(a, dc, src, tgt);
+                if (bilingual) {
+                    startBilingual(a, dc, src, tgt);
+                } else {
+                    startTranslation(a, dc, src, tgt);
+                }
             }
         });
+    }
+
+    private static void startBilingual(final Activity a, final DocumentController dc,
+            final String src, final String tgt) {
+        if (dc.getCurrentBook() == null) {
+            return;
+        }
+        final String path = dc.getCurrentBook().getPath();
+        BilingualSession.stop(path);
+        AppState st = AppState.get();
+        st.aiBilingual = true;
+        st.aiBilingualBook = path;
+        st.aiBilingualSrc = src;
+        st.aiBilingualTgt = tgt;
+        AppProfile.save(a);
+        android.util.Log.i("BENCH", "AiTranslateDialog enable bilingual book=" + path
+                + " src=" + src + " tgt=" + tgt);
+        // re-open the book: the context chain now opens (or builds) the
+        // bilingual edition and the activity attaches a BilingualSession
+        dc.restartActivity();
     }
 
     private static int indexOf(String code) {

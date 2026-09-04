@@ -27,13 +27,17 @@ public class MyContextWrapper {
 
         AppProfile.init(context);
 
-        if (AppState.MY_SYSTEM_LANG.equals(AppState.get().appLang) && BookCSS.get().appFontScale == 1.0f) {
+        // Exact float equality is fragile: treat any value essentially equal to
+        // 1.0f (the only legitimate font scale in (1-1e-3, 1+1e-3)) as "normal"
+        // so a near-1.0 value never takes the scaled path unexpectedly.
+        final float appFontScale = BookCSS.get().appFontScale;
+        if (AppState.MY_SYSTEM_LANG.equals(AppState.get().appLang) && Math.abs(appFontScale - 1.0f) < 1e-3f) {
             LOG.d("ContextWrapper skip");
             return new ContextWrapper(context);
         }
 
         String language = AppState.get().appLang;
-        final float scale = BookCSS.get().appFontScale;
+        final float scale = appFontScale;
 
         Resources res = context.getResources();
         Configuration configuration = res.getConfiguration();

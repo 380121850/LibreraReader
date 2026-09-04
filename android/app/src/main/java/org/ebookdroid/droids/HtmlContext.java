@@ -36,6 +36,7 @@ public class HtmlContext extends PdfContext {
 
 
         Map<String, String> notes = null;
+        String originalFileName = fileName;
         try {
             FooterNote extract = HtmlExtractor.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath(), forse);
 
@@ -46,7 +47,7 @@ public class HtmlContext extends PdfContext {
             LOG.e(e);
         }
 
-        MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, fileName, password);
+        MuPdfDocument muPdfDocument = openTextDoc(originalFileName, fileName, password);
         muPdfDocument.setFootNotes(notes);
         return muPdfDocument;
     }

@@ -62,7 +62,7 @@ public class Fb2Context extends PdfContext {
         LOG.d("Fb2Context open", outName);
 
         try {
-            muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, outName, password);
+            muPdfDocument = openTextDoc(fileName, outName, password);
             // Corruption probe: lay out only the first chapter (full count
             // would force the whole-document layout and defeat fast-open).
             muPdfDocument.getPageCountProgressive(Dips.screenWidth(), Dips.screenHeight(),
@@ -75,7 +75,7 @@ public class Fb2Context extends PdfContext {
             }
             Fb2Extractor.get().convert(fileName, outName, true, notes);
             LOG.d("Fb2Context create 2", outName);
-            muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, outName, password);
+            muPdfDocument = openTextDoc(fileName, outName, password);
         }
 
         if (notes != null) {

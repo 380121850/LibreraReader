@@ -34,6 +34,12 @@ public class TranslationCache {
     // key = pid|src|tgt  ->  raw JSON line
     private final Map<String, String> lines = new LinkedHashMap<String, String>();
     private boolean dirty = false;
+    // md5 of the cleaned original -> translated text, lazily rebuilt per
+    // language pair from `lines` (see doneByTextHash). The bilingual in-page
+    // pipeline (BilingualBuilder/BilingualSession) identifies paragraphs by
+    // their content md5 only ("h<md5>"), while the legacy list panel keys them
+    // as "ch<chapter>_h<md5>", so lookups must match on the md5 tail.
+    private Map<String, Map<String, String>> md5Index;
 
     public TranslationCache(File book) {
         String hash = FileHash.sha256(book);
@@ -41,6 +47,21 @@ public class TranslationCache {
         dir.mkdirs();
         file = new File(dir, hash + ".jsonl");
         load();
+    }
+
+    /** Extract the content-md5 tail from a pid (both conventions). */
+    public static String md5FromPid(String pid) {
+        if (pid == null) {
+            return null;
+        }
+        int i = pid.lastIndexOf("_h");
+        if (i >= 0 && i + 2 < pid.length()) {
+            return pid.substring(i + 2);
+        }
+        if (pid.startsWith("h") && pid.length() > 1) {
+            return pid.substring(1);
+        }
+        return null;
     }
 
     public File getFile() {
@@ -53,6 +74,7 @@ public class TranslationCache {
 
     private void load() {
         lines.clear();
+        md5Index = null;
         if (!file.isFile()) {
             return;
         }
@@ -93,7 +115,7 @@ public class TranslationCache {
      * Return the cached translation for (pid, src, tgt) when it is done and the
      * original text has not drifted; null otherwise.
      */
-    public String lookup(String pid, String src, String tgt, String orig) {
+    public synchronized String lookup(String pid, String src, String tgt, String orig) {
         String line = lines.get(key(pid, src, tgt));
         if (line == null) {
             return null;
@@ -116,8 +138,48 @@ public class TranslationCache {
         }
     }
 
+    /**
+     * All done translations for one language pair, keyed by the md5 of the
+     * cleaned original paragraph (across both pid conventions). Cheap enough to
+     * call once per paragraph only if the caller caches the result — the index
+     * is rebuilt on demand after every save().
+     */
+    public synchronized Map<String, String> doneByTextHash(String src, String tgt) {
+        if (md5Index == null) {
+            md5Index = new LinkedHashMap<String, Map<String, String>>();
+        }
+        String pair = src + "|" + tgt;
+        Map<String, String> index = md5Index.get(pair);
+        if (index == null) {
+            index = new LinkedHashMap<String, String>();
+            for (String line : lines.values()) {
+                try {
+                    LinkedJSONObject o = new LinkedJSONObject(line);
+                    if (!"done".equals(o.optString("status"))) {
+                        continue;
+                    }
+                    String pid = o.optString("pid");
+                    String src2 = o.optString("src");
+                    String tgt2 = o.optString("tgt");
+                    if (!pair.equals(src2 + "|" + tgt2)) {
+                        continue;
+                    }
+                    String tran = o.optString("tran");
+                    String md5 = md5FromPid(pid);
+                    if (md5 != null && TxtUtils.isNotEmpty(tran) && !index.containsKey(md5)) {
+                        index.put(md5, tran);
+                    }
+                } catch (Exception ignored) {
+                    // skip malformed line
+                }
+            }
+            md5Index.put(pair, index);
+        }
+        return index;
+    }
+
     /** Record a paragraph translation (upsert by pid|src|tgt). */
-    public void save(String pid, String src, String tgt, String orig, String tran, String status) {
+    public synchronized void save(String pid, String src, String tgt, String orig, String tran, String status) {
         try {
             LinkedJSONObject o = new LinkedJSONObject();
             o.put("pid", pid);
@@ -129,6 +191,7 @@ public class TranslationCache {
             o.put("status", status);
             lines.put(key(pid, src, tgt), o.toString());
             dirty = true;
+            md5Index = null;
         } catch (Exception e) {
             LOG.e(e);
         }

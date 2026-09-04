@@ -1,0 +1,332 @@
+package com.foobnix.ai;
+
+import com.foobnix.android.utils.FileHash;
+import com.foobnix.android.utils.LOG;
+import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.ext.CacheZipUtils;
+import com.foobnix.ext.Fb2Extractor;
+import com.foobnix.sys.ArchiveEntry;
+import com.foobnix.sys.ZipArchiveInputStream;
+import com.foobnix.sys.Zips;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.zip.ZipOutputStream;
+
+/**
+ * Builds the "bilingual edition" of a text book for the in-page AI translate
+ * mode.
+ *
+ * Rendering in this app is native MuPDF layout of a (possibly pre-processed)
+ * epub: there is no per-page DOM to inject into, so the only way to get a
+ * translation to actually render inside the page is to append a translated
+ * block right after the source paragraph in the book content and re-layout.
+ * This class rewrites an epub-like file (base) into a new file where every
+ * paragraph whose cleaned text has a done translation in the cache is followed
+ * by
+ *
+ *     <p class="aitran">鈥ranslation鈥?/p>
+ *
+ * The .aitran user-CSS rule in BookCSS gives that block its distinct
+ * background. The output file name embeds a snapshot hash of the translated
+ * md5 set, so the MuPDF accelerator key (already content-versioned) is
+ * naturally invalidated/reused per version.
+ *
+ * Paragraphs are identified by md5 of their cleaned text only ("h<md5>" /
+ * TranslationCache.doneByTextHash) 鈥?stable across pid conventions and across
+ * reflows, and identical repeated text is translated once.
+ */
+public class BilingualBuilder {
+
+    /** One source paragraph of the base file. */
+    public static class Para {
+        public final String file;   // zip entry name inside the base epub
+        public final int ordinal;   // global paragraph order
+        public final String text;   // cleaned paragraph text
+        public final String md5;    // md5 of text
+
+        Para(String file, int ordinal, String text, String md5) {
+            this.file = file;
+            this.ordinal = ordinal;
+            this.text = text;
+            this.md5 = md5;
+        }
+    }
+
+    // The base file the reader actually opened in bilingual mode (the original
+    // book for epub, the txt鈫抏pub/fb2鈫抏pub cache for converted formats). Set on
+    // every successful build so a BilingualSession enumerates the exact same
+    // paragraphs the document was laid out from.
+    private static volatile String lastOriginalPath;
+    private static volatile String lastBasePath;
+
+    public static File baseFor(File originalBook) {
+        if (lastOriginalPath != null && lastBasePath != null
+                && lastOriginalPath.equals(originalBook == null ? null : originalBook.getPath())) {
+            return new File(lastBasePath);
+        }
+        return originalBook;
+    }
+
+    /** Deterministic output file for the current translated-md5 snapshot. */
+    private static File targetFile(File base, Map<String, String> done) {
+        StringBuilder key = new StringBuilder();
+        List<String> md5s = new ArrayList<String>(done.keySet());
+        Collections.sort(md5s);
+        for (String m : md5s) {
+            key.append(m);
+        }
+        String snap = FileHash.md5(key.toString());
+        if (snap != null && snap.length() > 12) {
+            snap = snap.substring(0, 12);
+        }
+        String name = base.getName();
+        int dot = name.lastIndexOf('.');
+        String noExt = dot > 0 ? name.substring(0, dot) : name;
+        File dir = CacheZipUtils.CACHE_TEMP != null ? CacheZipUtils.CACHE_TEMP : CacheZipUtils.CACHE_BOOK_DIR;
+        return new File(dir, noExt + "__bi_" + snap + ".epub");
+    }
+
+    /**
+     * Make sure the bilingual edition covering the given translated set exists
+     * and return it; null when there is nothing translated yet (caller should
+     * just open the base file) or when the base is not a rewritable epub.
+     */
+    public static synchronized File ensure(File originalBook, File base, TranslationCache cache,
+            String src, String tgt) {
+        if (base == null || !base.isFile() || cache == null) {
+            return null;
+        }
+        // Remember what the reader opened even when nothing is translated yet,
+        // so a session later enumerates the exact same paragraphs (txt/fb2 are
+        // opened through their converted epub cache, not the original file).
+        lastOriginalPath = originalBook == null ? null : originalBook.getPath();
+        lastBasePath = base.getPath();
+        Map<String, String> done = cache.doneByTextHash(src, tgt);
+        if (done.isEmpty()) {
+            LOG.d("BilingualBuilder", "no done translations, open base", base.getPath());
+            return null;
+        }
+        File out = targetFile(base, done);
+        if (out.isFile() && out.length() > 0) {
+            LOG.d("BilingualBuilder", "cached bilingual", out.getPath());
+            return out;
+        }
+        try {
+            build(base, done, out);
+            cleanOldVersions(base, out);
+            return out;
+        } catch (Throwable t) {
+            LOG.e(t);
+            android.util.Log.i("BENCH", "BilingualBuilder FAIL " + t.getClass().getName() + " " + t.getMessage());
+            return null;
+        }
+    }
+
+    private static void cleanOldVersions(File base, File keep) {
+        try {
+            File dir = keep.getParentFile();
+            if (dir == null) {
+                return;
+            }
+            String name = base.getName();
+            int dot = name.lastIndexOf('.');
+            String prefix = (dot > 0 ? name.substring(0, dot) : name) + "__bi_";
+            File[] files = dir.listFiles();
+            if (files == null) {
+                return;
+            }
+            for (File f : files) {
+                if (f.isFile() && f.getName().startsWith(prefix)
+                        && !f.getAbsolutePath().equals(keep.getAbsolutePath())) {
+                    f.delete();
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Enumerate all source paragraphs of a bilingual-capable base file. */
+    public static List<Para> enumerateParagraphs(File base) {
+        List<Para> out = new ArrayList<Para>();
+        if (base == null || !base.isFile()) {
+            return out;
+        }
+        try {
+            ZipArchiveInputStream in = Zips.buildZipArchiveInputStream(base.getPath());
+            try {
+                int ordinal = 0;
+                ArchiveEntry entry;
+                while ((entry = in.getNextEntry()) != null) {
+                    String name = entry.getName();
+                    if (!isHtmlEntry(name)) {
+                        continue;
+                    }
+                    String content = readAll(in);
+                    for (String text : splitParagraphs(content)) {
+                        String clean = clean(text);
+                        if (TxtUtils.isEmpty(clean)) {
+                            continue;
+                        }
+                        out.add(new Para(name, ordinal++, clean, FileHash.md5(clean)));
+                    }
+                }
+            } finally {
+                try {
+                    in.close();
+                } catch (Exception ignored) {
+                }
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+        return out;
+    }
+
+    private static boolean isHtmlEntry(String name) {
+        if (name == null) {
+            return false;
+        }
+        String low = name.toLowerCase(Locale.US);
+        return low.endsWith(".html") || low.endsWith(".htm") || low.endsWith(".xhtml");
+    }
+
+    /** Split an XHTML body into the text of its <p>...</p> paragraphs. */
+    private static List<String> splitParagraphs(String content) {
+        List<String> paras = new ArrayList<String>();
+        if (content == null || content.indexOf("<p") < 0) {
+            return paras;
+        }
+        java.util.regex.Matcher m = P_P.matcher(content);
+        while (m.find()) {
+            paras.add(m.group(1));
+        }
+        return paras;
+    }
+
+    private static final java.util.regex.Pattern P_P = java.util.regex.Pattern.compile(
+            "<p\\b[^>]*>(.*?)</p>", java.util.regex.Pattern.DOTALL);
+
+    /** Strip tags/entities and collapse whitespace (same semantics as AiTranslator.clean). */
+    public static String clean(String s) {
+        if (s == null) {
+            return "";
+        }
+        s = s.replaceAll("<[^>]*>", " ");
+        s = s.replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+                .replace("&quot;", "\"").replace("&#39;", "'").replace("&apos;", "'");
+        return s.replace('\u00a0', ' ').replaceAll("\\s+", " ").trim();
+    }
+
+    private static void build(File base, Map<String, String> done, File out) throws Exception {
+        long t0 = System.currentTimeMillis();
+        int files = 0, paras = 0, injected = 0;
+        try {
+            if (out.getParentFile() != null) {
+                out.getParentFile().mkdirs();
+            }
+            ZipArchiveInputStream in = Zips.buildZipArchiveInputStream(base.getPath());
+            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(out));
+            zos.setLevel(0);
+            try {
+                ArchiveEntry entry;
+                while ((entry = in.getNextEntry()) != null) {
+                    String name = entry.getName();
+                    byte[] data;
+                    if (isHtmlEntry(name)) {
+                        String content = new String(readAllBytes(in), "UTF-8");
+                        if (content.indexOf("<p") >= 0) {
+                            java.util.regex.Matcher m = P_P.matcher(content);
+                            StringBuilder sb = new StringBuilder(content.length() + 512);
+                            int last = 0;
+                            while (m.find()) {
+                                int start = m.start();
+                                sb.append(content, last, start);
+                                sb.append(m.group(0));
+                                last = m.end();
+                                paras++;
+                                String clean = clean(m.group(1));
+                                if (TxtUtils.isEmpty(clean)) {
+                                    continue;
+                                }
+                                String tran = done.get(FileHash.md5(clean));
+                                if (TxtUtils.isNotEmpty(tran)) {
+                                    sb.append("\n<p class=\"aitran\">").append(escape(tran)).append("</p>");
+                                    injected++;
+                                }
+                            }
+                            sb.append(content, last, content.length());
+                            data = sb.toString().getBytes("UTF-8");
+                            files++;
+                        } else {
+                            // no paragraphs: keep the entry byte-identical
+                            data = readAllBytes(in);
+                        }
+                    } else {
+                        data = readAllBytes(in);
+                    }
+                    writeStoredEntry(zos, name, data);
+                }
+            } finally {
+                try {
+                    in.close();
+                } catch (Exception ignored) {
+                }
+                zos.close();
+            }
+        } finally {
+            android.util.Log.i("BENCH", "BilingualBuilder build base=" + base.getPath() + " out=" + out.getName()
+                    + " files=" + files + " paras=" + paras + " injected=" + injected + " done=" + done.size()
+                    + " ms=" + (System.currentTimeMillis() - t0));
+        }
+    }
+
+    /**
+     * Write one STORED entry with its real size and CRC in the local header.
+     * MuPDF's epub reader chokes on streaming-encoded STORED entries (no size /
+     * CRC in the header): a bilingual edition produced that way lost the whole
+     * .aitran paragraphs when opened, while a zip with explicit sizes read fine.
+     */
+    private static void writeStoredEntry(ZipOutputStream zos, String name, byte[] data) throws Exception {
+        java.util.zip.ZipEntry ze = new java.util.zip.ZipEntry(name);
+        ze.setMethod(java.util.zip.ZipEntry.STORED);
+        ze.setSize(data.length);
+        java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(data);
+        ze.setCrc(crc.getValue());
+        zos.putNextEntry(ze);
+        zos.write(data);
+        zos.closeEntry();
+    }
+
+    private static byte[] readAllBytes(InputStream in) throws Exception {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) > 0) {
+            bos.write(buf, 0, n);
+        }
+        return bos.toByteArray();
+    }
+
+    private static String escape(String s) {
+        if (s == null) {
+            return "";
+        }
+        s = s.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').replaceAll("\\s+", " ").trim();
+        return TxtUtils.escapeHtml(s);
+    }
+
+    private static String readAll(InputStream in) throws Exception {
+        return new String(readAllBytes(in), "UTF-8");
+    }
+}

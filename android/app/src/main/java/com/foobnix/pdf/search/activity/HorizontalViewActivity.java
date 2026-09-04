@@ -48,6 +48,7 @@ import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
 import com.foobnix.ai.AiTranslateDialog;
 import com.foobnix.ai.AiTranslator;
+import com.foobnix.ai.BilingualSession;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Keyboards;
@@ -1598,6 +1599,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             dc.goToPageByTTS();
         }
 
+        attachBilingual();
+
         handler.removeCallbacks(closeRunnable);
         handlerTimer.post(updateTimePower);
 
@@ -1631,6 +1634,12 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             LOG.e(e);
         }
         handlerTimer.removeCallbacks(updateTimePower);
+        try {
+            // pause background AI translation while the reader is not visible
+            BilingualSession.pauseAllExcept(null);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
     }
 
     public synchronized void nextPage() {
@@ -1840,6 +1849,17 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                 }
             }
         });
+        attachBilingual();
+    }
+
+    /** AI in-page bilingual: (re)attach the per-book session when the mode is on for this book. */
+    private void attachBilingual() {
+        BilingualSession.attachForController(this, dc);
+    }
+
+    /** Feed the current page to the active bilingual session (cheap when idle). */
+    private void feedBilingualView() {
+        BilingualSession.feedForController(dc);
     }
 
     public void updateUI(int page) {
@@ -2634,6 +2654,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
             }
 
             LOG.d("onPageSelected", pos);
+
+            feedBilingualView();
 
             progressDraw.updateProgress(pos);
 

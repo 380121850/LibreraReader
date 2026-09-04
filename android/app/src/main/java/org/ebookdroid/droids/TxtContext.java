@@ -22,7 +22,7 @@ public class TxtContext extends PdfContext {
         try {
             if (AppState.get().isPreText) {
                 extractFile = TxtExtract.extract(fileName, CacheZipUtils.CACHE_BOOK_DIR.getPath());
-                return new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, extractFile, "");
+                return openTextDoc(fileName, extractFile, "");
             }
             // Single-pass txt → EPUB with one spine chapter per detected
             // chapter heading (the old txt→fb2→epub chain did two full passes
@@ -32,7 +32,7 @@ public class TxtContext extends PdfContext {
             throw new RuntimeException(e);
         }
 
-        final MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, extractFile, password);
+        final MuPdfDocument muPdfDocument = openTextDoc(fileName, extractFile, password);
         try {
             // Corruption probe: lay out only the first chapter (a full count
             // would force the whole-document layout and defeat fast-open).

@@ -82,7 +82,7 @@ EpubContext extends PdfContext {
 
         }
 
-        final MuPdfDocument muPdfDocument = new MuPdfDocument(this, MuPdfDocument.FORMAT_PDF, bookPath, password);
+        final MuPdfDocument muPdfDocument = openTextDoc(fileName, bookPath, password);
         muPdfDocument.cacheFilename = bookPath;
 
         if (notes != null) {

@@ -336,6 +336,20 @@ public class AppState {
     // persist AI translation results to a per-book JSONL cache (keyed by the
     // book content SHA-256) so re-translating hits the cache instead of the API
     public boolean isSaveAiTranslation = false;
+    // AI bilingual in-page mode: while aiBilingual is on and aiBilingualBook
+    // matches the book being opened, the text-book open chain (see
+    // BilingualBuilder) appends a translated block under every source
+    // paragraph that has a done translation cached, so translations are laid
+    // out inside the page (original on top, translation below, distinct
+    // background via the .aitran user-CSS rule). Only one book is active at a
+    // time; cleared when the user turns the mode off.
+    public boolean aiBilingual = false;
+    public String aiBilingualBook = "";
+    public String aiBilingualSrc = "";
+    public String aiBilingualTgt = "";
+    // default display mode preselected in the AI translate dialog:
+    // true = in-page bilingual, false = the legacy list panel
+    public boolean aiDefaultModeBilingual = true;
     public boolean opdsLargeCovers = true;
     public boolean createBookNameFolder = false;
     public String readColors = READ_COLORS_DEAFAUL;

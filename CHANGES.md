@@ -5,6 +5,55 @@
 
 ---
 
+
+## [2026-09-04] 修复：页内双语模式下译文不显示（页面仍只显示中文原文、无上下段）
+
+**问题**：开启「页内双语对照」后，页面仍只显示中文原文，看不到英文译文，也没有"原文在上、译文在下"的两段效果（背景色块在有译文的位置能看到，但块内没有文字）。
+
+**排查过程（实证定位）**：注入内容正确——解包双语版本书确认 `<p class="aitran">…英文译文…</p>` 正确紧跟各中文段；但设备端 MuPDF 渲染页的文本层（stext）里完全没有译文段，仅剩中文。用 Ubuntu 侧 mupdf 1.23.7 的 mutool 复现：单章"原样打包"能完整导出译文，而整本 Java 生成的双语 epub 打开后译文全部缺失；把同一份 Java 产物用 python 重新打包（STORED 条目在本地头写真实 size/CRC）后 mutool 导出全部正常 → 定位为 **zip 容器编码差异**，与内容、class、CSS、字体均无关。
+
+**根因**：`BilingualBuilder` 原来复用 `Fb2Extractor.writeToZipNoClose` 的流式写法（`ZipOutputStream` level0 + 不显式设置条目大小/CRC），生成的 STORED 条目本地头不含真实 size/CRC。MuPDF 的 epub zip 读取对这类条目产生错位，导致整本打开时 `.aitran` 段落文本在解析/布局阶段丢失（中文段仍在，页数却随空占位增长）。
+
+**修复**：`BilingualBuilder.build()` 改为先把每个条目读成全量字节再写，用 `writeStoredEntry()`：显式 `setMethod(STORED)` + `setSize(len)` + `setCrc(CRC32)`，本地头携带真实大小与校验，MuPDF 读取无歧义（附注释说明原因）。
+
+**验证**：1) mutool 全文导出修复后的双语 epub：4913 行，英文译文标记（wry smile / abortion / Little Zhuge / privacy 等）全部命中；2) MI9 真机重启后自动进入双语版，恢复位置 334/395，当前页文本层采样为中文原文与英文译文同页交错（如 `completely smashed and nothing happened between us, right?" 杨妮儿一脸得意地说：…`）；3) 截图像素分析：整页 19 个 #FDF2D8 背景译文带（y202~2126，带高 36~50px），带内文字像素密集渲染——"每段原文下紧跟带背景色的英文译文、上下两段"效果正常显示。
+
+
+## [2026-09-04] 新增：AI 翻译「页内双语对照」——译文直接渲染进书页（原文在上、译文在下、背景色区分），并按页后台预翻译
+
+**需求**：原 AI 翻译把译文全部堆在悬浮 TranslatePanel 列表里，与正文无关；改为（1）每段翻译完成后把译文就地排进书籍页面，形成"原文段在上、译文段在下"的两段版式，译文段背景色与原文不同；（2）当前页及前后几页的段落由后台线程持续预翻译，译文一到就触发合并刷新，翻到那一页时该页译文已渲染好，而不是等几页全部翻完一次性铺出来。
+
+**引擎约束与总体方案**：本项目文字书（epub/fb2/txt 等）正文不是 Java 拼 HTML 渲染，而是原生 MuPDF 按"屏宽×屏高×字号"整本重排成一页页位图（EpubContext 等预处理出缓存 epub → MuPdfDocument.openFile 注入 BookCSS.toCssString() 用户 CSS → 原生分页光栅）。Java 侧没有按页 DOM 可插、也没有单页增量排版接口，因此译文"排进书页"只能走**内容预注入 + 整书重排**范式：新增 BilingualBuilder 把每个已缓存译文的源段落后追加 <p class="aitran">译文</p> 生成"双语版本书"（文件名带译文集合快照哈希，MuPDF 加速缓存按内容版本化自动配套失效/复用），BookCSS 给 .aitran 加主题感知背景色规则（原生 html 排版支持块级 background-color，已在 C 源码 css-properties.h:155 / css-apply.c:1397 / html-layout.c:2308 核实）；新增 BilingualSession（单后台线程按当前页±N 对应源段窗口串行翻译、pid 去重、失败有限重试、3s 防抖合并 → 重建双语书 → restartActivity 原位重开、进度按百分比恢复）。段落 pid 统一为内容 md5（不再带 outline 章号，规避页残段/章号不一致），与旧列表模式缓存可互认（TranslationCache.doneByTextHash 忽略 ch 前缀按 _h<md5> 匹配）。
+
+**改动文件**：
+- 新增 com/foobnix/ai/BilingualBuilder.java：双语书生成器（逐章 <p> 段后注入 <p class="aitran">，其余条目原样拷贝）+ 源段枚举（供会话调度）。
+- 新增 com/foobnix/ai/BilingualSession.java：双语会话（窗口调度/串行翻译/缓存 upsert/防抖重建/宿主重启钩子），提供 attachForController/feedForController 供两种阅读模式统一接线。
+- com/foobnix/ai/TranslationCache.java：新增 doneByTextHash(src,tgt) 按内容 md5 索引（跨 pid 约定），save/lookup 加同步；双语模式会话内始终落盘该缓存（无论旧的"保存翻译结果"开关）。
+- com/foobnix/ai/AiTranslateDialog.java + res/layout/ai_translate_dialog.xml + strings：新增"在页面内显示译文（双语对照）"勾选（默认开，mobi/azw 等非 epub 链格式自动隐藏走列表）；本书双语激活时显示红色"关闭页内双语模式"按钮。
+- model/AppState.java：新增 aiBilingual / aiBilingualBook / aiBilingualSrc / aiBilingualTgt / aiDefaultModeBilingual（随 app-State.json 持久化，同一时刻仅一本书双语）。
+- pdf/info/model/BookCSS.java：toCssString() 末尾追加 .aitran{background-color:…; text-indent:0; padding:…}（日/夜两套底色，白天 #FDF2D8）。
+- org/ebookdroid/droids/mupdf/codec/PdfContext.java：新增 openTextDoc() 双语接入点（打开前先 BilingualBuilder.ensure 生成/复用双语文件）；EpubContext/Fb2Context/TxtContext/HtmlContext 构造 MuPdfDocument 处统一改走该方法（翻页与竖滑两种阅读引擎都经同一 Context 链，自动同时生效）。
+- HorizontalViewActivity.java（翻页模式）与 pdf/info/wrapper/DocumentWrapperUI.java（竖滑/共享工具栏）：onResume/initAsync 挂会话、翻页/updateUI 上报当前页、onPause 暂停后台翻译。
+
+**验证（MI9 真机，pro 包，BENCH 日志 + 截图像素）**：开启后重启进入双语模式 → BilingualSession paras total=466 枚举源段、窗口入队并串行请求（约 17~36s/段，失败自动重试）→ 每段落位 3s 防抖后 BilingualBuilder build injected=N（与缓存 done 一致，重复段落文本去重）→ 自动 restartActivity 打开新的 __bi_<hash>.epub（页数随注入增长，进度保持原位）→ 屏幕截图像素分析：约 10.2 万个 #FDF2D8 色块像素（多行带）确认译文块带背景渲染在页面内。关闭按钮：回到原版、会话停止、无双语打开日志。译文缓存已落盘（profile.HowRead/device.MI_9/ai-translation/<书sha>.jsonl），下次开启命中缓存免 API。
+
+**说明/边界**：页内双语为"重排式"——译文按阅读窗口渐进出现，双语期间页数与原文版不同（与改字号同理，进度按百分比恢复）；仅走 epub 链的书支持页内双语（mobi/azw 直开原生，仅列表模式）；每次新译文落位伴随一次短暂后台重建+重开（约 1s，已用 3s 防抖合并减少频次）；鸿蒙工程零改动，未执行任何 git 命令。
+
+
+## [2026-09-04] 修复：偏好设置"字体大小"选 +7 变大后，再选"正常"切不回正常字号
+
+**问题**：设置→UI配置→主题配置→"字体大小"弹窗里先选"增大(+7)"（全局字号变大，重启后生效），之后在同一弹窗选"正常"无法恢复——界面字号仍是 +7 大小。"正常"与 +7 走的是同一条代码路径（`PrefFragment2` 弹窗 → `BookCSS.appFontScale = 1.0f/1.7f` → `onTheme()` 保存并整 Activity 重启），所以不是选项本身的问题。
+
+**根因**（`BookCSS.java` + `IO.java`）：`onTheme()` 先 `AppProfile.save()`（其中 `BookCSS.save()` 经 `IO.writeObj` **异步入队**到单线程池，且排在更早入队的 PasswordState/AppState 写入之后），随即 `clear() + finish() + 重启 MainTabs2`；新 Activity 在 `attachBaseContext → AppProfile.init → BookCSS.load1` 里**同步读 app-CSS.json** 决定最终字号。于是"重启同步读盘"与"异步写盘"形成竞态：重启经常抢在写盘落盘前读到旧值（1.7f），并被 `IO.readString` 的单槽读缓存把旧内容回灌进内存 —— 字号切换（尤其从非默认切回"正常"）表现为"没生效"。+7 能生效只是那次写盘恰好赶上了读取。
+
+**修复**：
+1. `BookCSS.save()` 的 `IO.writeObj(...)` 改为 `IO.writeObjSync(...)`（同步落盘，带注释说明）。app-CSS.json 体积小且 hash 门槛只在样式真正变化时才写，主线程同步写开销可忽略；对全部走 `onTheme()` 的流程（字体/主题/配色等）一并消除该竞态。
+2. `MyContextWrapper.wrap()` 的 `appFontScale == 1.0f` 精确比较改为容差判断（`|scale-1.0f| < 1e-3f`），避免 float 精确比较的脆弱性。
+
+**验证（MI9 真机，pro 包 `com.howread.reader.pro`）**：构建 `:app:assembleProDebug` BUILD SUCCESSFUL。设置→字体大小 反复切换：+7 → 重启后字号变大、`app-CSS.json` 中 `appFontScale` 为 1.7；再选"正常" → 字号恢复、行标签显示"正常"、JSON 为 1.0；+7↔正常 多次来回均即时生效、无残留大号。主题配色/日夜间切换回归正常。鸿蒙零改动。
+
+---
+
 ## [2026-09-04] 新增：阅读界面 AI 翻译（EPUB/TXT/MOBI/AZW3 逐段翻译 + 覆盖面板 + 可选缓存）
 
 **功能**：阅读页工具栏的"替换文本"按钮改为"AI 翻译"。点击后弹出语言选择对话框（源语言自动识别、可改；目标语言限 英文/中文/日文），确认后在页面右侧（横屏）/底部（竖屏）叠加一个可滚动译文面板，把当前页 ±（前 1 页、后 3 页）的正文**逐段**发给已配置的大模型翻译，增量刷新面板。可选"AI翻译结果保存"（偏好页新增 CheckBox），开启后按书 SHA-256 落 JSONL 缓存（`SYNC_FOLDER_DEVICE_PROFILE/ai-translation/<sha256>.jsonl`），重翻命中缓存不再调用 AI。不支持的格式（PDF 等无文本层）按钮置灰不可点。

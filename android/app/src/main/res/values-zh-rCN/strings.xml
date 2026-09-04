@@ -846,6 +846,9 @@
    <string name="ai_translate_unsupported_format">仅支持 EPUB、TXT、MOBI、AZW3 格式书籍翻译</string>
    <string name="ai_translate_same_lang">源语言与目标语言相同</string>
    <string name="ai_translate_failed">翻译失败</string>
+  <string name="ai_translate_mode_bilingual">在页面内显示译文（双语对照）</string>
+  <string name="ai_translate_off_bilingual">关闭页内双语模式</string>
+  <string name="ai_translate_bilingual_unsupported">页内双语模式仅支持 EPUB、TXT 格式</string>
    <string name="lang_english">英文</string>
    <string name="lang_chinese">中文</string>
    <string name="lang_japanese">日文</string>

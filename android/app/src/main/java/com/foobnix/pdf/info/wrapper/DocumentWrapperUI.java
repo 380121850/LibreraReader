@@ -32,6 +32,7 @@ import androidx.core.graphics.ColorUtils;
 
 import com.foobnix.ai.AiTranslateDialog;
 import com.foobnix.ai.AiTranslator;
+import com.foobnix.ai.BilingualSession;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.IntegerResponse;
@@ -761,6 +762,8 @@ public class DocumentWrapperUI {
         //hideShowAnnotationLine();
         final int max = dc.getPageCount();
         final int current = dc.getCurentPage();
+
+        BilingualSession.feedForController(dc);
 
         updateSpeedLabel();
 
@@ -2124,6 +2127,7 @@ public class DocumentWrapperUI {
         handlerTimer.post(updateTimePower);
 
         if (dc != null) {
+            BilingualSession.attachForController(a, dc);
             dc.goToPageByTTS();
         }
 
@@ -2136,6 +2140,7 @@ public class DocumentWrapperUI {
     public void onPause() {
         LOG.d("DocumentWrapperUI", "onPause");
         handlerTimer.removeCallbacks(updateTimePower);
+        BilingualSession.pauseAllExcept(null);
     }
 
     public View.OnClickListener onPrefTop = new View.OnClickListener() {
