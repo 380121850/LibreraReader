@@ -79,8 +79,19 @@ public class AiTranslateDialog {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         srcSpinner.setAdapter(adapter);
         tgtSpinner.setAdapter(adapter);
-        // default target: Chinese (the common case for this app's users)
-        tgtSpinner.setSelection(1);
+        // restore the last used configuration; fall back to the previous
+        // defaults (source auto-detect below, target Chinese) when nothing
+        // was saved yet
+        final String savedSrc = AppState.get().aiBilingualSrc;
+        final String savedTgt = AppState.get().aiBilingualTgt;
+        final boolean hasSavedSrc = isValidCode(savedSrc);
+        final boolean hasSavedTgt = isValidCode(savedTgt);
+        if (hasSavedTgt) {
+            tgtSpinner.setSelection(indexOf(savedTgt));
+        } else {
+            // default target: Chinese (the common case for this app's users)
+            tgtSpinner.setSelection(1);
+        }
 
         // Use AlertDialog (like AiConfigDialog / WebDavSyncDialog) rather than a
         // bare Dialog: a bare Dialog sizes to wrap_content, which is only as wide
@@ -102,7 +113,9 @@ public class AiTranslateDialog {
                 modeBox.setChecked(false);
                 modeBox.setVisibility(View.GONE);
             } else {
-                modeBox.setChecked(AppState.get().aiDefaultModeBilingual);
+                // bilingual is opt-in: the checkbox is never pre-selected,
+                // the user turns it on explicitly each time
+                modeBox.setChecked(false);
             }
         }
         if (offView != null) {
@@ -119,27 +132,32 @@ public class AiTranslateDialog {
             });
         }
 
-        // detect the source language in the background (metadata, then sampling)
-        new Thread(new Runnable() {
-            @Override public void run() {
-                String detected = LanguageDetector.EN;
-                try {
-                    FileMeta meta = AppDB.get().getOrCreate(book.getPath());
-                    List<String> samples = samplePages(dc);
-                    detected = LanguageDetector.detect(meta, samples);
-                } catch (Throwable t) {
-                    // keep the default
-                }
-                final int idx = indexOf(detected);
-                a.runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        if (dialog.isShowing()) {
-                            srcSpinner.setSelection(idx);
-                        }
+        // detect the source language in the background (metadata, then sampling);
+        // skipped when the user already has a saved source language
+        if (!hasSavedSrc) {
+            new Thread(new Runnable() {
+                @Override public void run() {
+                    String detected = LanguageDetector.EN;
+                    try {
+                        FileMeta meta = AppDB.get().getOrCreate(book.getPath());
+                        List<String> samples = samplePages(dc);
+                        detected = LanguageDetector.detect(meta, samples);
+                    } catch (Throwable t) {
+                        // keep the default
                     }
-                });
-            }
-        }, "AiLangDetect").start();
+                    final int idx = indexOf(detected);
+                    a.runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            if (dialog.isShowing()) {
+                                srcSpinner.setSelection(idx);
+                            }
+                        }
+                    });
+                }
+            }, "AiLangDetect").start();
+        } else {
+            srcSpinner.setSelection(indexOf(savedSrc));
+        }
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
@@ -156,11 +174,14 @@ public class AiTranslateDialog {
                     return;
                 }
                 boolean bilingual = modeBox != null && bilingualPossible && modeBox.isChecked();
-                AppState.get().aiDefaultModeBilingual = bilingual;
+                // remember the language pair so the dialog re-opens with it
+                AppState.get().aiBilingualSrc = src;
+                AppState.get().aiBilingualTgt = tgt;
                 dialog.dismiss();
                 if (bilingual) {
                     startBilingual(a, dc, src, tgt);
                 } else {
+                    AppProfile.save(a);
                     startTranslation(a, dc, src, tgt);
                 }
             }
@@ -182,6 +203,8 @@ public class AiTranslateDialog {
         AppProfile.save(a);
         android.util.Log.i("BENCH", "AiTranslateDialog enable bilingual book=" + path
                 + " src=" + src + " tgt=" + tgt);
+        // programmatic restart: keep the mode on across the activity re-create
+        BilingualSession.suppressExitOnDestroy = true;
         // re-open the book: the context chain now opens (or builds) the
         // bilingual edition and the activity attaches a BilingualSession
         dc.restartActivity();
@@ -194,6 +217,15 @@ public class AiTranslateDialog {
             }
         }
         return 0;
+    }
+
+    private static boolean isValidCode(String code) {
+        for (String c : CODES) {
+            if (c.equals(code)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** First few pages' text, for the language-detection fallback. */

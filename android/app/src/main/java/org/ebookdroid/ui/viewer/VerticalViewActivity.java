@@ -355,6 +355,9 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     protected void onDestroy() {
         TempHolder.readerActive = false;
         android.util.Log.i("BENCH", "VV onDestroy");
+        // leaving the reader also leaves the in-page bilingual mode, so the
+        // next session starts from the base book
+        com.foobnix.ai.BilingualSession.exitOnReaderDestroy(this);
         FirstPaintGate.cancel();
         try {
             getController().cancelPhase2();

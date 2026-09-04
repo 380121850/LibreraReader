@@ -12,6 +12,7 @@ import com.foobnix.pdf.info.wrapper.DocumentController;
 
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,8 @@ public class BilingualSession {
     // page window around the current reading position
     private static final int BACK_PAGES = 3;
     private static final int AHEAD_PAGES = 10;
+    // paragraphs sent to the AI in one request
+    private static final int BATCH_SIZE = 5;
     // merge window for rebuilds triggered by finished paragraphs
     private static final long REBUILD_DEBOUNCE_MS = 3000;
 
@@ -85,6 +88,42 @@ public class BilingualSession {
         BilingualSession s = SESSIONS.remove(bookPath);
         if (s != null) {
             s.dispose();
+        }
+    }
+
+    /**
+     * One-shot suppression for {@link #exitOnReaderDestroy}: set right before
+     * a PROGRAMMATIC restart that keeps the bilingual mode (enable-restart,
+     * silent vertical reload, in-place-reload fallback), because those also
+     * destroy the reader activity.
+     */
+    public static volatile boolean suppressExitOnDestroy = false;
+
+    /**
+     * Called from the readers' onDestroy: leaving the reader (a real finish,
+     * not a programmatic bilingual restart) also turns the in-page bilingual
+     * mode off, so the next session starts from the base book.
+     */
+    public static void exitOnReaderDestroy(Activity activity) {
+        try {
+            if (suppressExitOnDestroy) {
+                suppressExitOnDestroy = false;
+                return;
+            }
+            if (activity == null || !activity.isFinishing()) {
+                return;
+            }
+            AppState st = AppState.get();
+            if (!st.aiBilingual) {
+                return;
+            }
+            android.util.Log.i("BENCH", "BilingualSession reader exited -> mode off book=" + st.aiBilingualBook);
+            stop(st.aiBilingualBook);
+            st.aiBilingual = false;
+            st.aiBilingualBook = "";
+            com.foobnix.model.AppProfile.save(activity);
+        } catch (Throwable t) {
+            LOG.e(t);
         }
     }
 
@@ -213,6 +252,7 @@ public class BilingualSession {
 
             @Override public void requestRestart() {
                 if (dc != null) {
+                    suppressExitOnDestroy = true;
                     dc.restartActivity();
                 }
             }
@@ -244,12 +284,14 @@ public class BilingualSession {
             if (activity instanceof com.foobnix.pdf.search.activity.HorizontalViewActivity) {
                 ((com.foobnix.pdf.search.activity.HorizontalViewActivity) activity).reloadBilingualInPlace();
             } else if (dc != null) {
+                suppressExitOnDestroy = true;
                 dc.restartActivitySilently(page0, anchorMd5);
             }
         } catch (Throwable t) {
             LOG.e(t);
             try {
                 if (dc != null) {
+                    suppressExitOnDestroy = true;
                     dc.restartActivity();
                 }
             } catch (Throwable t2) {
@@ -303,6 +345,8 @@ public class BilingualSession {
 
     private int lastPage0 = -1;
     private int lastPageCount = 0;
+    // the page previously fed via onView (to detect jumps and re-prioritize)
+    private int lastFedPage0 = -1;
 
     // top paragraph md5 of the current page, used to re-land after a rebuild
     private volatile String anchorMd5;
@@ -317,10 +361,26 @@ public class BilingualSession {
 
     private final Runnable rebuildRunnable = new Runnable() {
         @Override public void run() {
+            rebuildScheduled = false;
+            // only merge (rebuild + reload) when the CURRENT page actually
+            // gained translations; background-only progress must not refresh
+            // the page the user is reading (no periodic flashing)
+            if (!needsRefreshForCurrentPage()) {
+                android.util.Log.i("BENCH", "BilingualSession rebuild skipped: current page has no new translations");
+                return;
+            }
             rebuild();
         }
     };
     private boolean rebuildScheduled = false;
+
+    // delayed re-check of the bottom hint: shows "正在翻译中…" shortly after
+    // the user parks on a page, without needing a tap
+    private final Runnable hintRecheckRunnable = new Runnable() {
+        @Override public void run() {
+            updateHint();
+        }
+    };
 
     private BilingualSession(File book, String src, String tgt) {
         this.book = book;
@@ -391,8 +451,32 @@ public class BilingualSession {
 
     /** Reader position changed: recompute the translation window. page = 0-based. */
     public void onView(int page0, int pageCount) {
+        final boolean jumped = page0 != lastFedPage0;
+        lastFedPage0 = page0;
         lastPage0 = page0;
         lastPageCount = pageCount;
+        // show/refresh the "正在翻译中…" hint shortly after the user stops
+        // flipping, regardless of taps
+        ui.removeCallbacks(hintRecheckRunnable);
+        ui.postDelayed(hintRecheckRunnable, 500);
+        if (jumped && page0 >= 0) {
+            // the reader moved to a different page: drop everything not yet
+            // started so the new position is translated first (an in-flight
+            // request cannot be cancelled and keeps running)
+            synchronized (queue) {
+                if (!queue.isEmpty()) {
+                    int dropped = 0;
+                    for (String m : queue) {
+                        pending.remove(m);
+                        dropped++;
+                    }
+                    queue.clear();
+                    queued.clear();
+                    android.util.Log.i("BENCH", "BilingualSession jump to page=" + page0
+                            + " -> queue re-prioritized, dropped=" + dropped);
+                }
+            }
+        }
         if (paras == null) {
             // first enumeration reads the whole base file: do it off the UI
             if (ensuring.compareAndSet(false, true)) {
@@ -519,7 +603,7 @@ public class BilingualSession {
 
     private void workerLoop() {
         while (!stopped.get()) {
-            String md5 = null;
+            List<String> batch = new ArrayList<String>();
             synchronized (workerLock) {
                 if (!active.get()) {
                     try {
@@ -531,13 +615,17 @@ public class BilingualSession {
                 }
             }
             synchronized (queue) {
-                md5 = queue.pollFirst();
-                if (md5 != null) {
+                while (batch.size() < BATCH_SIZE) {
+                    String md5 = queue.pollFirst();
+                    if (md5 == null) {
+                        break;
+                    }
                     queued.remove(md5);
                     pending.remove(md5);
+                    batch.add(md5);
                 }
             }
-            if (md5 == null) {
+            if (batch.isEmpty()) {
                 try {
                     synchronized (workerLock) {
                         if (!stopped.get() && queue.isEmpty()) {
@@ -550,11 +638,14 @@ public class BilingualSession {
                 continue;
             }
             if (!active.get() || host == null) {
-                // paused (activity restarting/detached): keep the item, wait
+                // paused (activity restarting/detached): keep the items, wait
                 synchronized (queue) {
-                    queue.addFirst(md5);
-                    queued.add(md5);
-                    pending.add(md5);
+                    for (int i = batch.size() - 1; i >= 0; i--) {
+                        String md5 = batch.get(i);
+                        queue.addFirst(md5);
+                        queued.add(md5);
+                        pending.add(md5);
+                    }
                 }
                 try {
                     synchronized (workerLock) {
@@ -567,18 +658,173 @@ public class BilingualSession {
                 }
                 continue;
             }
-            translateOne(md5);
+            translateBatch(batch);
         }
     }
 
-    private void translateOne(final String md5) {
-        final BilingualBuilder.Para p;
+    /** Send up to {@link #BATCH_SIZE} paragraphs in ONE AI request; falls back to per-paragraph on any mismatch. */
+    private void translateBatch(final List<String> md5s) {
+        final List<BilingualBuilder.Para> ps = new ArrayList<BilingualBuilder.Para>();
         synchronized (this) {
             if (paraByMd5 == null) {
                 return;
             }
-            p = paraByMd5.get(md5);
+            for (String md5 : md5s) {
+                BilingualBuilder.Para p = paraByMd5.get(md5);
+                if (p != null && !TxtUtils.isEmpty(p.text)) {
+                    ps.add(p);
+                }
+            }
         }
+        if (ps.isEmpty()) {
+            return;
+        }
+        // drop paragraphs that are already translated (cache hit)
+        Map<String, String> done = cache.doneByTextHash(src, tgt);
+        for (int i = ps.size() - 1; i >= 0; i--) {
+            if (done.containsKey(ps.get(i).md5)) {
+                android.util.Log.i("BENCH", "BilingualSession " + ps.get(i).md5 + " cache HIT");
+                onParagraphDone(ps.get(i).md5, false);
+                ps.remove(i);
+            }
+        }
+        if (ps.isEmpty()) {
+            return;
+        }
+        for (BilingualBuilder.Para p : ps) {
+            inFlight.add(p.md5);
+        }
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < ps.size(); i++) {
+                sb.append("【").append(i + 1).append("】").append(ps.get(i).text).append("\n\n");
+            }
+            String suffix = "请把上面编号的" + ps.size() + "个段落逐段翻译成" + AiTranslator.targetLangName(tgt)
+                    + "。要求：不要思考、不要分析、不要解释，仅输出译文；必须保持编号，"
+                    + "每段译文单独一段，格式为【编号】译文，编号顺序与输入一致，不要合并或拆分段落。";
+            String prompt = sb.toString() + suffix;
+            StringBuilder ordLog = new StringBuilder();
+            for (BilingualBuilder.Para p : ps) {
+                if (ordLog.length() > 0) {
+                    ordLog.append(',');
+                }
+                ordLog.append(p.ordinal);
+            }
+            android.util.Log.i("BENCH", "BilingualBatch ask n=" + ps.size() + " ords=[" + ordLog + "] len="
+                    + prompt.length());
+            long t0 = System.currentTimeMillis();
+            AiClient.TestResult res = AiClient.ask(host == null ? null : host.getAppContext(), prompt);
+            android.util.Log.i("BENCH", "BilingualBatch res ok=" + res.ok + " ms="
+                    + (System.currentTimeMillis() - t0) + " err=" + res.error + " detail=" + head(res.detail, 200)
+                    + " reply=" + (res.reply == null ? -1 : res.reply.length()) + " truncated=" + res.truncated);
+            if (res.ok && !res.truncated && TxtUtils.isNotEmpty(res.reply)) {
+                String[] parts = splitNumbered(res.reply, ps.size());
+                if (parts != null) {
+                    boolean allSaved = true;
+                    for (int i = 0; i < ps.size(); i++) {
+                        String tran = parts[i] == null ? null : parts[i].trim();
+                        if (TxtUtils.isEmpty(tran)) {
+                            allSaved = false;
+                            break;
+                        }
+                    }
+                    if (allSaved) {
+                        for (int i = 0; i < ps.size(); i++) {
+                            cache.save("h" + ps.get(i).md5, src, tgt, ps.get(i).text, parts[i].trim(), "done");
+                        }
+                        cache.flush();
+                        for (int i = 0; i < ps.size(); i++) {
+                            onParagraphDone(ps.get(i).md5, true);
+                        }
+                        return;
+                    }
+                }
+                android.util.Log.i("BENCH", "BilingualBatch parse mismatch n=" + ps.size() + " head="
+                        + head(res.reply, 600));
+            }
+            // request failed / truncated / reply did not split cleanly:
+            // translate the batch paragraph-by-paragraph (each with its own
+            // bounded retry), so no paragraph is lost
+            for (BilingualBuilder.Para p : ps) {
+                translateOne(p.md5, p, res.ok ? "parse" : res.error);
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        } finally {
+            for (BilingualBuilder.Para p : ps) {
+                inFlight.remove(p.md5);
+            }
+        }
+    }
+
+    /**
+     * Split a numbered reply into {@code n} segments. Accepts the requested
+     * "【1】…" format and common variants ("1." / "1、" / "[1]" / "1)"). Each
+     * parsed segment must be non-empty, otherwise null is returned (the caller
+     * falls back to per-paragraph translation).
+     */
+    private static String[] splitNumbered(String reply, int n) {
+        try {
+            if (reply == null || n <= 0) {
+                return null;
+            }
+            String[] out = new String[n];
+            // "【N】" markers, if the reply uses them at all; otherwise fall
+            // back to "N." / "N、" / "[N]" / "N)" at line starts
+            String pattern = reply.contains("【")
+                    ? "【\\s*(\\d+)\\s*】"
+                    : "(?m)^\\s*(?:\\[(\\d+)\\]|(\\d+)\\s*[.、．)）])\\s*";
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(reply);
+            List<Integer> nums = new ArrayList<Integer>(); // paragraph number of each marker
+            List<Integer> body = new ArrayList<Integer>(); // reply offset just after the marker
+            while (m.find()) {
+                String g = m.group(1) != null ? m.group(1) : m.group(2);
+                nums.add(Integer.parseInt(g));
+                body.add(m.end());
+            }
+            if (nums.isEmpty()) {
+                return null;
+            }
+            for (int i = 0; i < nums.size(); i++) {
+                int num = nums.get(i);
+                if (num < 1 || num > n) {
+                    continue;
+                }
+                int end = i + 1 < nums.size() ? lineStartOf(reply, body.get(i + 1)) : reply.length();
+                String seg = reply.substring(Math.min(body.get(i), reply.length()),
+                        Math.min(end, reply.length()));
+                out[num - 1] = out[num - 1] == null ? seg : out[num - 1] + seg;
+            }
+            for (int i = 0; i < n; i++) {
+                if (out[i] == null || out[i].trim().length() == 0) {
+                    return null;
+                }
+            }
+            return out;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return null;
+        }
+    }
+
+    private static int lineStartOf(String s, int pos) {
+        int i = pos - 1;
+        while (i >= 0 && s.charAt(i) != '\n') {
+            i--;
+        }
+        return i + 1;
+    }
+
+    private static String head(String s, int n) {
+        if (s == null) {
+            return "";
+        }
+        String t = s.replace('\n', '|');
+        return t.length() <= n ? t : t.substring(0, n);
+    }
+
+    /** Single-paragraph translation (fallback path), same retry rules as before. */
+    private void translateOne(final String md5, final BilingualBuilder.Para p, final String prevErr) {
         if (p == null || TxtUtils.isEmpty(p.text)) {
             return;
         }
@@ -590,44 +836,48 @@ public class BilingualSession {
                 return;
             }
             String suffix = "请把这段文字翻译成" + AiTranslator.targetLangName(tgt)
-                    + "，不要启用思考过程，直接回复翻译内容";
+                    + "，不要思考、不要分析、不要解释，直接回复翻译内容";
             String prompt = p.text + "\n\n" + suffix;
             android.util.Log.i("BENCH", "BilingualSession " + md5 + " AI ask ord=" + p.ordinal
                     + " len=" + p.text.length());
             long t0 = System.currentTimeMillis();
             AiClient.TestResult res = AiClient.ask(host == null ? null : host.getAppContext(), prompt);
             android.util.Log.i("BENCH", "BilingualSession " + md5 + " AI res ok=" + res.ok + " ms="
-                    + (System.currentTimeMillis() - t0) + " err=" + res.error + " reply="
-                    + (res.reply == null ? -1 : res.reply.length()));
+                    + (System.currentTimeMillis() - t0) + " err=" + res.error + " detail=" + head(res.detail, 200)
+                    + " reply=" + (res.reply == null ? -1 : res.reply.length()));
             if (res.ok && TxtUtils.isNotEmpty(res.reply)) {
                 cache.save("h" + md5, src, tgt, p.text, res.reply.trim(), "done");
                 cache.flush();
                 onParagraphDone(md5, true);
                 return;
             }
-            // failure: retry a bounded number of times, tail of the queue
-            Integer n = attempts.get(md5);
-            int attempt = n == null ? 0 : n;
-            attempts.put(md5, attempt + 1);
-            if (attempt < 2) {
-                synchronized (queue) {
-                    if (!pending.contains(md5) && !queued.contains(md5)) {
-                        pending.add(md5);
-                        queued.add(md5);
-                        queue.addLast(md5);
-                    }
-                }
-                android.util.Log.i("BENCH", "BilingualSession " + md5 + " retry attempt=" + attempt);
-            } else {
-                synchronized (queue) {
-                    failed.add(md5);
-                }
-                android.util.Log.i("BENCH", "BilingualSession " + md5 + " FAILED err=" + res.error);
-            }
+            noteFailure(md5, res == null ? prevErr : res.error);
         } catch (Throwable t) {
             LOG.e(t);
         } finally {
             inFlight.remove(md5);
+        }
+    }
+
+    /** Bounded retry bookkeeping shared by the batch and single paths. */
+    private void noteFailure(final String md5, final String err) {
+        Integer n = attempts.get(md5);
+        int attempt = n == null ? 0 : n;
+        attempts.put(md5, attempt + 1);
+        if (attempt < 2) {
+            synchronized (queue) {
+                if (!pending.contains(md5) && !queued.contains(md5)) {
+                    pending.add(md5);
+                    queued.add(md5);
+                    queue.addLast(md5);
+                }
+            }
+            android.util.Log.i("BENCH", "BilingualSession " + md5 + " retry attempt=" + attempt);
+        } else {
+            synchronized (queue) {
+                failed.add(md5);
+            }
+            android.util.Log.i("BENCH", "BilingualSession " + md5 + " FAILED err=" + err);
         }
     }
 

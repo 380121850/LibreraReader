@@ -1552,6 +1552,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity implements Bilin
     @Override
     protected void onDestroy() {
         com.foobnix.sys.TempHolder.readerActive = false;
+        // leaving the reader also leaves the in-page bilingual mode, so the
+        // next session starts from the base book
+        BilingualSession.exitOnReaderDestroy(this);
         super.onDestroy();
 
         if (loadinAsyncTask != null) {
@@ -1976,6 +1979,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity implements Bilin
     private void fallbackRestart() {
         try {
             if (dc != null) {
+                // programmatic bilingual restart: keep the mode on
+                BilingualSession.suppressExitOnDestroy = true;
                 dc.restartActivity();
             }
         } catch (Throwable t) {

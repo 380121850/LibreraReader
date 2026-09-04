@@ -5,7 +5,22 @@
 
 ---
 
-## [2026-09-05] 优化：页内双语刷新改"原位静默合入"（消除当前页不断闪现）、翻译窗口按页（当前页优先、往后10页/往前3页）、未译完页面底部显示"正在翻译中"
+## [2026-09-05] 修复与优化：双语跳页后当前页优先翻译、停留只提示不刷新、退出阅读页自动退出双语、AI对话框记住语言配置且双语默认不勾选、5段批量翻译提效
+
+**需求**：①"正在翻译中..."提示只在单击时出现，应停靠未译页即提示；跳到书中间未译页一直显示翻译中、页面定时刷新但没有英文；②优先翻译当前页；③退出阅读页时若在双语模式则同时退出双语；④重新打开 AI 翻译对话框应回显上次配置（此前中文→英文再打开仍显示中文→中文）；⑤开启 AI 翻译时"双语对照"默认不选中；⑥逐段请求 AI 效率低，改为约5段一批（AI 按段编号翻译、不思考不分析仅译文），提高效率。
+
+**根因**：跳页后旧位置已入队段落仍占队列前部（`enqueuePageRange` 只 `addLast` 从不重排），当前页段落被压后迟迟译不到（单线程串行），表现为"一直翻译中"；且每段落译完都触发 3s 防抖重建+原位重载，即"定时刷新页面"。提示只挂在翻页事件路径。对话框目标语言硬编码 `setSelection(1)`（中文），从不读已保存的 `aiBilingualSrc/aiBilingualTgt`。
+
+**改动**：
+- `com/foobnix/ai/BilingualSession.java`：`onView` 检测页码变化时在 queue 锁内**清空未开翻队列**（pending/queued 同步清理，inFlight 不动）再按"当前页 span → 后10页 → 前3页"重新入队，跳页后当前页最先翻译；`onParagraphDone` 的 3s 防抖重建触发时先检查 `needsRefreshForCurrentPage()`，当前页没有"已译未合入"段落就跳过重建（BENCH: `rebuild skipped`），只有当前页译文到位才原位合入一次，消除停留时的周期性刷新；`onView` 增加 500ms 延迟 `updateHint()` 重查，快速翻页停下后提示可靠出现（不拦翻页）；**5 段批量翻译**：workerLoop 一次从队首取最多 5 段（先剔除缓存命中）合并一次 `AiClient.ask`，提示词要求逐段编号（【1】…【2】…）、不思考/不分析/不解释、仅输出译文；`splitNumbered()` 按编号切分（兼容 1./1、/[N]/N) 变体），逐段按原 `h<md5>` 键写入 TranslationCache + 一次 flush + 逐段 onParagraphDone；请求失败/截断/切分段数不符时降级逐段翻译（保留原 attempts 有限重试→failed），不丢段；新增 `exitOnReaderDestroy()`（阅读页真实退出即 stop 会话并清 `aiBilingual/aiBilingualBook` + AppProfile.save）与一次性 `suppressExitOnDestroy`（程序化重启——开启双语的 restart、竖滑静默重载、原位重载兜底——不误关模式）；失败日志补充 `res.detail`（定位到 GLM 内容过滤 1301 拦截问题）。
+- `com/foobnix/ai/AiTranslateDialog.java`：打开时若已保存过语言则回显 `aiBilingualSrc/aiBilingualTgt`（新增 `isValidCode` 校验），有已存源语言时跳过自动检测线程；"双语对照"勾选框**每次打开一律不选中**（双语改纯手动开启，不再读/写 `aiDefaultModeBilingual`）；列表模式启动也持久化语言对。
+- `com/foobnix/model/AppState.java`：`aiDefaultModeBilingual` 默认改 false 并标注为遗留字段（仅兼容旧 app-State.json）。
+- `HorizontalViewActivity.java` / `VerticalViewActivity.java`：`onDestroy` 调用 `BilingualSession.exitOnReaderDestroy(this)`；Horizontal 的 `fallbackRestart()` 与 Dialog 的 `startBilingual` 设置抑制标志。
+- `res/layout/activity_horiziontal_view.xml` / `activity_vertical_view.xml`："正在翻译中..."提示改为 `alignParentBottom + marginBottom=55dp`（原 `layout_above bottomBar` 锚点在工具栏收起时失效，提示跑到页面顶部）。
+
+**验证（MI9 真机 pro 包，BENCH 日志 + 截图）**：对话框打开回显 中文→英文、双语勾选默认不选中 ✓；跳页（118→199/208/399）后 `onView` 立即按新窗口入队且首批批量 ords 全在当前页 span 内（当前页优先）✓；停留期间只有 `rebuild skipped`、无周期性 BilingualReload（消除定时刷新）✓；《没有人给他写信的上校》开启后批量 `n=5` 请求 `ok=true` 无 parse mismatch、逐段落盘、原位重载页数 122→125 增长、页面截图确认中文段上/英文带背景译文下 ✓；停靠未译页 500ms 后提示出现在底部正确位置（bounds [2042,2145]），当前页全译合入后提示消失 ✓；退出阅读页出现 `reader exited -> mode off` 且 app-State.json `aiBilingual=false`，重进为原书 ✓；批量请求被上游内容过滤拦截（GLM 错误 1301，本书第二章文字敏感）时按批重试后降级逐段、仍失败标记 failed 不丢段、提示按 failed 规则隐藏 ✓。全程无 git、鸿蒙零改动。
+
+
 
 **需求**：上一版每次译文落盘都走整 Activity 重启（finish+startActivity + 加载框 + 转场，位置仅按百分比恢复），坐在当前页时后台译文持续落盘导致页面反复闪现、位置漂移。目标：当前页翻译完成后，后台继续翻译并渲染后续页面，翻页平滑；翻到还没译完的页时正文照常显示、页面底部提示"正在翻译中..."；打开后优先翻译并渲染当前页，后台按"当前页往后+10页、往前3页"的窗口补齐。
 

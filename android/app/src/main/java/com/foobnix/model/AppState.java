@@ -347,9 +347,10 @@ public class AppState {
     public String aiBilingualBook = "";
     public String aiBilingualSrc = "";
     public String aiBilingualTgt = "";
-    // default display mode preselected in the AI translate dialog:
-    // true = in-page bilingual, false = the legacy list panel
-    public boolean aiDefaultModeBilingual = true;
+    // legacy: the AI translate dialog no longer pre-selects the in-page
+    // bilingual checkbox (it always starts unchecked); kept only so old
+    // persisted app-State.json files still load
+    public boolean aiDefaultModeBilingual = false;
     public boolean opdsLargeCovers = true;
     public boolean createBookNameFolder = false;
     public String readColors = READ_COLORS_DEAFAUL;
