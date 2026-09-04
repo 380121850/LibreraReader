@@ -150,26 +150,33 @@ public class SharedBooks {
         }
 
         /**
-         * Drop the per-book "keys" set once the sync has propagated it to the
-         * server, keeping any "p"/"b" kind markers. The book entry is removed
-         * entirely when nothing else remains.
+         * Drop the tombstone entries for the given book names (file names)
+         * once the sync has confirmed the deletion on the server (the server
+         * file was removed, or the merged info without the deleted entries was
+         * published). Books NOT in the set keep their tombstones so the next
+         * round retries — a transient failure must not clear a tombstone whose
+         * deletion never reached the server, or the union merge would restore
+         * the "deleted" bookmarks.
          */
-        public static void clearKeys(String path) {
+        public static void clearNames(Set<String> names) {
             try {
-                if (AppProfile.syncDeletedBooks == null || TxtUtils.isEmpty(path)) {
+                if (AppProfile.syncDeletedBooks == null || names == null || names.isEmpty()) {
                     return;
                 }
-                final String name = ExtUtils.getFileName(path);
                 LinkedJSONObject root = IO.readJsonObject(AppProfile.syncDeletedBooks);
-                LinkedJSONObject marks = root.optJSONObject(name);
-                if (marks == null) {
-                    return;
+                boolean changed = false;
+                for (String name : names) {
+                    if (TxtUtils.isEmpty(name)) {
+                        continue;
+                    }
+                    if (root.has(name)) {
+                        root.remove(name);
+                        changed = true;
+                    }
                 }
-                marks.remove("keys");
-                if (marks.length() == 0) {
-                    root.remove(name);
+                if (changed) {
+                    IO.writeObjSync(AppProfile.syncDeletedBooks, root);
                 }
-                IO.writeObjSync(AppProfile.syncDeletedBooks, root);
             } catch (Exception e) {
                 LOG.e(e);
             }

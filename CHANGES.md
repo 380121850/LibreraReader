@@ -5,6 +5,47 @@
 
 ---
 
+## [2026-09-04] 三项：更新第三方库许可内容 / "我的文件"搜索项上移并去掉"新文件" / 修复书签笔记删除后被 WebDAV 同步回来
+
+### 一、更新第三方库许可内容（`android/app/src/main/assets/licenses.html`）
+
+**问题**：设置→关于→"第三方库许可"页（`AboutSectionBinder.showLicenses()` 用 WebView 加载 `file:///android_asset/licenses.html`，三 flavor 共用）内容严重过时：版本错误（MuPDF 1.12 实为 1.23.7、jsoup 1.8.3 实为 1.22.2、okhttp 3.8.1 实为 3.12.6、greendao 3.2.0 实为 3.3.0 等）；greendao 条目贴的是 "EventBus License" 文本；已移除的库（Universal Image Loader、commons-compress）仍在列；缺失大量现用依赖（AndroidX、Glide、Mammoth、CommonMark、Zip4j、Guava、Sardine、LAME、libmobi、antiword、DjVuLibre、libwebp、MuPDF 内嵌 C 库、google 版 Play Services Ads/UMP 等）。
+
+**修复**：整体重写 `licenses.html`，保持原 `<h3>库名 版本</h3> + <pre>许可文本</pre>` 结构与 CSS，按"应用本体（GPLv3）→ PDF 引擎（MuPDF 1.23.7 AGPL-3.0 及内嵌 FreeType/HarfBuzz/jbig2dec/lcms2/libjpeg/MuJS/OpenJPEG/zlib）→ 原生解析库（LAME/libmobi/antiword/DjVuLibre/hqx/libwebp）→ Java 依赖（按 Apache 2.0 / MIT / BSD / 其他分组）→ EbookDroid 1.6.5（GPLv3）→ Google SDK（仅 google 版，Google SDK License）"组织；修正 greendao 为正确的 Apache 2.0 文本；删除 Universal Image Loader 与 commons-compress。版本逐一对照 `gradle/libs.versions.toml` 与 `app/build.gradle` 核实。
+
+### 二、"我的文件"页：搜索项上移 + 去掉"新文件"项（`BrowseFragment2.java` + `fragment_browse2.xml`）
+
+**问题**："我的文件"页里"搜索"区块（"在多个文档中搜索"条目）挂在页面下方的 `netSection2` 容器，位置太靠下，与上方的 OPDS / WebDAV / 书库文件夹不同区；同区块还有一个"新文件（.txt）"条目需移除。
+
+**修复**（`buildNetSections()`，三 flavor 共用）：
+1. 把"搜索"区块（分隔线 + `R.string.search` 区块头 + "在多个文档中搜索"条目）从 `netSection2` 移到 `netSection`，置于书库文件夹区块之前——与 OPDS / WebDAV / 书库文件夹同区靠上（顺序：OPDS → WebDAV → 搜索 → 书库文件夹）。
+2. 删除"新文件（.txt）"条目。
+3. `netSection2` 清空后连带清理：字段声明、布局中的 `netSection2` 容器、`displayAnyPath()` 中对它的可见性控制。
+4. **未动**：长按菜单的 `new_file_txt`（保留字符串资源）、PopupMenu 的"扫描书库"项。
+
+### 三、修复：书签笔记中删除一本书的笔记/书签后，仍被 WebDAV 同步回来（`WebDavSyncer.java` + `SharedBooks.java` + `BookmarksData.java`）
+
+**问题**：在"书签笔记"里删除某本书的笔记和书签后，下次同步这些被删的书签又从服务器合并回来（复活）。
+
+**根因**（`WebDavSyncer.doSync()` + `SharedBooks.DeletedBooks`）：删除靠墓碑文件 `app-DeletedBooks.json` 抑制回合并，但 `doSync()` 末尾**无条件 `clear()` 全部墓碑**，不验证删除是否真正落到服务器。于是：
+- 若某轮远端书目列表拉取失败（网络抖动、PROPFIND 解析失败），该书本轮不在列表，其墓碑未被消费却照样被全清 → 下一轮云端旧书签被 union 合并回来；
+- 若发布 PUT / 删文件 DELETE 失败（只记日志），墓碑仍被清 → 云端保留旧数据 → 复活；
+- 删除后不触发同步，只能等启动 4s / 定时 / 手动同步，撞上上面任一情形即复活。
+
+**修复**（核心：墓碑改为"确认生效才清除"，3 文件）：
+1. `WebDavSyncer.doSync()`：新增 `Set<String> consumedNames`——删服务器文件成功（`s.delete` 无异常）或合并发布 PUT 成功（`putBookInfo` 无异常）的书名记入；末尾的 `clear()` 改为只清除 `consumedNames` 中的条目，未确认的书名墓碑保留到下一轮重试。`SharedBooks.DeletedBooks` 新增 `clearNames(Set<String>)`（按书名精确清除，含其 keys），替代对 `clearKeys` 的即时调用。
+2. `listRemoteBooks()` 区分"404/空"与"网络错误"：`fetchJson()` 对网络错误返回 `null`（404 仍返回空对象），出现网络错误时置 `booksListFailed` 标志，该轮**不消费任何墓碑**（保守处理，全部保留重试）；`migrateLegacy()` 对网络错误同样跳过。
+3. `BookmarksData.remove()`（删单个书签）与 `cleanBookmarks()`（清空）末尾调用 `WebDavSyncer.notifyConfigChanged(LibreraApp.context)`——删除后自动触发一次同步（复用现有 10s 防抖 + `syncingNow` 保护），不必等定时/启动同步，避免撞上瞬时失败。
+
+**效果**：删除书签/笔记后自动同步传播到服务器；服务器文件被清除（或删掉）；墓碑只在删除**确认**落到服务器后才清除，任何一轮瞬时失败都不会让"已删"的书签被 union 合并回来。
+
+**验证（MI9 真机，MIUI，adb `48fee174`，pro 包 `com.howread.reader.pro`）**：三 flavor（google/pro/fdroid）debug 均 BUILD SUCCESSFUL。用标准 WebDAV 服务器（wsgidav 4.3.5，`http://192.168.50.111:8099`，PROPFIND 可被 Sardine 0.9 解析）造场景：
+- **任务一**：设置→关于→"第三方库许可"，WebView 正常渲染新内容（HowRead→MuPDF 1.23.7→原生解析库→Java 依赖→EbookDroid→Google SDK）。
+- **任务二**："我的文件"页，"搜索"区块与 OPDS / WebDAV / 书库文件夹同区靠上，"新文件（.txt）"项消失。
+- **任务三**（HiFB开发指南.pdf，原 1 条 AI 笔记书签）：① 在"书签笔记"删除该书签 → 本地书签 31→30、墓碑记录 `{"b":…,"keys":{"1788082891886":…}}`、自动触发同步 → 服务器该书文件 `bookmarks` 字段被清除（仅剩 progress）、墓碑被消费（`app-DeletedBooks.json` 变 `{}`）；② **复活压测**：手动把已删书签重新注入服务器文件（模拟"服务器仍持有已删书签"）+ 本地保留墓碑 → 再同步 → 服务器书签**未**被合并回来（仍无 bookmarks）、本地书签数保持 30（无复活）、墓碑被消费。日志确认 `remoteBooks=58 failed=false`、`consumed HiFB开发指南.pdf`、`consumedNames=[HiFB开发指南.pdf]`。鸿蒙零改动。
+
+---
+
 ## [2026-09-03] 修复：桌面图标"書"字顶部被 launcher 圆角蒙版裁切
 
 **问题**：上一条修复（去 inset 全出血）后，米色牌铺满画布，但"書"字在牌内位置偏上（顶距图顶仅 ~10%），launcher 的圆角蒙版把"書"字顶部裁掉了，"書"字不完整。

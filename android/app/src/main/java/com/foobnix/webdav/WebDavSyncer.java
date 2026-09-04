@@ -353,7 +353,14 @@ public class WebDavSyncer {
             final Map<String, File> candidates = buildLocalCandidates();
 
             // ---- remote per-book infos, hash → info
-            final Map<String, LinkedJSONObject> remoteBooks = listRemoteBooks(s, booksUrl);
+            final boolean[] booksListFailed = new boolean[]{false};
+            final Map<String, LinkedJSONObject> remoteBooks =
+                    listRemoteBooks(s, booksUrl, booksListFailed);
+            if (booksListFailed[0]) {
+                // some book files could not be fetched this round: their
+                // tombstones (if any) stay untouched and are retried next round
+                LOG.d("WebDavSyncer remote book listing incomplete (network error)");
+            }
 
             int pDown = 0, bDown = 0, associated = 0;
             Set<String> namesCovered = new HashSet<>();
@@ -363,6 +370,12 @@ public class WebDavSyncer {
             // remains to keep it alive
             final LinkedJSONObject deletedBooks = SharedBooks.DeletedBooks.all();
             final List<String> hashesToDelete = new ArrayList<String>();
+            // tombstones are only dropped once the deletion is confirmed on
+            // the server (file deleted, or the merged info published); the
+            // rest is kept for the next round so a transient failure cannot
+            // resurrect deleted bookmarks
+            final Set<String> consumedNames = new HashSet<>();
+            final Map<String, String> deletedHashName = new HashMap<>();
 
             // ---- apply every remote book info INDEPENDENTLY (per-book restore:
             // one corrupt or conflicting book never blocks the others)
@@ -387,6 +400,7 @@ public class WebDavSyncer {
                         // everything the user deleted locally is gone here too:
                         // remove the server copy instead of restoring it
                         hashesToDelete.add(rHash);
+                        deletedHashName.put(rHash, name);
                         namesCovered.add(name);
                         continue;
                     }
@@ -448,12 +462,18 @@ public class WebDavSyncer {
                         LinkedJSONObject merged = buildInfoWithHash(name, rHash,
                                 localP.optJSONObject(name), pubBm);
                         if (merged != null && !merged.toString().equals(info.toString())) {
-                            putBookInfo(s, booksUrl, rHash, merged);
-                            uploadedHashes.add(rHash);
-                            // the deleted keys are now gone from the server:
-                            // stop carrying their tombstones (keep "p"/"b")
-                            if (!deletedKeys.isEmpty()) {
-                                SharedBooks.DeletedBooks.clearKeys(name);
+                            try {
+                                putBookInfo(s, booksUrl, rHash, merged);
+                                uploadedHashes.add(rHash);
+                                // the merged info is on the server: the deleted
+                                // progress/bookmarks/keys are gone there too, so
+                                // the whole tombstone for this book is consumed
+                                if (delProgress || delBookmarks || !deletedKeys.isEmpty()) {
+                                    consumedNames.add(name);
+                                }
+                            } catch (Exception putError) {
+                                // keep the tombstone for the next round
+                                LOG.d("WebDavSyncer put", rHash, putError.getMessage());
                             }
                         }
                     }
@@ -493,11 +513,22 @@ public class WebDavSyncer {
                 try {
                     s.delete(booksUrl + "/" + h + ".json");
                     res.booksDeleted++;
+                    // server copy gone: the tombstone for this book is consumed
+                    String n = deletedHashName.get(h);
+                    if (n != null) {
+                        consumedNames.add(n);
+                    }
                 } catch (Exception delError) {
                     LOG.d("WebDavSyncer delete", h, delError.getMessage());
                 }
             }
-            SharedBooks.DeletedBooks.clear();
+            // drop only the tombstones whose deletion is confirmed on the
+            // server this round (consumedNames holds exactly those names);
+            // everything else is kept so the next round retries instead of
+            // union-merging the "deleted" entries back from the server
+            if (!consumedNames.isEmpty()) {
+                SharedBooks.DeletedBooks.clearNames(consumedNames);
+            }
 
             IO.writeObjSync(AppProfile.syncProgress, localP);
             IO.writeObjSync(AppProfile.syncBookmarks, localB);
@@ -920,6 +951,11 @@ public class WebDavSyncer {
         try {
             LinkedJSONObject legacyP = fetchJson(s, root + "/" + REMOTE_LEGACY_PROGRESS);
             LinkedJSONObject legacyB = fetchJson(s, root + "/" + REMOTE_LEGACY_BOOKMARKS);
+            if (legacyP == null || legacyB == null) {
+                // a network error, not a 404: the legacy files may still hold
+                // data — skip the migration (and the delete) this round
+                return;
+            }
             if (legacyP.length() == 0 && legacyB.length() == 0) {
                 return;
             }
@@ -1099,14 +1135,26 @@ public class WebDavSyncer {
         return null;
     }
 
-    /** Remote per-book infos keyed by the hash in their file name. */
-    static Map<String, LinkedJSONObject> listRemoteBooks(Sardine s, String booksUrl) {
+    /**
+     * Remote per-book infos keyed by the hash in their file name.
+     *
+     * @param listFailedOut [0] is set to true when the directory listing or a
+     * single-file GET failed with a network error (as opposed to a 404). A
+     * book that is missing for that reason is NOT in the map, so the caller
+     * must not consume deletion tombstones this round — otherwise a transient
+     * error would clear the tombstone and the next round would union-merge
+     * the "deleted" bookmarks back from the server.
+     */
+    static Map<String, LinkedJSONObject> listRemoteBooks(Sardine s, String booksUrl, boolean[] listFailedOut) {
         final Map<String, LinkedJSONObject> out = new LinkedHashMap<String, LinkedJSONObject>();
         List<DavResource> list;
         try {
             list = s.list(booksUrl, 1);
         } catch (Exception e) {
             LOG.d("WebDavSyncer list books", e.getMessage());
+            if (listFailedOut != null) {
+                listFailedOut[0] = true;
+            }
             return out;
         }
         for (DavResource r : list) {
@@ -1120,11 +1168,20 @@ public class WebDavSyncer {
                 }
                 String hash = n.substring(0, n.length() - ".json".length());
                 LinkedJSONObject info = fetchJson(s, booksUrl + "/" + n);
+                if (info == null) {
+                    if (listFailedOut != null) {
+                        listFailedOut[0] = true;
+                    }
+                    continue;
+                }
                 if (info.length() > 0) {
                     out.put(hash, info);
                 }
             } catch (Exception e) {
                 LOG.e(e, "WebDavSyncer remote book");
+                if (listFailedOut != null) {
+                    listFailedOut[0] = true;
+                }
             }
         }
         return out;
@@ -1195,14 +1252,22 @@ public class WebDavSyncer {
         }
     }
 
-    /** GET a remote JSON object; a missing file (404) or bad payload = empty. */
+    /**
+     * GET a remote JSON object.
+     *
+     * @return the object; an empty object when the file does not exist (404)
+     * or the payload is empty; null on any OTHER failure (auth, network, SSL,
+     * timeout) — the caller must treat the round as unreliable, because an
+     * empty object would look like "the file is gone" and let a deletion
+     * tombstone be consumed while the server copy is still there.
+     */
     static LinkedJSONObject fetchJson(Sardine s, String url) {
         try {
             String text = fetchText(s, url);
-            return text == null ? new LinkedJSONObject() : new LinkedJSONObject(text);
+            return text == null ? null : new LinkedJSONObject(text);
         } catch (Exception e) {
             LOG.d("WebDavSyncer fetch", url, e.getMessage());
-            return new LinkedJSONObject();
+            return null;
         }
     }
 

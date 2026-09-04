@@ -298,16 +298,6 @@
 
     </FrameLayout>
 
-    <!-- bottom tools of the "My files" root view (multi-doc search, new .txt),
-         filled in code; sits BELOW the folder list, separated by a header -->
-    <LinearLayout
-        android:id="@+id/netSection2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone" />
-
-
     <EditText
         android:id="@+id/editPath"
         android:layout_width="match_parent"

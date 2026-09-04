@@ -73,6 +73,11 @@ public class BookmarksData {
             if (TxtUtils.isNotEmpty(bookmark.getPath())) {
                 SharedBooks.DeletedBooks.record(bookmark.getPath(), "b");
                 SharedBooks.DeletedBooks.recordKey(bookmark.getPath(), bookmark.t);
+                // propagate the deletion to the server promptly instead of
+                // waiting for the next periodic/startup sync (which could race
+                // a transient failure and let the tombstone be lost)
+                com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(
+                        com.foobnix.LibreraApp.context);
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -307,6 +312,9 @@ public class BookmarksData {
         for (File f : AppProfile.getAllFiles(AppProfile.APP_BOOKMARKS_JSON)) {
             IO.writeObjSync(f, new LinkedJSONObject());
         }
+        // propagate the mass deletion to the server promptly
+        com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(
+                com.foobnix.LibreraApp.context);
     }
 
 

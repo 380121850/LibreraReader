@@ -119,7 +119,6 @@ import java.util.Map;
      */
     public static final String ROOT_PATH = "my-files:";
     LinearLayout netSection;
-    LinearLayout netSection2;
     View quickDirChipsRow;
 
     /**
@@ -796,7 +795,6 @@ import java.util.Map;
         });
 
         netSection = view.findViewById(R.id.netSection);
-        netSection2 = view.findViewById(R.id.netSection2);
         quickDirChipsRow = (View) view.findViewById(R.id.quickDirChips).getParent();
         buildNetSections();
 
@@ -1174,9 +1172,6 @@ import java.util.Map;
             return;
         }
         netSection.removeAllViews();
-        if (netSection2 != null) {
-            netSection2.removeAllViews();
-        }
         final Runnable rebuild = new Runnable() {
             @Override public void run() {
                 buildNetSections();
@@ -1258,6 +1253,17 @@ import java.util.Map;
             }));
         }
 
+        // --- search tools: same top section as OPDS / WebDAV / folders ---
+        netSection.addView(netSectionDivider());
+        netSection.addView(netSectionHeader(getString(R.string.search), null));
+        // tools moved here from the preferences "file search" category
+        netSection.addView(netListItem(R.drawable.glyphicons_144_database_search,
+                getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
+                    @Override public void onClick(View v) {
+                        MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
+                    }
+                }, null));
+
         // --- library folders (the list itself lives in the RecyclerView) ---
         netSection.addView(netSectionDivider());
         netSection.addView(netSectionHeader(getString(R.string.moon_section_folders), new OnClickListener() {
@@ -1290,30 +1296,6 @@ import java.util.Map;
                 p.show();
             }
         }));
-
-        // --- search tools: below the folder list, visually separated ---
-        if (netSection2 != null) {
-            netSection2.addView(netSectionDivider());
-            netSection2.addView(netSectionHeader(getString(R.string.search), null));
-            // tools moved here from the preferences "file search" category
-            netSection2.addView(netListItem(R.drawable.glyphicons_144_database_search,
-                    getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
-                        @Override public void onClick(View v) {
-                            MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
-                        }
-                    }, null));
-            netSection2.addView(netListItem(R.drawable.glyphicons_371_plus,
-                    getString(R.string.new_file_txt), new OnClickListener() {
-                        @Override public void onClick(View v) {
-                            AlertDialogs.editFileTxt(a, null, AppProfile.DOWNLOADS_DIR, new StringResponse() {
-                                @Override public boolean onResultRecive(String string) {
-                                    ExtUtils.openFile(a, new FileMeta(string));
-                                    return false;
-                                }
-                            });
-                        }
-                    }, null));
-        }
     }
 
     /** "add a library folder" flow, same checks as the preferences page. */
@@ -1618,9 +1600,6 @@ import java.util.Map;
         }
         if (netSection != null) {
             netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
-        }
-        if (netSection2 != null) {
-            netSection2.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
         }
         // the 书库 folder rows are rendered bigger on the root page only
         if (searchAdapter != null) {
