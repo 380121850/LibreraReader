@@ -210,6 +210,25 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/aiTranHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/bottomBar1"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_my_toast"
+            android:clickable="false"
+            android:focusable="false"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="@string/ai_tran_hint"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/toastBrightnessText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

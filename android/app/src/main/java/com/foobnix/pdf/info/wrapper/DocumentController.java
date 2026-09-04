@@ -755,6 +755,34 @@ public abstract class DocumentController {
         });
     }
 
+    /**
+     * Bilingual in-place rebuild reopen: same Activity restart but tagged as a
+     * silent reload, so the reader can suppress its loading dialog/transitions
+     * and re-land on the same content via the paragraph anchor.
+     */
+    public void restartActivitySilently(int page0, String anchorMd5) {
+        saveAppState();
+        TTSEngine.get().stop();
+        try {
+            activity.getIntent().putExtra("bilingualSilentReload", true);
+            activity.getIntent().putExtra("bilingualAnchorPage", page0);
+            if (TxtUtils.isNotEmpty(anchorMd5)) {
+                activity.getIntent().putExtra("bilingualAnchorMd5", anchorMd5);
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+        Safe.run(new Runnable() {
+
+            @Override
+            public void run() {
+                ImageExtractor.clearCodeDocument();
+                activity.finish();
+                activity.startActivity(activity.getIntent());
+            }
+        });
+    }
+
     public void saveAppState() {
         AppBook bs = SettingsManager.getBookSettings();
         bs.updateFromAppState();

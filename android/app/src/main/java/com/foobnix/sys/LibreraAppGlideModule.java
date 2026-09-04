@@ -53,6 +53,16 @@ public class LibreraAppGlideModule extends AppGlideModule {
     static String path;
 
     /**
+     * Drop the "last decoded page" shortcut so a same-key page URL is decoded
+     * again (used by the in-place bilingual reload, where the document behind
+     * the same book path has been replaced).
+     */
+    public static void clearBitmapCache() {
+        cache = null;
+        path = null;
+    }
+
+    /**
      * Books without an embedded cover get a placeholder bitmap; show the book
      * title (file name) on it instead of the old "#error null" literal.
      */

@@ -848,6 +848,7 @@
   <string name="ai_translate_mode_bilingual">Show translations inside the page (bilingual)</string>
   <string name="ai_translate_off_bilingual">Turn off in-page bilingual</string>
   <string name="ai_translate_bilingual_unsupported">In-page bilingual is only available for EPUB and TXT books</string>
+  <string name="ai_tran_hint">Translating…</string>
    <string name="lang_english">English</string>
    <string name="lang_chinese">Chinese</string>
    <string name="lang_japanese">Japanese</string>

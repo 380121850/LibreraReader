@@ -5,6 +5,28 @@
 
 ---
 
+## [2026-09-05] 优化：页内双语刷新改"原位静默合入"（消除当前页不断闪现）、翻译窗口按页（当前页优先、往后10页/往前3页）、未译完页面底部显示"正在翻译中"
+
+**需求**：上一版每次译文落盘都走整 Activity 重启（finish+startActivity + 加载框 + 转场，位置仅按百分比恢复），坐在当前页时后台译文持续落盘导致页面反复闪现、位置漂移。目标：当前页翻译完成后，后台继续翻译并渲染后续页面，翻页平滑；翻到还没译完的页时正文照常显示、页面底部提示"正在翻译中..."；打开后优先翻译并渲染当前页，后台按"当前页往后+10页、往前3页"的窗口补齐。
+
+**改动**：
+- `com/foobnix/ai/BilingualSession.java`：翻译窗口由"段落数（后10段/前26段）"改为**按页（往后10页、往前3页）**，页→段用线性换算 pageStart(p)=floor(total*p/pageCount)；入队顺序改为**当前页 span 优先 → 往后 1..10 页逐页 → 往前 1..3 页（近→远）**，新增 queued 集合修掉 setActive 清 pending 造成的队内重复；新增当前页"顶部段落锚点"anchorMd5（getPageParagraphs 文本层归一化包含匹配，失败回退窗口中心段）、builtMd5s（当前打开的书已含译文 md5 快照）、isCurrentPagePending()（未译或已译未合入判定，驱动提示）；Host 接口新增 requestReload(page0, anchorMd5) 与 requestHintUpdate()，每批译文 3s 防抖重建后改走"原位静默合入"（不再 requestRestart），带 reloading/reloadPending 合并闸；新增 locateAnchorPage(dc, anchorMd5, approxPage0)（±10 页文本层定位）；枚举完成后补算锚点/提示/必要时刷新。
+- `com/foobnix/ai/BilingualHintUi.java`（新增接口）：两个阅读 Activity 实现，切换底部"正在翻译中..."提示显隐。
+- `pdf/info/wrapper/DocumentController.java`：新增 restartActivitySilently(page0, anchorMd5)——竖滑侧无原位重开，改为"Intent 打 silent+anchor 标记的静默重启"。
+- `search/activity/HorizontalViewActivity.java`：匿名 controller 实例化抽成 createController(w,h) 复用；新增 reloadBilingualInPlace()（同 Activity 内 清 codeDocument+清 Glide 内存+清 LibreraAppGlideModule 静态位图缓存 → 后台重建 controller → UI 线程 nullAdapter/createAdapter/loadUI → 锚点定位 setCurrentItem，期间无加载框无转场，异常整体降级 restartActivity）；实现 BilingualHintUi；host 由 BilingualSession 分派到该方法。
+- `sys/LibreraAppGlideModule.java`：新增 clearBitmapCache() 清静态"最后解码页"缓存（原 IMG.clearMemoryCache 只清 Glide 内存，同 URL key 会吐旧文档残图）。
+- `org/ebookdroid/ui/viewer/ViewerActivityController.java`：竖滑静默重启——afterCreate 消费 silent/anchor 标记；BookLoadTask 静默时不弹加载框、不挂 FirstPaintGate；加载完成后延时 600ms 定位锚点页并 onGoToPage（文本层刚开书时未就绪，需延后）。
+- `org/ebookdroid/ui/viewer/VerticalViewActivity.java`：实现 BilingualHintUi。
+- 两个阅读布局（activity_horiziontal_view.xml / activity_vertical_view.xml）+ strings：底部新增"正在翻译中..."小提示 TextView（贴工具栏上方，修复 layout_above 与 alignParentBottom 冲突导致的压住页脚）。
+
+**验证（MI9 真机，pro 包，BENCH 日志 + logcat 生命周期 + 文本层）**：
+1) 窗口按页且当前页优先：`BilingualSession onView page=290/421 winPages=[287,300]`（=当前页-3/+10），首个 AI ask ord=320 恰为当前页 span 段落；
+2) 水平模式原位静默合入：每次译文落盘仅 `BilingualReload start/done`（同 Activity、同一 pid，无 finish/start、无加载框、无 openTextDoc 重开日志），页数在屏内更新（456→457→461），锚点使当前页内容不漂移（295→296→297→301→304 随注入跟踪同一内容）；锚点修复前首次合入 anchor=null（枚举完成前页面已显示、锚点未算），修复后 anchor=050fdd3... 非空；
+3) 竖滑模式静默重启：`load-begin silent=true`、无 FirstPaintGate/加载框、延时锚点定位；
+4) "正在翻译中..."提示：翻到未译页底部出现（竖滑已实测），到位合入后消失；位置修复后贴工具栏上方不再压页脚；
+5) 关闭回归：aiBilingual=false 后重开书回到原版（页数回基、无双语会话/打开日志）。
+
+**说明/边界**：水平模式已做到"同 Activity 原位重排"（翻页真正无重建无转场）；竖滑模式因无原位重开入口，采用"无加载框、无转场、锚点复位"的静默重启（仍有一次窗口重建，已尽量压到无感）；.aitran 背景渲染沿用上一版（BookCSS 未动）；鸿蒙工程零改动，未执行任何 git 命令。
 
 ## [2026-09-04] 修复：页内双语模式下译文不显示（页面仍只显示中文原文、无上下段）
 

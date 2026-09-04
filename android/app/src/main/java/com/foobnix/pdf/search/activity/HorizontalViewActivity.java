@@ -48,6 +48,7 @@ import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
 import com.foobnix.ai.AiTranslateDialog;
 import com.foobnix.ai.AiTranslator;
+import com.foobnix.ai.BilingualHintUi;
 import com.foobnix.ai.BilingualSession;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
@@ -102,6 +103,8 @@ import com.foobnix.pdf.search.menu.MenuBuilderM;
 import com.foobnix.pdf.search.view.CloseAppDialog;
 import com.foobnix.pdf.search.view.VerticalViewPager;
 import com.foobnix.sys.ClickUtils;
+import com.foobnix.sys.ImageExtractor;
+import com.foobnix.sys.LibreraAppGlideModule;
 import com.foobnix.sys.TempHolder;
 import com.foobnix.tts.MessagePageNumber;
 import com.foobnix.tts.TTSControlsView;
@@ -123,8 +126,9 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HorizontalViewActivity extends AdsFragmentActivity {
+public class HorizontalViewActivity extends AdsFragmentActivity implements BilingualHintUi {
 
     public boolean prev = true;
     VerticalViewPager viewPager;
@@ -139,6 +143,10 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     ImageView moveCenter, lockModelImage, linkHistory, onModeChange, outline, onMove, textToSpeach, onPageFlip1,
             anchorX, anchorY, pagesBookmark;
     HorizontalModeController dc;
+    private int readerWidth = 0;
+    private int readerHeight = 0;
+    private final AtomicBoolean bilingualReloading = new AtomicBoolean(false);
+    private TextView aiTranHint;
     Handler handler = new Handler(Looper.getMainLooper());
     Handler flippingHandler = new Handler(Looper.getMainLooper());
     Handler handlerTimer = new Handler(Looper.getMainLooper());
@@ -328,6 +336,8 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         bottomIndicators = findViewById(R.id.bottomIndicators);
 
         anchor = (FrameLayout) findViewById(R.id.anchor);
+
+        aiTranHint = (TextView) findViewById(R.id.aiTranHint);
 
         anchorX = (ImageView) findViewById(R.id.anchorX);
         anchorY = (ImageView) findViewById(R.id.anchorY);
@@ -1814,23 +1824,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     }
 
     public void initAsync(int w, int h) {
-        dc = new HorizontalModeController(this, w, h) {
-            @Override
-            public void onGoToPageImpl(int page) {
-                updateUI(page);
-                EventBus.getDefault().post(new InvalidateMessage());
-            }
-
-            @Override
-            public void notifyAdapterDataChanged() {
-            }
-
-            @Override
-            public void showInterstialAndClose() {
-                showInterstitial();
-            }
-
-        };
+        readerWidth = w;
+        readerHeight = h;
+        dc = createController(w, h);
         // dc.init(this);
         dc.initAnchor(anchor);
 
@@ -1852,6 +1848,26 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         attachBilingual();
     }
 
+    private HorizontalModeController createController(int w, int h) {
+        return new HorizontalModeController(this, w, h) {
+            @Override
+            public void onGoToPageImpl(int page) {
+                updateUI(page);
+                EventBus.getDefault().post(new InvalidateMessage());
+            }
+
+            @Override
+            public void notifyAdapterDataChanged() {
+            }
+
+            @Override
+            public void showInterstialAndClose() {
+                showInterstitial();
+            }
+
+        };
+    }
+
     /** AI in-page bilingual: (re)attach the per-book session when the mode is on for this book. */
     private void attachBilingual() {
         BilingualSession.attachForController(this, dc);
@@ -1860,6 +1876,111 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     /** Feed the current page to the active bilingual session (cheap when idle). */
     private void feedBilingualView() {
         BilingualSession.feedForController(dc);
+    }
+
+    @Override
+    public void setBilingualHint(boolean show) {
+        if (aiTranHint == null) {
+            return;
+        }
+        aiTranHint.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Silent in-place re-open of the (rebuilt) bilingual book: reuses the same
+     * Activity, recreates the controller/adapter on the new file and re-lands
+     * on the same content via the paragraph anchor, so no full restart / loading
+     * dialog / page jump flashes. Falls back to a classic restart on any error.
+     */
+    public void reloadBilingualInPlace() {
+        if (dc == null || viewPager == null) {
+            return;
+        }
+        if (!bilingualReloading.compareAndSet(false, true)) {
+            return;
+        }
+        final int page0 = dc.getCurentPageFirst1() - 1;
+        final String anchorMd5 = BilingualSession.anchorOf(
+                dc.getCurrentBook() == null ? null : dc.getCurrentBook().getPath());
+        try {
+            dc.saveCurrentPageNow();
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+        final int w = readerWidth > 0 ? readerWidth : viewPager.getWidth();
+        final int h = readerHeight > 0 ? readerHeight : viewPager.getHeight();
+        AppsConfig.executorServiceSingle.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    android.util.Log.i("BENCH", "BilingualReload start page0=" + page0 + " anchor=" + anchorMd5);
+                    ImageExtractor.clearCodeDocument();
+                    IMG.clearMemoryCache();
+                    LibreraAppGlideModule.clearBitmapCache();
+                    final HorizontalModeController newDc = createController(w, h);
+                    final int anchorPage = BilingualSession.locateAnchorPage(newDc, anchorMd5, page0);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                // if the user moved away while the new document
+                                // was being built, don't yank them back to the
+                                // old anchor page
+                                final int pageNow = dc.getCurentPage();
+                                dc = newDc;
+                                android.util.Log.i("BENCH", "BilingualReload ui-swap pageNow=" + pageNow
+                                        + " anchorPage=" + anchorPage);
+                                dc.initAnchor(anchor);
+                                viewPager.removeOnPageChangeListener(onViewPagerChangeListener);
+                                nullAdapter();
+                                createAdapter();
+                                loadUI();
+                                int target;
+                                if (pageNow == page0 && anchorPage >= 0) {
+                                    target = anchorPage;
+                                } else {
+                                    target = dc.getCurentPage();
+                                }
+                                if (viewPager.getCurrentItem() != target) {
+                                    viewPager.setCurrentItem(target, false);
+                                }
+                                dc.setCurrentPage(target);
+                                PageImageState.currentPage = target;
+                                updateUI(target);
+                                attachBilingual();
+                                feedBilingualView();
+                                android.util.Log.i("BENCH", "BilingualReload done page=" + target
+                                        + " anchorPage=" + anchorPage + " pageNow=" + pageNow);
+                            } catch (Throwable t) {
+                                LOG.e(t);
+                                fallbackRestart();
+                            } finally {
+                                bilingualReloading.set(false);
+                            }
+                        }
+                    });
+                } catch (Throwable t) {
+                    LOG.e(t);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            bilingualReloading.set(false);
+                            fallbackRestart();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void fallbackRestart() {
+        try {
+            if (dc != null) {
+                dc.restartActivity();
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
     }
 
     public void updateUI(int page) {

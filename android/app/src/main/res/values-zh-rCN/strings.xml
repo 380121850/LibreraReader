@@ -849,6 +849,7 @@
   <string name="ai_translate_mode_bilingual">在页面内显示译文（双语对照）</string>
   <string name="ai_translate_off_bilingual">关闭页内双语模式</string>
   <string name="ai_translate_bilingual_unsupported">页内双语模式仅支持 EPUB、TXT 格式</string>
+  <string name="ai_tran_hint">正在翻译中...</string>
    <string name="lang_english">英文</string>
    <string name="lang_chinese">中文</string>
    <string name="lang_japanese">日文</string>

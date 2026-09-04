@@ -8,10 +8,10 @@ import android.os.Looper;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.model.AppState;
+import com.foobnix.pdf.info.wrapper.DocumentController;
 
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,17 +22,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Drives the in-page bilingual AI-translate session for one book.
  *
- * While the session is active on a book, a single background worker keeps
- * translating the source paragraphs around the current reading position
- * (paragraph window, ordered current page first). Every finished paragraph is
+ * A single background worker keeps translating the source paragraphs around the
+ * current reading position, ordered "current page first, then ahead pages, then
+ * back pages" (page window: +10 ahead / -3 back). Every finished paragraph is
  * upserted into the {@link TranslationCache}; after a short merge debounce the
  * {@link BilingualBuilder} regenerates the bilingual edition and the host
- * (reader activity) is asked to restart so the translation actually renders
- * under its source paragraph ("每段译完就地刷新", merged into one rebuild).
+ * (reader activity) is asked to re-open the book *in place* (silently, anchored
+ * to the top paragraph of the current page) so the translation renders without
+ * the full Activity-restart flashing of the old approach.
  *
- * The session survives reader-activity restarts (the restart is exactly how a
- * rebuilt edition gets shown), so it is held as a per-book singleton and is
- * only stopped when the mode is turned off or another book is opened.
+ * The session survives reader-activity restarts, so it is held as a per-book
+ * singleton and only stopped when the mode is turned off or another book opens.
  */
 public class BilingualSession {
 
@@ -41,11 +41,17 @@ public class BilingualSession {
         Context getAppContext();
 
         void requestRestart();
+
+        /** Re-open the book in place (or silently) landing on the same content. */
+        void requestReload(int page0, String anchorMd5);
+
+        /** Re-evaluate the "正在翻译中…" bottom hint for the current page. */
+        void requestHintUpdate();
     }
 
-    // paragraph window around the current reading position (source indices)
-    private static final int WINDOW_BACK = 10;
-    private static final int WINDOW_AHEAD = 26;
+    // page window around the current reading position
+    private static final int BACK_PAGES = 3;
+    private static final int AHEAD_PAGES = 10;
     // merge window for rebuilds triggered by finished paragraphs
     private static final long REBUILD_DEBOUNCE_MS = 3000;
 
@@ -87,13 +93,89 @@ public class BilingualSession {
         return s != null && s.active.get() && !s.stopped.get();
     }
 
+    /** The top-paragraph anchor currently remembered for a book, or null. */
+    public static String anchorOf(String bookPath) {
+        BilingualSession s = attachOrNull(bookPath);
+        if (s == null) {
+            return null;
+        }
+        if (s.anchorMd5 == null) {
+            // first enumeration may have finished after the page was shown:
+            // recompute the anchor on the spot so a reload can re-land
+            s.onPageShown(s.lastDc);
+        }
+        return s.anchorMd5;
+    }
+
+    /**
+     * Find the rendered page whose text layer contains the anchor paragraph,
+     * scanning a small band around {@code approxPage0} (0-based). Returns -1
+     * when the anchor is unknown or not found.
+     */
+    public static int locateAnchorPage(DocumentController dc, String anchorMd5, int approxPage0) {
+        try {
+            if (dc == null || dc.getCurrentBook() == null || TxtUtils.isEmpty(anchorMd5)) {
+                return -1;
+            }
+            int pageCount = dc.getPageCount();
+            if (pageCount <= 0) {
+                return -1;
+            }
+            BilingualSession s = attachOrNull(dc.getCurrentBook().getPath());
+            if (s == null || s.paraByMd5 == null) {
+                return -1;
+            }
+            BilingualBuilder.Para p = s.paraByMd5.get(anchorMd5);
+            if (p == null) {
+                return -1;
+            }
+            String nSource = norm(p.text);
+            if (nSource.length() < 4) {
+                return -1;
+            }
+            int start = Math.max(0, approxPage0 - 10);
+            int end = Math.min(pageCount - 1, approxPage0 + 10);
+            int bestPage = -1;
+            int bestLen = 0;
+            for (int page = start; page <= end; page++) {
+                String[] frags = dc.getPageParagraphs(page);
+                if (frags == null) {
+                    continue;
+                }
+                for (String f : frags) {
+                    if (TxtUtils.isEmpty(f)) {
+                        continue;
+                    }
+                    String nf = norm(f);
+                    if (nf.length() < 6) {
+                        continue;
+                    }
+                    int ov = nf.indexOf(nSource) >= 0 ? nSource.length()
+                            : nSource.indexOf(nf) >= 0 ? nf.length() : 0;
+                    if (ov >= Math.min(8, nSource.length()) && nf.length() > bestLen) {
+                        bestLen = nf.length();
+                        bestPage = page;
+                    }
+                }
+            }
+            return bestPage;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return -1;
+        }
+    }
+
+    private static String norm(String s) {
+        return s == null ? "" : s.replaceAll("\\s+", "");
+    }
+
     /**
      * Reader-controller level attach used by both reading modes: creates (or
      * re-points) the session for the book behind {@code dc} when the in-page
      * bilingual mode is on for it, otherwise pauses every session.
      */
-    public static void attachForController(final android.app.Activity activity,
-            final com.foobnix.pdf.info.wrapper.DocumentController dc) {
+    public static void attachForController(final Activity activity,
+            final DocumentController dc) {
         try {
             if (activity == null || dc == null || dc.getCurrentBook() == null) {
                 return;
@@ -102,19 +184,10 @@ public class BilingualSession {
             final AppState st = AppState.get();
             BilingualSession existing = attachOrNull(path);
             if (existing != null) {
-                existing.attachHost(new Host() {
-                    @Override public android.content.Context getAppContext() {
-                        return activity.getApplicationContext();
-                    }
-
-                    @Override public void requestRestart() {
-                        if (dc != null) {
-                            dc.restartActivity();
-                        }
-                    }
-                });
+                existing.attachHost(hostFor(activity, dc, path));
                 pauseAllExcept(path);
                 existing.onView(dc.getCurentPageFirst1() - 1, dc.getPageCount());
+                existing.updateHint();
                 return;
             }
             if (!st.aiBilingual || TxtUtils.isEmpty(st.aiBilingualBook)
@@ -123,67 +196,81 @@ public class BilingualSession {
                 return;
             }
             BilingualSession created = attach(path, dc.getCurrentBook(), st.aiBilingualSrc, st.aiBilingualTgt);
-            created.attachHost(new Host() {
-                @Override public android.content.Context getAppContext() {
-                    return activity.getApplicationContext();
-                }
-
-                @Override public void requestRestart() {
-                    if (dc != null) {
-                        dc.restartActivity();
-                    }
-                }
-            });
+            created.attachHost(hostFor(activity, dc, path));
             pauseAllExcept(path);
             created.onView(dc.getCurentPageFirst1() - 1, dc.getPageCount());
+            created.updateHint();
         } catch (Throwable t) {
             LOG.e(t);
         }
     }
 
+    private static Host hostFor(final Activity activity, final DocumentController dc, final String path) {
+        return new Host() {
+            @Override public Context getAppContext() {
+                return activity.getApplicationContext();
+            }
+
+            @Override public void requestRestart() {
+                if (dc != null) {
+                    dc.restartActivity();
+                }
+            }
+
+            @Override public void requestReload(int page0, String anchorMd5) {
+                reloadForController(activity, dc, page0, anchorMd5);
+            }
+
+            @Override public void requestHintUpdate() {
+                try {
+                    BilingualSession s = attachOrNull(path);
+                    boolean show = s != null && s.isCurrentPagePending();
+                    if (activity instanceof BilingualHintUi) {
+                        ((BilingualHintUi) activity).setBilingualHint(show);
+                    }
+                } catch (Throwable t) {
+                    LOG.e(t);
+                }
+            }
+        };
+    }
+
+    /**
+     * In-place silent reload for the horizontal reader, silent restart for the
+     * vertical one; any failure degrades to the classic full restart.
+     */
+    private static void reloadForController(Activity activity, DocumentController dc, int page0, String anchorMd5) {
+        try {
+            if (activity instanceof com.foobnix.pdf.search.activity.HorizontalViewActivity) {
+                ((com.foobnix.pdf.search.activity.HorizontalViewActivity) activity).reloadBilingualInPlace();
+            } else if (dc != null) {
+                dc.restartActivitySilently(page0, anchorMd5);
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+            try {
+                if (dc != null) {
+                    dc.restartActivity();
+                }
+            } catch (Throwable t2) {
+                LOG.e(t2);
+            }
+        }
+    }
+
     /** Feed the current page to the session of the book behind {@code dc}. */
-    public static void feedForController(com.foobnix.pdf.info.wrapper.DocumentController dc) {
+    public static void feedForController(DocumentController dc) {
         try {
             if (dc == null || dc.getCurrentBook() == null) {
                 return;
             }
             BilingualSession s = attachOrNull(dc.getCurrentBook().getPath());
             if (s != null) {
+                s.lastDc = dc;
                 s.onView(dc.getCurentPageFirst1() - 1, dc.getPageCount());
-                s.logCurrentPageText(dc);
+                s.onPageShown(dc);
+                s.maybeRefreshCurrentPage();
             }
-        } catch (Throwable t) {
-            LOG.e(t);
-        }
-    }
-
-    // debug aid: rate-limited dump of the rendered text layer of the current
-    // page, so a bilingual page can be verified without a screenshot
-    private long lastPageLogMs = 0;
-
-    private void logCurrentPageText(com.foobnix.pdf.info.wrapper.DocumentController dc) {
-        try {
-            long now = System.currentTimeMillis();
-            if (now - lastPageLogMs < 15000) {
-                return;
-            }
-            lastPageLogMs = now;
-            int p = dc.getCurentPageFirst1() - 1;
-            String[] paras = dc.getPageParagraphs(p);
-            if (paras == null) {
-                android.util.Log.i("BENCH", "BilingualPageText p=" + p + " paras=null");
-                return;
-            }
-            StringBuilder sb = new StringBuilder();
-            int n = Math.min(paras.length, 6);
-            for (int i = 0; i < n; i++) {
-                String t = paras[i];
-                if (t != null && t.length() > 90) {
-                    t = t.substring(0, 90);
-                }
-                sb.append('[').append(i).append("]").append(t).append(" || ");
-            }
-            android.util.Log.i("BENCH", "BilingualPageText p=" + p + " count=" + paras.length + " " + sb.toString());
         } catch (Throwable t) {
             LOG.e(t);
         }
@@ -208,12 +295,25 @@ public class BilingualSession {
     private volatile Map<String, BilingualBuilder.Para> paraByMd5;
     private final AtomicBoolean ensuring = new AtomicBoolean(false);
     private final Set<String> pending = new HashSet<String>();
+    private final Set<String> queued = new HashSet<String>();
     private final Set<String> inFlight = new HashSet<String>();
+    private final Set<String> failed = new HashSet<String>();
     private final ArrayDeque<String> queue = new ArrayDeque<String>();
     private final Map<String, Integer> attempts = new HashMap<String, Integer>();
 
     private int lastPage0 = -1;
     private int lastPageCount = 0;
+
+    // top paragraph md5 of the current page, used to re-land after a rebuild
+    private volatile String anchorMd5;
+    // the last controller that fed this session (to re-run the page-anchor
+    // computation once the first paragraph enumeration has finished)
+    private volatile DocumentController lastDc;
+
+    // the md5 set the currently open book was built with (translations it shows)
+    private volatile Set<String> builtMd5s = new HashSet<String>();
+    private volatile boolean reloading = false;
+    private volatile boolean reloadPending = false;
 
     private final Runnable rebuildRunnable = new Runnable() {
         @Override public void run() {
@@ -244,6 +344,12 @@ public class BilingualSession {
     /** Attach the reader activity; also activates this session and pauses others. */
     public void attachHost(Host h) {
         this.host = h;
+        try {
+            // the open book was just built from the cached translations
+            builtMd5s = new HashSet<String>(cache.doneByTextHash(src, tgt).keySet());
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
         setActive(true);
         startWorker();
     }
@@ -256,7 +362,9 @@ public class BilingualSession {
     private void setActive(boolean on) {
         active.set(on);
         if (on) {
-            pending.clear();
+            synchronized (queue) {
+                pending.clear();
+            }
         }
         wake();
     }
@@ -292,6 +400,18 @@ public class BilingualSession {
                     @Override public void run() {
                         try {
                             recomputeWindow();
+                            ui.post(new Runnable() {
+                                @Override public void run() {
+                                    if (stopped.get()) {
+                                        return;
+                                    }
+                                    // the anchor/hint could not be computed
+                                    // before the enumeration finished
+                                    onPageShown(lastDc);
+                                    updateHint();
+                                    maybeRefreshCurrentPage();
+                                }
+                            });
                         } finally {
                             ensuring.set(false);
                         }
@@ -320,6 +440,21 @@ public class BilingualSession {
                 + (base == null ? book : base).getPath());
     }
 
+    /** 0-based page index -> global source paragraph index (linear estimate). */
+    private int pageStart(int page0, int pageCount, int total) {
+        if (pageCount <= 0 || total <= 0) {
+            return 0;
+        }
+        long v = (long) total * page0 / pageCount;
+        if (v < 0) {
+            v = 0;
+        }
+        if (v > total) {
+            v = total;
+        }
+        return (int) v;
+    }
+
     private void recomputeWindow() {
         try {
             ensureParas();
@@ -327,33 +462,59 @@ public class BilingualSession {
             if (total == 0 || lastPageCount <= 0 || lastPage0 < 0) {
                 return;
             }
-            long idx = (long) (total * (lastPage0 + 0.5f) / lastPageCount);
-            int from = Math.max(0, (int) idx - WINDOW_BACK);
-            int to = Math.min(total - 1, (int) idx + WINDOW_AHEAD);
+            int from = pageStart(lastPage0 - BACK_PAGES, lastPageCount, total);
+            int to = pageStart(lastPage0 + AHEAD_PAGES + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             int added = 0;
             synchronized (pending) {
                 synchronized (queue) {
-                    for (int i = from; i <= to; i++) {
-                        BilingualBuilder.Para p = paras.get(i);
-                        if (p == null || p.md5 == null || TxtUtils.isEmpty(p.text)) {
-                            continue;
-                        }
-                        if (done.containsKey(p.md5) || pending.contains(p.md5) || inFlight.contains(p.md5)) {
-                            continue;
-                        }
-                        pending.add(p.md5);
-                        queue.addLast(p.md5);
-                        added++;
+                    // current page first, then ahead pages, then back pages
+                    added += enqueuePageRange(done, lastPage0, lastPage0 + 1, true);
+                    for (int d = 1; d <= AHEAD_PAGES; d++) {
+                        added += enqueuePageRange(done, lastPage0 + d, lastPage0 + d + 1, false);
+                    }
+                    for (int d = 1; d <= BACK_PAGES; d++) {
+                        added += enqueuePageRange(done, lastPage0 - d, lastPage0 - d + 1, false);
                     }
                 }
             }
             android.util.Log.i("BENCH", "BilingualSession onView page=" + lastPage0 + "/" + lastPageCount
-                    + " idx=" + idx + " window=[" + from + "," + to + "] queued=" + added
-                    + " done=" + done.size() + " pending=" + pending.size());
+                    + " winPages=[" + (lastPage0 - BACK_PAGES) + "," + (lastPage0 + AHEAD_PAGES) + "]"
+                    + " winParas=[" + from + "," + to + "] queued=" + added
+                    + " done=" + done.size() + " pending=" + pending.size() + " queuedSet=" + queued.size());
+            updateHint();
         } catch (Throwable t) {
             LOG.e(t);
         }
+    }
+
+    private int enqueuePageRange(Map<String, String> done, int pageFrom, int pageTo, boolean currentPage) {
+        if (lastPageCount <= 0) {
+            return 0;
+        }
+        int total = paras.size();
+        int from = pageStart(pageFrom, lastPageCount, total);
+        int to = pageStart(pageTo, lastPageCount, total) - 1;
+        int added = 0;
+        for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+            BilingualBuilder.Para p = paras.get(i);
+            if (p == null || p.md5 == null || TxtUtils.isEmpty(p.text)) {
+                continue;
+            }
+            if (done.containsKey(p.md5) || pending.contains(p.md5) || inFlight.contains(p.md5)
+                    || queued.contains(p.md5)) {
+                continue;
+            }
+            if (currentPage) {
+                // the reader is looking at it: allow one more retry after failure
+                failed.remove(p.md5);
+            }
+            pending.add(p.md5);
+            queued.add(p.md5);
+            queue.addLast(p.md5);
+            added++;
+        }
+        return added;
     }
 
     private void workerLoop() {
@@ -371,6 +532,10 @@ public class BilingualSession {
             }
             synchronized (queue) {
                 md5 = queue.pollFirst();
+                if (md5 != null) {
+                    queued.remove(md5);
+                    pending.remove(md5);
+                }
             }
             if (md5 == null) {
                 try {
@@ -388,6 +553,8 @@ public class BilingualSession {
                 // paused (activity restarting/detached): keep the item, wait
                 synchronized (queue) {
                     queue.addFirst(md5);
+                    queued.add(md5);
+                    pending.add(md5);
                 }
                 try {
                     synchronized (workerLock) {
@@ -399,9 +566,6 @@ public class BilingualSession {
                     break;
                 }
                 continue;
-            }
-            synchronized (pending) {
-                pending.remove(md5);
             }
             translateOne(md5);
         }
@@ -447,13 +611,17 @@ public class BilingualSession {
             attempts.put(md5, attempt + 1);
             if (attempt < 2) {
                 synchronized (queue) {
-                    if (!pending.contains(md5)) {
+                    if (!pending.contains(md5) && !queued.contains(md5)) {
                         pending.add(md5);
+                        queued.add(md5);
                         queue.addLast(md5);
                     }
                 }
                 android.util.Log.i("BENCH", "BilingualSession " + md5 + " retry attempt=" + attempt);
             } else {
+                synchronized (queue) {
+                    failed.add(md5);
+                }
                 android.util.Log.i("BENCH", "BilingualSession " + md5 + " FAILED err=" + res.error);
             }
         } catch (Throwable t) {
@@ -469,6 +637,7 @@ public class BilingualSession {
         if (!newly) {
             return; // nothing changed, nothing to rebuild
         }
+        updateHint();
         ui.post(new Runnable() {
             @Override public void run() {
                 if (stopped.get()) {
@@ -485,7 +654,8 @@ public class BilingualSession {
 
     /**
      * Regenerate the bilingual edition with the latest cached translations and
-     * ask the host to re-open the book so the page shows the new translation.
+     * ask the host to re-open the book silently (in place) so the new page
+     * shows the translation without flashing.
      */
     private void rebuild() {
         if (stopped.get() || host == null) {
@@ -507,15 +677,16 @@ public class BilingualSession {
                     android.util.Log.i("BENCH", "BilingualSession rebuild ensure ms="
                             + (System.currentTimeMillis() - t0) + " target=" + (target == null ? "null" : target.getName()));
                     if (target != null) {
+                        try {
+                            builtMd5s = new HashSet<String>(cache.doneByTextHash(src, tgt).keySet());
+                        } catch (Throwable t) {
+                            LOG.e(t);
+                        }
+                        final int page0 = lastPage0;
+                        final String anchor = anchorMd5;
                         final Host h = host;
                         if (h != null && !stopped.get()) {
-                            ui.post(new Runnable() {
-                                @Override public void run() {
-                                    if (!stopped.get() && host != null) {
-                                        host.requestRestart();
-                                    }
-                                }
-                            });
+                            requestReload(page0, anchor);
                         }
                     }
                 } catch (Throwable t) {
@@ -525,6 +696,252 @@ public class BilingualSession {
                 }
             }
         }, "BiRebuild").start();
+    }
+
+    /** Coalesced request to the host: at most one reload in flight at a time. */
+    private void requestReload(final int page0, final String anchorMd5) {
+        synchronized (this) {
+            if (reloading) {
+                reloadPending = true;
+                return;
+            }
+            reloading = true;
+        }
+        final Host h = host;
+        if (h == null || stopped.get()) {
+            synchronized (this) {
+                reloading = false;
+            }
+            return;
+        }
+        ui.post(new Runnable() {
+            @Override public void run() {
+                if (stopped.get() || host == null) {
+                    synchronized (BilingualSession.this) {
+                        reloading = false;
+                    }
+                    return;
+                }
+                host.requestReload(page0, anchorMd5);
+                synchronized (BilingualSession.this) {
+                    reloading = false;
+                    if (reloadPending) {
+                        reloadPending = false;
+                        scheduleRebuild();
+                    }
+                }
+                updateHint();
+            }
+        });
+    }
+
+    private void scheduleRebuild() {
+        if (stopped.get()) {
+            return;
+        }
+        if (rebuildScheduled) {
+            ui.removeCallbacks(rebuildRunnable);
+        }
+        rebuildScheduled = true;
+        ui.postDelayed(rebuildRunnable, 50);
+    }
+
+    /**
+     * Remember the top paragraph of the currently shown page (content anchor
+     * used to re-land after a rebuild) and dump the page text layer for debug.
+     */
+    private long lastPageLogMs = 0;
+
+    private void onPageShown(DocumentController dc) {
+        try {
+            if (paras == null) {
+                return;
+            }
+            int p = dc.getCurentPageFirst1() - 1;
+            if (p < 0) {
+                return;
+            }
+            String[] frags = dc.getPageParagraphs(p);
+            String anchor = anchorOfFragments(frags);
+            if (anchor == null) {
+                anchor = fallbackAnchor();
+            }
+            if (anchor != null) {
+                anchorMd5 = anchor;
+                android.util.Log.i("BENCH", "BilingualSession anchor p=" + p + " md5=" + anchor);
+            }
+            long now = System.currentTimeMillis();
+            if (now - lastPageLogMs >= 15000) {
+                lastPageLogMs = now;
+                if (frags == null) {
+                    android.util.Log.i("BENCH", "BilingualPageText p=" + p + " paras=null");
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    int n = Math.min(frags.length, 6);
+                    for (int i = 0; i < n; i++) {
+                        String t = frags[i];
+                        if (t != null && t.length() > 90) {
+                            t = t.substring(0, 90);
+                        }
+                        sb.append('[').append(i).append("]").append(t).append(" || ");
+                    }
+                    android.util.Log.i("BENCH", "BilingualPageText p=" + p + " count=" + frags.length
+                            + " anchor=" + anchor + " " + sb.toString());
+                }
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+    }
+
+    private String anchorOfFragments(String[] frags) {
+        try {
+            if (frags == null || frags.length == 0) {
+                return null;
+            }
+            List<BilingualBuilder.Para> ps = paras;
+            if (ps == null || ps.isEmpty()) {
+                return null;
+            }
+            for (String f : frags) {
+                if (TxtUtils.isEmpty(f)) {
+                    continue;
+                }
+                String nf = norm(f);
+                if (nf.length() < 6) {
+                    continue;
+                }
+                String best = null;
+                int bestLen = 0;
+                for (BilingualBuilder.Para p : ps) {
+                    if (p.md5 == null || TxtUtils.isEmpty(p.text)) {
+                        continue;
+                    }
+                    String np = norm(p.text);
+                    if (np.length() >= nf.length() && np.indexOf(nf) >= 0 && np.length() > bestLen) {
+                        bestLen = np.length();
+                        best = p.md5;
+                    }
+                }
+                if (best != null) {
+                    return best;
+                }
+            }
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+        return null;
+    }
+
+    private String fallbackAnchor() {
+        try {
+            List<BilingualBuilder.Para> ps = paras;
+            if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
+                return null;
+            }
+            long idx = (long) (ps.size() * (lastPage0 + 0.5f) / lastPageCount);
+            int i = Math.max(0, Math.min(ps.size() - 1, (int) idx));
+            BilingualBuilder.Para p = ps.get(i);
+            return p == null ? null : p.md5;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return null;
+        }
+    }
+
+    /** True when the current page still has paragraphs not shown bilingually. */
+    public boolean isCurrentPagePending() {
+        try {
+            List<BilingualBuilder.Para> ps = paras;
+            if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
+                return false;
+            }
+            int total = ps.size();
+            int from = pageStart(lastPage0, lastPageCount, total);
+            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
+            Map<String, String> done = cache.doneByTextHash(src, tgt);
+            Set<String> built = builtMd5s;
+            synchronized (queue) {
+                for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+                    BilingualBuilder.Para p = ps.get(i);
+                    if (p == null || p.md5 == null) {
+                        continue;
+                    }
+                    if (done.containsKey(p.md5)) {
+                        // translated but the open book predates it
+                        if (!built.contains(p.md5)) {
+                            return true;
+                        }
+                    } else if (!failed.contains(p.md5)) {
+                        // still translating / queued / not started
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return false;
+        }
+    }
+
+    /** If the current page has translations ready that the open book lacks, refresh it. */
+    private void maybeRefreshCurrentPage() {
+        try {
+            if (!needsRefreshForCurrentPage()) {
+                return;
+            }
+            android.util.Log.i("BENCH", "BilingualSession current page stale -> refresh");
+            ui.post(new Runnable() {
+                @Override public void run() {
+                    if (!stopped.get() && host != null) {
+                        scheduleRebuild();
+                    }
+                }
+            });
+        } catch (Throwable t) {
+            LOG.e(t);
+        }
+    }
+
+    private boolean needsRefreshForCurrentPage() {
+        try {
+            List<BilingualBuilder.Para> ps = paras;
+            if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
+                return false;
+            }
+            int total = ps.size();
+            int from = pageStart(lastPage0, lastPageCount, total);
+            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
+            Map<String, String> done = cache.doneByTextHash(src, tgt);
+            Set<String> built = builtMd5s;
+            for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+                BilingualBuilder.Para p = ps.get(i);
+                if (p == null || p.md5 == null) {
+                    continue;
+                }
+                if (done.containsKey(p.md5) && !built.contains(p.md5)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return false;
+        }
+    }
+
+    private void updateHint() {
+        if (host == null) {
+            return;
+        }
+        ui.post(new Runnable() {
+            @Override public void run() {
+                if (!stopped.get() && host != null) {
+                    host.requestHintUpdate();
+                }
+            }
+        });
     }
 
     private void dispose() {

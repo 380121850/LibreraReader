@@ -22,7 +22,9 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.foobnix.ai.BilingualHintUi;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Intents;
 import com.foobnix.android.utils.Keyboards;
@@ -54,12 +56,14 @@ import org.ebookdroid.common.settings.SettingsManager;
 import org.ebookdroid.ui.viewer.viewers.PdfSurfaceView;
 import org.emdev.ui.AbstractActionActivity;
 
-public class VerticalViewActivity extends AbstractActionActivity<VerticalViewActivity, ViewerActivityController> {
+public class VerticalViewActivity extends AbstractActionActivity<VerticalViewActivity, ViewerActivityController> implements BilingualHintUi {
     public static final DisplayMetrics DM = new DisplayMetrics();
 
     IView view;
 
     private FrameLayout frameLayout;
+
+    private TextView aiTranHint;
 
     /**
      * Instantiates a new base viewer activity.
@@ -85,6 +89,14 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     public void onRewardLoaded() {
         super.onRewardLoaded();
         ViewBinder.hideShowRewardButton(this,findViewById(R.id.showRewardVideo));
+    }
+
+    @Override
+    public void setBilingualHint(boolean show) {
+        if (aiTranHint == null) {
+            return;
+        }
+        aiTranHint.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -167,6 +179,8 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
         getController().createWrapper(this);
         frameLayout = (FrameLayout) findViewById(R.id.documentView);
+
+        aiTranHint = (TextView) findViewById(R.id.aiTranHint);
 
         view = new PdfSurfaceView(getController());
 

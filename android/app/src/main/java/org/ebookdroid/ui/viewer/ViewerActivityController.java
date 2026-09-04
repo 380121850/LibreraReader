@@ -11,6 +11,7 @@ import android.text.InputType;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.foobnix.ai.BilingualSession;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Intents;
 import com.foobnix.android.utils.LOG;
@@ -82,6 +83,11 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
     private int loadingCount = 0;
 
+    // silent bilingual-reload markers (consumed once in afterCreate)
+    private boolean silentReload;
+    private String bilingualAnchorMd5;
+    private int bilingualAnchorPage = -1;
+
     private String m_fileName;
     private String title;
 
@@ -125,6 +131,18 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         final VerticalViewActivity activity = getManagedComponent();
 
         DocumentController.chooseFullScreen(activity, AppState.get().fullScreenMode);
+
+        // consume the silent bilingual-reload markers once (they travel on the
+        // reused Intent): the reader skips its loading dialog and re-lands on
+        // the same content via the paragraph anchor.
+        silentReload = intent != null && intent.getBooleanExtra("bilingualSilentReload", false);
+        bilingualAnchorMd5 = intent == null ? null : intent.getStringExtra("bilingualAnchorMd5");
+        bilingualAnchorPage = intent == null ? -1 : intent.getIntExtra("bilingualAnchorPage", -1);
+        if (intent != null) {
+            intent.removeExtra("bilingualSilentReload");
+            intent.removeExtra("bilingualAnchorMd5");
+            intent.removeExtra("bilingualAnchorPage");
+        }
 
         if (++loadingCount == 1) {
             documentModel = ActivityControllerStub.DM_STUB;
@@ -680,9 +698,12 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
         }
 
         @Override protected void onPreExecute() {
-            super.onPreExecute();
+            if (!silentReload) {
+                // loading dialog + FirstPaintGate hold are only for real opens
+                super.onPreExecute();
+            }
             benchT0 = android.os.SystemClock.elapsedRealtime();
-            android.util.Log.i("BENCH", "load-begin");
+            android.util.Log.i("BENCH", "load-begin silent=" + silentReload);
         }
 
         @Override protected Throwable doInBackground(final String... params) {
@@ -780,16 +801,42 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
                         final DocumentModel dm = getDocumentModel();
                         currentPageChanged(dm.getCurrentIndex().docIndex, -1);
+
+                        if (silentReload && TxtUtils.isNotEmpty(bilingualAnchorMd5)) {
+                            // re-land on the same content as before the rebuild;
+                            // the text layer may not be ready right after load in
+                            // vertical fast-open, so retry shortly afterwards and
+                            // only jump while the reader still sits on that page
+                            final String anchor = bilingualAnchorMd5;
+                            final int approx = bilingualAnchorPage;
+                            getManagedComponent().view.getView().postDelayed(new Runnable() {
+                                @Override public void run() {
+                                    try {
+                                        int anchor0 = BilingualSession.locateAnchorPage(controller, anchor, approx);
+                                        android.util.Log.i("BENCH", "BilingualSilentReload anchorPage0=" + anchor0
+                                                + " approx0=" + approx);
+                                        if (anchor0 >= 0 && controller.getCurentPageFirst1() - 1 == approx) {
+                                            controller.onGoToPage(anchor0 + 1);
+                                        }
+                                    } catch (Throwable t) {
+                                        LOG.e(t);
+                                    }
+                                }
+                            }, 600);
+                        }
+
                         onBookLoaded.run();
 
                         if (progressiveLoad) {
                             startPhaseTwoLayout(dm);
                         }
 
-                        // keep the loading dialog up until the first page
-                        // bitmap is decoded, so no blank page flashes
-                        holdProgressDialog = true;
-                        FirstPaintGate.arm(progressDialog);
+                        if (!silentReload) {
+                            // keep the loading dialog up until the first page
+                            // bitmap is decoded, so no blank page flashes
+                            holdProgressDialog = true;
+                            FirstPaintGate.arm(progressDialog);
+                        }
 
                     } catch (final Throwable th) {
                         result = th;
