@@ -835,6 +835,24 @@
    <string name="ai_config_max_tokens">Max tokens</string>
    <string name="ai_chat_hint">Type text to test the model</string>
    <string name="ai_config_thinking">Thinking mode (shows reasoning, off by default)</string>
+   <string name="ai_translate">AI translate</string>
+   <string name="save_ai_translation_results">Save AI translation results</string>
+   <string name="ai_translate_source_lang">Source language</string>
+   <string name="ai_translate_target_lang">Target language</string>
+   <string name="ai_translate_start">Translate</string>
+   <string name="ai_translate_translating">Translating…</string>
+   <string name="ai_translate_not_configured">Configure the AI model first in Preferences → General → AI model</string>
+   <string name="ai_translate_unsupported_format">Translation is only available for EPUB, TXT, MOBI and AZW3 books</string>
+   <string name="ai_translate_same_lang">Source and target language are the same</string>
+   <string name="ai_translate_failed">Translation failed</string>
+   <string name="lang_english">English</string>
+   <string name="lang_chinese">Chinese</string>
+   <string name="lang_japanese">Japanese</string>
+   <string-array name="ai_translate_langs">
+      <item>@string/lang_english</item>
+      <item>@string/lang_chinese</item>
+      <item>@string/lang_japanese</item>
+   </string-array>
    <string name="save_as_note">Save as Note</string>
    <string name="note_saved">Note saved</string>
    <string name="note_empty">Nothing to save: get an AI answer first</string>

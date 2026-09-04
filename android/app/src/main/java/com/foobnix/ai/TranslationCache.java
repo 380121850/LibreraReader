@@ -1,0 +1,162 @@
+package com.foobnix.ai;
+
+import com.foobnix.android.utils.FileHash;
+import com.foobnix.android.utils.LOG;
+import com.foobnix.android.utils.TxtUtils;
+import com.foobnix.model.AppProfile;
+
+import org.librera.LinkedJSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Per-book translation cache, one JSONL file per book, keyed by the book
+ * content SHA-256 (so a renamed/moved book still hits its translations).
+ *
+ * Line format (one JSON object per paragraph):
+ * {"pid":"ch1_p003","src":"en","tgt":"zh-CN","orig":"...","tran":"...","ts":1717500000,"status":"done"}
+ *
+ * pid = chapter + paragraph anchor (stable across reflow); src/tgt = the
+ * language pair (each pair is cached independently); orig = original snapshot
+ * (drift guard); status = pending/done/failed (allows incremental backfill).
+ */
+public class TranslationCache {
+
+    private final File file;
+    // key = pid|src|tgt  ->  raw JSON line
+    private final Map<String, String> lines = new LinkedHashMap<String, String>();
+    private boolean dirty = false;
+
+    public TranslationCache(File book) {
+        String hash = FileHash.sha256(book);
+        File dir = new File(AppProfile.SYNC_FOLDER_DEVICE_PROFILE, "ai-translation");
+        dir.mkdirs();
+        file = new File(dir, hash + ".jsonl");
+        load();
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    private static String key(String pid, String src, String tgt) {
+        return pid + "|" + src + "|" + tgt;
+    }
+
+    private void load() {
+        lines.clear();
+        if (!file.isFile()) {
+            return;
+        }
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+            String line;
+            while ((line = in.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+                try {
+                    LinkedJSONObject o = new LinkedJSONObject(line);
+                    String pid = o.optString("pid");
+                    String src = o.optString("src");
+                    String tgt = o.optString("tgt");
+                    if (TxtUtils.isNotEmpty(pid)) {
+                        lines.put(key(pid, src, tgt), line);
+                    }
+                } catch (Exception ignored) {
+                    // skip malformed line
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Return the cached translation for (pid, src, tgt) when it is done and the
+     * original text has not drifted; null otherwise.
+     */
+    public String lookup(String pid, String src, String tgt, String orig) {
+        String line = lines.get(key(pid, src, tgt));
+        if (line == null) {
+            return null;
+        }
+        try {
+            LinkedJSONObject o = new LinkedJSONObject(line);
+            if (!"done".equals(o.optString("status"))) {
+                return null;
+            }
+            String storedOrig = o.optString("orig");
+            // drift guard: if we know the original and it changed, it is a miss
+            if (TxtUtils.isNotEmpty(orig) && TxtUtils.isNotEmpty(storedOrig)
+                    && !orig.equals(storedOrig)) {
+                return null;
+            }
+            String tran = o.optString("tran");
+            return TxtUtils.isEmpty(tran) ? null : tran;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Record a paragraph translation (upsert by pid|src|tgt). */
+    public void save(String pid, String src, String tgt, String orig, String tran, String status) {
+        try {
+            LinkedJSONObject o = new LinkedJSONObject();
+            o.put("pid", pid);
+            o.put("src", src);
+            o.put("tgt", tgt);
+            o.put("orig", orig == null ? "" : orig);
+            o.put("tran", tran == null ? "" : tran);
+            o.put("ts", System.currentTimeMillis() / 1000L);
+            o.put("status", status);
+            lines.put(key(pid, src, tgt), o.toString());
+            dirty = true;
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Write pending changes to disk. */
+    public synchronized void flush() {
+        if (!dirty) {
+            return;
+        }
+        BufferedWriter out = null;
+        try {
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            for (String line : lines.values()) {
+                out.write(line);
+                out.newLine();
+            }
+            out.flush();
+            dirty = false;
+        } catch (Exception e) {
+            LOG.e(e);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+}

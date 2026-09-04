@@ -1316,6 +1316,15 @@ View libPrefView = inflate.findViewById(R.id.moreLybraryettings);
             }
         });
 
+        CheckBox isSaveAiTranslation = inflate.findViewById(R.id.isSaveAiTranslation);
+        isSaveAiTranslation.setChecked(AppState.get().isSaveAiTranslation);
+        isSaveAiTranslation.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+            @Override public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                AppState.get().isSaveAiTranslation = isChecked;
+            }
+        });
+
         ///
 
         // BrightnessHelper.controlsWrapper(inflate, getActivity());

@@ -5,6 +5,37 @@
 
 ---
 
+## [2026-09-04] 新增：阅读界面 AI 翻译（EPUB/TXT/MOBI/AZW3 逐段翻译 + 覆盖面板 + 可选缓存）
+
+**功能**：阅读页工具栏的"替换文本"按钮改为"AI 翻译"。点击后弹出语言选择对话框（源语言自动识别、可改；目标语言限 英文/中文/日文），确认后在页面右侧（横屏）/底部（竖屏）叠加一个可滚动译文面板，把当前页 ±（前 1 页、后 3 页）的正文**逐段**发给已配置的大模型翻译，增量刷新面板。可选"AI翻译结果保存"（偏好页新增 CheckBox），开启后按书 SHA-256 落 JSONL 缓存（`SYNC_FOLDER_DEVICE_PROFILE/ai-translation/<sha256>.jsonl`），重翻命中缓存不再调用 AI。不支持的格式（PDF 等无文本层）按钮置灰不可点。
+
+**新增文件**（`app/src/main/java/com/foobnix/ai/`）：
+- `AiTranslator.java` — 翻译引擎：页面窗口 [current-1 .. current+3]、逐页取段落、算稳定锚点 pid、查缓存、调 `AiClient.ask`、写缓存、进度回调。含共享的 `htmlToParagraphs()` 段落解析器。
+- `TranslationCache.java` — JSONL 读写（按书 SHA-256 定位，`lookup`/`save`/`flush`，含原文漂移守卫）。
+- `LanguageDetector.java` — 源语言识别：优先 `FileMeta.lang`，缺失则采样前几页按 CJK/假名/拉丁占比判 zh/ja/en。
+- `AiTranslateDialog.java` — 语言选择对话框（AlertDialog，源/目标 Spinner + 取消/开始）。
+- `TranslatePanel.java` — 译文覆盖面板（ScrollView + 段落块，逐段追加，失败标红）。
+
+**修改文件**：
+- `res/layout/document_title_buttons.xml` + `res/layout/activity_horiziontal_view.xml`：`onTextReplacement` 图标改 `my_glyphicons_ai_translate`、contentDescription 改 `ai_translate`。
+- `DocumentWrapperUI.java`（竖屏）+ `HorizontalViewActivity.java`（横屏）：点击改 `AiTranslateDialog.show()`；格式门控（EPUB/TXT/MOBI/AZW3 可点，其余 `alpha=0.3f`+`setEnabled(false)`，始终可见）。
+- `VerticalModeController.java` + `HorizontalModeController.java`：`getPageParagraphs()` 改用 `getPageHTML()` + `AiTranslator.htmlToParagraphs()`（原实现调 `MuPdfPage.text()`，见下方"关键 bug"）。
+- `model/AppState.java`：加 `public boolean isSaveAiTranslation = false;`。
+- `res/layout/fragment_preferences.xml` + `ui2/fragment/PrefFragment2.java`：偏好页新增"AI翻译结果保存"CheckBox 并绑定。
+- `res/values/strings.xml` + `res/values-zh-rCN/strings.xml`：新增 AI 翻译相关字符串。
+- `res/drawable/my_glyphicons_ai_translate.xml` + `res/drawable/ai_translate_block_bg.xml` + `res/layout/ai_translate_dialog.xml` + `res/layout/ai_translate_panel.xml`：图标/背景/布局。
+- `android/utils/FileHash.java`：加 `sha256(File)`。
+
+**关键 bug（本条最重要的修复）**：翻译最初"打开空白、无任何反应"。BENCH 日志定位根因——`VerticalModeController`/`HorizontalModeController` 的 `getPageParagraphs()` 调用 `((MuPdfPage) cp).text()`，而预编译 `libMuPDF.so`（`prebuilt/native/mupdf-1.23.7`）**没有导出 `Java_..._MuPdfPage_text` 符号**（只导出了 `text116` 与 `getPageAsHtml`），于是每次抛 `UnsatisfiedLinkError` 被 catch 吞掉、返回 null，段落全空，AI 从未被调用（日志 `done=0 failed=0 empty=0`）。修复：`getPageParagraphs()` 改用**可用**的 `getPageHTML()`（走 `getPageAsHtml` 原生，TTS/搜索同款路径），由 `AiTranslator.htmlToParagraphs()` 解析。
+
+**段落解析细节（经真机 RAWHTML 采样确认）**：该 MuPDF 版本的页面 HTML 用 `<pause>` 标记**段落边界**、用 `<p>…</p>` 标记段内**每一行**（并非 `<end-block>`/`<end-line>`），行末软连字符断词（如 "transla-" / "tion"）。故 `htmlToParagraphs()` 按 `<pause>` 切段、段内合并 `<p>` 行、去连字符（行尾 `-` 去掉且不加空格）还原整词。修复前按行切导致译文是半句碎片（如"在雨天他这样做。他站在窗前——"）；修复后为完整段落。
+
+**稳定锚点 pid**：`ch<章节序号>_h<md5(原文)>`（章节 + 原文内容哈希）。不依赖行号/页码（随字号/屏宽变化），reflow 后同文本同哈希，缓存的原文漂移守卫已保证正确性；且无需为算"章内段落序号"预扫整章（那会让首条结果等很久）。
+
+**验证（MI9 真机，MIUI，adb `48fee174`，pro 包 `com.howread.reader.pro`，测试书 `/sdcard/Download/test_en.epub` 英文 2 章）**：pro debug BUILD SUCCESSFUL。打开 EPUB → 点 AI 翻译 → 源语言自动识别为英文、目标中文 → 开始翻译 → 面板逐段显示完整中文译文（连字符断词正确还原："transla-tion"→"翻译"、"cov-ered"→"覆盖"、"win-dow"→"窗边"）。BENCH 日志确认 AI 被真实调用：2 页共 4 段，逐段 `AI ask orig.len=9/420/9/283` → `AI res ok=true reply.len=3/120/3/81`，`done=4 failed=0 empty=0`（修复前为 `done=0`）。鸿蒙零改动。
+
+---
+
 ## [2026-09-04] 三项：更新第三方库许可内容 / "我的文件"搜索项上移并去掉"新文件" / 修复书签笔记删除后被 WebDAV 同步回来
 
 ### 一、更新第三方库许可内容（`android/app/src/main/assets/licenses.html`）

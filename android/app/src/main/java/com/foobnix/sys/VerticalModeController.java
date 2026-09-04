@@ -43,6 +43,7 @@ import org.ebookdroid.core.codec.CodecPage;
 import org.ebookdroid.core.codec.OutlineLink;
 import org.ebookdroid.core.codec.PageLink;
 import org.ebookdroid.droids.mupdf.codec.MuPdfLinks;
+import org.ebookdroid.droids.mupdf.codec.MuPdfPage;
 import org.ebookdroid.droids.mupdf.codec.TextWord;
 import org.ebookdroid.ui.viewer.ViewerActivityController;
 import org.greenrobot.eventbus.EventBus;
@@ -400,6 +401,22 @@ public class VerticalModeController extends DocumentController {
         pageHTML = pageHTML.replace(TxtUtils.NON_BREAKE_SPACE, " ");
 
         return pageHTML;
+    }
+
+    @Override
+    public String[] getPageParagraphs(int page) {
+        try {
+            CodecPage cp = ctr.getDecodeService().getCodecDocument().getPage(page);
+            if (cp instanceof MuPdfPage && !cp.isRecycled()) {
+                // Use the page HTML (working getPageAsHtml native) and split it
+                // into paragraphs. MuPdfPage.text() has no native impl in the
+                // prebuilt libMuPDF.so, so it throws UnsatisfiedLinkError.
+                return com.foobnix.ai.AiTranslator.htmlToParagraphs(cp.getPageHTML());
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        return null;
     }
 
     @Override

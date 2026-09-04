@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/windowBackground"
+    android:orientation="vertical"
+    android:padding="16dip">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/ai_translate"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dip"
+        android:text="@string/ai_translate_source_lang"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/aiTranslateSrc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dip" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dip"
+        android:text="@string/ai_translate_target_lang"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/aiTranslateTgt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dip" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dip"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/aiTranslateCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="44dip"
+            android:background="@drawable/bg_border_ltgray"
+            android:gravity="center"
+            android:minWidth="96dip"
+            android:paddingLeft="16dip"
+            android:paddingRight="16dip"
+            android:text="@string/cancel"
+            android:textColor="@color/tint_gray"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/aiTranslateStart"
+            android:layout_width="wrap_content"
+            android:layout_height="44dip"
+            android:layout_marginLeft="10dip"
+            android:background="@drawable/bg_border_ltgray"
+            android:gravity="center"
+            android:minWidth="96dip"
+            android:paddingLeft="16dip"
+            android:paddingRight="16dip"
+            android:text="@string/ai_translate_start"
+            android:textColor="@color/tint_gray"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

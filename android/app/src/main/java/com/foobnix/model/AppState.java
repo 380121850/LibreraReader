@@ -333,6 +333,9 @@ public class AppState {
     // reasoning ("thinking") mode of the model; off by default so answers
     // come straight without a long reasoning section
     public boolean aiThinking = false;
+    // persist AI translation results to a per-book JSONL cache (keyed by the
+    // book content SHA-256) so re-translating hits the cache instead of the API
+    public boolean isSaveAiTranslation = false;
     public boolean opdsLargeCovers = true;
     public boolean createBookNameFolder = false;
     public String readColors = READ_COLORS_DEAFAUL;

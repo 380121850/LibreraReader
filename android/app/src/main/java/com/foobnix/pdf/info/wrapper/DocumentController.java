@@ -831,6 +831,18 @@ public abstract class DocumentController {
 
     public abstract String getTextForPage(int page);
 
+    /**
+     * The text blocks (paragraphs) of a page as plain strings, one entry per
+     * MuPDF text block. Used by the AI translation feature to translate
+     * paragraph by paragraph.
+     *
+     * @param page 0-based page number
+     * @return array of paragraph strings, or null when the page has no text
+     */
+    public String[] getPageParagraphs(int page) {
+        return null;
+    }
+
     public abstract String getPageHtml();
 
     public abstract List<PageLink> getLinksForPage(int page);

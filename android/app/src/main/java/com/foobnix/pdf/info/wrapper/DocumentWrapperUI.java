@@ -30,6 +30,8 @@ import android.widget.TextView;
 
 import androidx.core.graphics.ColorUtils;
 
+import com.foobnix.ai.AiTranslateDialog;
+import com.foobnix.ai.AiTranslator;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.IntegerResponse;
@@ -87,6 +89,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -738,6 +741,22 @@ public class DocumentWrapperUI {
         progressDraw.updatePageCount(dc.getPageCount() - 1);
     }
 
+    /**
+     * Grey out the AI-translate button for formats without a text layer.
+     * Must be recomputed once the book is loaded, because the toolbar is
+     * bound before {@code setCurrentBook} runs.
+     */
+    private void updateAiTranslateGate() {
+        if (onTextReplacement == null || dc == null) {
+            return;
+        }
+        final File book = dc.getCurrentBook();
+        final boolean supported = AiTranslator.isSupportedFormat(
+                book == null ? null : book.getPath());
+        onTextReplacement.setEnabled(supported);
+        onTextReplacement.setAlpha(supported ? 1f : 0.3f);
+    }
+
     public void updateUI() {
         //hideShowAnnotationLine();
         final int max = dc.getPageCount();
@@ -802,6 +821,9 @@ public class DocumentWrapperUI {
                 cut.setVisibility(View.VISIBLE);
             }
         }
+
+        // recompute the AI-translate gate now that the book is loaded
+        updateAiTranslateGate();
 
         crop.underline(AppSP.get().isCrop);
         cut.underline(AppSP.get().isCut);
@@ -1154,7 +1176,11 @@ public class DocumentWrapperUI {
         fullscreen.setImageResource(DocumentController.getFullScreenIcon(a, AppState.get().fullScreenMode));
 
         onTextReplacement = a.findViewById(R.id.onTextReplacement);
-        onTextReplacement.setOnClickListener(v -> DragingDialogs.dialogTextReplaces(anchor, dc));
+        onTextReplacement.setOnClickListener(v -> AiTranslateDialog.show(a, dc));
+        // the book may not be set yet at init time (initUI runs before
+        // setCurrentBook); the enabled/alpha gate is recomputed in updateUI()
+        // once the book is present
+        updateAiTranslateGate();
 
         onCloseBook = a.findViewById(R.id.close);
         Apps.accessibilityButtonSize(onCloseBook);

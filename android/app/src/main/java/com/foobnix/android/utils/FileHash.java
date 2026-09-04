@@ -20,15 +20,24 @@ public class FileHash {
 
     private static final int BUF = 8192;
 
-    // path → {lastModified, length, hash}
+    // path + algorithm → {lastModified, length, hash}
     private static final Map<String, String[]> CACHE = new ConcurrentHashMap<String, String[]>();
 
     /** MD5 of the file content; "" when the file is missing or unreadable. */
     public static String md5(File f) {
+        return hash(f, "MD5");
+    }
+
+    /** SHA-256 of the file content; "" when the file is missing or unreadable. */
+    public static String sha256(File f) {
+        return hash(f, "SHA-256");
+    }
+
+    private static String hash(File f, String algo) {
         if (f == null || !f.isFile()) {
             return "";
         }
-        final String key = f.getPath();
+        final String key = f.getPath() + "#" + algo;
         final String[] c = CACHE.get(key);
         if (c != null && c.length == 3) {
             try {
@@ -38,7 +47,7 @@ public class FileHash {
             } catch (NumberFormatException ignored) {
             }
         }
-        final String hash = compute(f, "MD5");
+        final String hash = compute(f, algo);
         if (hash != null) {
             CACHE.put(key, new String[]{"" + f.lastModified(), "" + f.length(), hash});
             return hash;

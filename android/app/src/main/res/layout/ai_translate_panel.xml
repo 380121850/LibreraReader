@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F2FFFFFF"
+    android:elevation="8dip"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dip"
+        android:background="@color/tint_gray"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="10dip"
+        android:paddingRight="6dip">
+
+        <TextView
+            android:id="@+id/aiTranslateTitle"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/ai_translate"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/aiTranslateCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="6dip"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/aiTranslateClose"
+            android:layout_width="38dip"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="9dip"
+            android:src="@drawable/glyphicons_599_menu_close"
+            android:tint="@color/white" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/aiTranslateScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/aiTranslateBlocks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dip" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/aiTranslateProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#E6FFFFFF"
+        android:gravity="center"
+        android:padding="8dip"
+        android:text="@string/ai_translate_translating"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+</LinearLayout>

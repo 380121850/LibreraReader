@@ -46,6 +46,8 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
+import com.foobnix.ai.AiTranslateDialog;
+import com.foobnix.ai.AiTranslator;
 import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.Keyboards;
@@ -537,10 +539,13 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         onTextReplacement.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                DragingDialogs.dialogTextReplaces(anchor, dc);
+                AiTranslateDialog.show(HorizontalViewActivity.this, dc);
             }
         });
-        Views.visible(onTextReplacement, isTextFomat);
+        // the controller (and its book) is created later in initAsync; the
+        // enabled/alpha gate is applied there once the book is present
+        onTextReplacement.setEnabled(false);
+        onTextReplacement.setAlpha(0.3f);
 
         ImageView dayNightButton = (ImageView) findViewById(R.id.bookNight);
         dayNightButton.setOnClickListener(new View.OnClickListener() {
@@ -1819,6 +1824,22 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         };
         // dc.init(this);
         dc.initAnchor(anchor);
+
+        // the book is set inside the controller constructor above; apply the
+        // AI-translate gate now that the format is known (initAsync runs on a
+        // background thread, so hop back to the UI thread for the view update)
+        final boolean aiTranslateSupported = AiTranslator.isSupportedFormat(
+                dc.getCurrentBook() == null ? null : dc.getCurrentBook().getPath());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final ImageView onTextReplacement = findViewById(R.id.onTextReplacement);
+                if (onTextReplacement != null) {
+                    onTextReplacement.setEnabled(aiTranslateSupported);
+                    onTextReplacement.setAlpha(aiTranslateSupported ? 1f : 0.3f);
+                }
+            }
+        });
     }
 
     public void updateUI(int page) {
