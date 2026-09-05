@@ -941,7 +941,10 @@ public class WebDavSyncer {
             return true;
         }
         if (v instanceof CharSequence) {
-            return TxtUtils.isEmpty(v.toString().trim());
+            // string-typed state fields may hold serialized JSON ("[]" for an
+            // empty list, e.g. aiConfigs) — an empty container is NOT a value
+            String s = v.toString().trim();
+            return TxtUtils.isEmpty(s) || "[]".equals(s) || "{}".equals(s);
         }
         if (v instanceof JSONArray) {
             return ((JSONArray) v).length() == 0;

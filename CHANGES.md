@@ -5,6 +5,26 @@
 
 ---
 
+## [2026-09-05] 修复：WebDAV 配置再次丢失——A 机（旧整文件同步包）把昨天"被冲掉的陈旧快照"重新上传覆盖服务器，MI9 按规则正确下拉后被清空；同步修复 `isEmptyValue` 把字符串形式空容器（`"[]"`/`"{}"`）判为"未配置"，防止陈旧设备的空列表在首同步时盖掉有效配置；MI9 数据已全部恢复
+
+**日志定位**（MI9 `app-SyncLog.json`，30 轮全量回查）：本机从未上行过空值——16:06:06 一轮出现成批 **down**（服务器→本地）：`allWebDavLinks → (空)`、`app-NetworkSources.webdav → []`、`webdavSyncIntervalMin 5→15`、OPDS 回退旧列表等，且该服务器快照携带**旧版专有字段** `isSaveAiTranslation:true`（今日新包已删除该字段）、无 `aiConfigs/aiConfigName`——即昨天事故时 A 机被冲掉的"事故态快照"。结论：16:01–16:06 之间 **A 机用旧包（整文件 mtime 新者胜，先导出重写本地文件致 mtime 恒最新）做了一次同步，把自己的陈旧快照重新发布到服务器**；MI9 16:06 的周期同步按"本地未改、服务器已改→采纳服务器"的删除传播规则正确下拉，于是配置再次丢失（合并逻辑本身行为符合设计）。
+
+**顺带修复真 bug**：首同步恢复时 `aiConfigs`（AppState 中为 JSON 字符串）被服务器上的 `"[]"` 空串覆盖——`isEmptyValue` 原本只对字符串判空串，`"[]"` 被当非空。现把 `"[]"`/`"{}"` 判为"未配置"：首同步"非空胜"规则下，本机有效列表胜出并回发布到服务器，陈旧空列表再也无法盖掉有效配置。
+
+**MI9 恢复**（停应用→回写→删 base→重启触发首同步，同步日志可见上行）：`allWebDavLinks = http://leestation.ddns.net:55005,LeeStation;`、`app-NetworkSources.webdav = [LeeStation]`（17:03:56 up）、`aiConfigs = [智谱, Llama.cpp]`（17:11:57 up）、`webdavSyncIntervalMin = 5`；三渠道 Release 重新编译 `BUILD SUCCESSFUL`。
+
+**必须处理（已完成）**：A 机（小米12S）16:57 前一直运行旧包——其自身同步日志还原了完整链条：16:03:00 下拉到同一份空值（服务器早于 16:03 已被污染）、16:05:38 以旧包签名字段 `isSaveAiTranslation=true` 回写服务器、16:02:51 结束的那次 **48 分钟后台同步**（休眠/网络断续中完成）是污染窗口（16:01–16:03）内唯一结束的同步；16:59 又把 `aiConfigs=[]`/`webdavSyncPolicy=server` 上传（引发 MI9 17:03 的 `aiConfigs→[]`，已被 isEmptyValue 修复兜住）。17:26 已通过 adb 给 A 机装上含该修复的最新包，17:12 起 A 机已下拉到恢复后的正确配置（LeeStation、每5分钟、智谱+Llama.cpp 厂商），两机当前收敛一致。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
+## [2026-09-05] 优化：AI 配置对话框"配置方案"改版为"模型厂商"——与协议同行显示，下拉末项"添加模型厂商…"进入空白配置页、点保存即新增厂商
+
+**改动**：①布局合并——`dialog_ai_config.xml` 原独立"配置方案"行取消，"模型厂商"选择器移到"协议"行右侧（协议 | 值 | 模型厂商 | 值，各占弹性宽度）；②文案——ai_profile_config 改为"模型厂商/Model vendor"，未选择时显示"未添加"，删除项改为"删除当前厂商"；③下拉菜单重排——已有厂商列表、"删除当前厂商"、**最后一项"添加模型厂商…"**：点选后先输入厂商名称，随即进入空白配置页（URL 重置为当前协议默认地址、Key/模型清空、输出上限 4096、思考模式关），填完配置项后点对话框"保存"即把该厂商写入 `aiConfigs` 并激活（未保存关闭则不落地）；选中已有厂商仍然自动回填全部参数。数据结构与同步方式不变（aiConfigs 随 app-State 三方合并跨设备同步）。
+
+**验证**（Ubuntu 构建 assembleProRelease → MI9 真机）：新行内"协议 OpenAI 兼容 | 模型厂商 测试A"显示正常、升级后旧方案数据保留；下拉为 已有厂商…/删除当前厂商/添加模型厂商…（添加在最后）；输入"深度求索"→进入空白配置页（URL 重置 openai 默认、Key/模型为空）→填入模型名→点保存→厂商列表出现"深度求索"。三渠道 Release 重新编译 `BUILD SUCCESSFUL`。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 功能：①"AI翻译结果保存"移入 AI 翻译弹窗（仅双语可用时显示、默认勾选，并首次真正控制双语路径的落盘）②修复 PDF 打开后退出误报"保存更改"③AI 大模型支持多配置方案（下拉切换、选中自动回填全部参数）
 
 **① AI翻译结果保存移位**：原"阅读配置"里的复选框（`isSaveAiTranslation`，默认关且双语路径无视它）整体移到 AI 翻译弹窗——新增 `AppState.aiSaveTranslation`（默认 true）替代旧字段；`ai_translate_dialog.xml` 在"页面内显示译文（双语对照）"正下方新增同款 `aiTranslateSave` 复选框，仅当 `isBilingualFormat()` 为真（EPUB/TXT/azw3）时显示，勾选变化立即持久化；`TranslationCache` 新增 `inMemory()` 会话临时模式（仍可命中已有缓存、save/flush 不落盘），`BilingualSession` 按开关选择真实/临时缓存——关闭后页内双语照常翻译但不写缓存文件，`AiTranslator` 列表路径沿用同一开关。移除 `fragment_preferences.xml` 与 `PrefFragment2` 中的旧复选框。

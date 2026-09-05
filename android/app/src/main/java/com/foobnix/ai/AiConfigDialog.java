@@ -90,15 +90,24 @@ public class AiConfigDialog {
                         return true;
                     });
                 }
-                popup.getMenu().add(R.string.ai_profile_save_as).setOnMenuItemClickListener(item -> {
+                popup.getMenu().add(R.string.ai_profile_delete).setOnMenuItemClickListener(item -> {
+                    if (TxtUtils.isEmpty(selectedName[0])) {
+                        return true;
+                    }
+                    AppState.get().aiConfigs = removeProfile(AppState.get().aiConfigs, selectedName[0]);
+                    selectedName[0] = "";
+                    refreshProfileLabel(profileValue, "");
+                    return true;
+                });
+                // last entry: add a new vendor — asks for the name, then clears
+                // the fields for a fresh config; pressing the dialog's 保存
+                // stores it under that name
+                popup.getMenu().add(R.string.ai_profile_add).setOnMenuItemClickListener(item -> {
                     final EditText nameEdit = new EditText(a);
                     nameEdit.setHint(R.string.ai_profile_name_hint);
                     nameEdit.setSingleLine(true);
-                    if (TxtUtils.isNotEmpty(selectedName[0])) {
-                        nameEdit.setText(selectedName[0]);
-                    }
                     new AlertDialog.Builder(a)
-                            .setTitle(R.string.ai_profile_save_as)
+                            .setTitle(R.string.ai_profile_add)
                             .setView(nameEdit)
                             .setPositiveButton(R.string.webdav_sync_save,
                                     (d, w) -> {
@@ -108,28 +117,19 @@ public class AiConfigDialog {
                                                     Toast.LENGTH_SHORT).show();
                                             return;
                                         }
-                                        AppState.get().aiConfigs = upsertProfile(
-                                                AppState.get().aiConfigs,
-                                                profileJson(name, savedLocal,
-                                                        url.getText().toString().trim(),
-                                                        apiKey.getText().toString(),
-                                                        model.getText().toString().trim(),
-                                                        parseBudget(maxTokens),
-                                                        thinking.isChecked()));
+                                        // clean sheet: protocol default endpoint,
+                                        // everything else empty
+                                        url.setText(AiClient.defaultUrl(savedLocal));
+                                        apiKey.setText("");
+                                        model.setText("");
+                                        maxTokens.setText(String.valueOf(PROFILE_BUDGET_DEFAULT));
+                                        thinking.setChecked(false);
                                         selectedName[0] = name;
+                                        refreshProtocolLabel(protocolValue);
                                         refreshProfileLabel(profileValue, name);
                                     })
                             .setNegativeButton(R.string.cancel, null)
                             .show();
-                    return true;
-                });
-                popup.getMenu().add(R.string.ai_profile_delete).setOnMenuItemClickListener(item -> {
-                    if (TxtUtils.isEmpty(selectedName[0])) {
-                        return true;
-                    }
-                    AppState.get().aiConfigs = removeProfile(AppState.get().aiConfigs, selectedName[0]);
-                    selectedName[0] = "";
-                    refreshProfileLabel(profileValue, "");
                     return true;
                 });
                 popup.show();
