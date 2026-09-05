@@ -336,6 +336,8 @@ public class BilingualSession {
 
     // source paragraphs (lazily enumerated from the base file the doc opened)
     private volatile List<BilingualBuilder.Para> paras;
+    // normalized paragraph texts parallel to paras (match acceleration)
+    private volatile List<String> paraNorms;
     private volatile Map<String, BilingualBuilder.Para> paraByMd5;
     private final AtomicBoolean ensuring = new AtomicBoolean(false);
     private final Set<String> pending = new HashSet<String>();
@@ -355,6 +357,13 @@ public class BilingualSession {
 
     // top paragraph md5 of the current page, used to re-land after a rebuild
     private volatile String anchorMd5;
+    // the ACTUAL source paragraphs rendered on the current page, matched from
+    // the page text layer; null = fall back to the linear page estimate
+    private volatile Set<String> currentPageMd5s;
+    // linear page->paragraph estimates DRIFT as the bilingual file grows with
+    // every merge; the precise anchor ordinal measures the drift and shifts
+    // the translation window back onto the real reading position
+    private volatile int ordOffset = 0;
     // the last controller that fed this session (to re-run the page-anchor
     // computation once the first paragraph enumeration has finished)
     private volatile DocumentController lastDc;
@@ -472,24 +481,8 @@ public class BilingualSession {
         ui.removeCallbacks(hintRecheckRunnable);
         ui.postDelayed(hintRecheckRunnable, 500);
         if (jumped && page0 >= 0) {
-            // the reader moved to a different page: drop everything not yet
-            // started so the new position is translated first (in-flight
-            // requests cannot be cancelled and keep running)
-            synchronized (queueLock) {
-                int dropped = 0;
-                for (int i = 0; i < LANES; i++) {
-                    dropped += lanes[i].size();
-                    lanes[i].clear();
-                }
-                queued.clear();
-                // not-started items lived in lanes+queued; in-flight ones were
-                // already removed from pending when polled, so clear it all
-                pending.clear();
-                if (dropped > 0) {
-                    android.util.Log.i("BENCH", "BilingualSession jump to page=" + page0
-                            + " -> queues re-prioritized, dropped=" + dropped);
-                }
-            }
+            android.util.Log.i("BENCH", "BilingualSession jump to page=" + page0
+                    + " -> queues rebuilt for the new position");
         }
         if (paras == null) {
             // first enumeration reads the whole base file: do it off the UI
@@ -527,9 +520,20 @@ public class BilingualSession {
             return;
         }
         File base = BilingualBuilder.baseFor(book);
-        paras = BilingualBuilder.enumerateParagraphs(base == null ? book : base);
+        List<BilingualBuilder.Para> enumerated = BilingualBuilder.enumerateParagraphs(base == null ? book : base);
+        if (enumerated.isEmpty()) {
+            // the cache holds empty placeholder epubs (22-byte zips) for some
+            // books — enumerating them once must not poison the session with
+            // an empty list forever: leave paras null and retry next time
+            android.util.Log.i("BENCH", "BilingualSession paras EMPTY (bad base?) base="
+                    + (base == null ? book : base).getPath());
+            return;
+        }
+        paras = enumerated;
+        paraNorms = new ArrayList<String>(paras.size());
         paraByMd5 = new HashMap<String, BilingualBuilder.Para>();
         for (BilingualBuilder.Para p : paras) {
+            paraNorms.add(norm(p == null ? null : p.text));
             if (p.md5 != null && !paraByMd5.containsKey(p.md5)) {
                 paraByMd5.put(p.md5, p);
             }
@@ -560,11 +564,22 @@ public class BilingualSession {
             if (total == 0 || lastPageCount <= 0 || lastPage0 < 0) {
                 return;
             }
-            int from = pageStart(lastPage0 - BACK_PAGES, lastPageCount, total);
-            int to = pageStart(lastPage0 + AHEAD_PAGES + 1, lastPageCount, total) - 1;
+            int off = ordOffset;
+            int from = Math.max(0, Math.min(total - 1, pageStart(lastPage0 - BACK_PAGES, lastPageCount, total) + off));
+            int to = Math.max(0, Math.min(total - 1, pageStart(lastPage0 + AHEAD_PAGES + 1, lastPageCount, total) + off) - 1);
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             int added = 0;
             synchronized (queueLock) {
+                // DETERMINISTIC rebuild: the lanes are re-derived from the
+                // ground truth (cached / in-flight / failed) on every window
+                // recompute, so the queue bookkeeping can never drift (a lost
+                // paragraph would otherwise stall translation forever while
+                // the hint keeps counting it)
+                lanes[0].clear();
+                lanes[1].clear();
+                lanes[2].clear();
+                queued.clear();
+                pending.retainAll(inFlight);
                 // current page -> lane 0, ahead pages -> lane 1, back pages -> lane 2
                 added += enqueuePageRange(done, lastPage0, lastPage0 + 1, 0);
                 for (int d = 1; d <= AHEAD_PAGES; d++) {
@@ -572,6 +587,24 @@ public class BilingualSession {
                 }
                 for (int d = 1; d <= BACK_PAGES; d++) {
                     added += enqueuePageRange(done, lastPage0 - d, lastPage0 - d + 1, 2);
+                }
+                // the precise page paragraphs can sit OUTSIDE the (shifted)
+                // linear window when the estimate is still uncalibrated —
+                // always make sure the page the reader is ON is queued
+                if (currentPageMd5s != null) {
+                    for (String md5 : currentPageMd5s) {
+                        if (md5 == null || done.containsKey(md5) || inFlight.contains(md5)) {
+                            continue;
+                        }
+                        if (queued.contains(md5)) {
+                            continue;
+                        }
+                        failed.remove(md5);
+                        pending.add(md5);
+                        queued.add(md5);
+                        lanes[0].addLast(md5);
+                        added++;
+                    }
                 }
             }
             android.util.Log.i("BENCH", "BilingualSession onView page=" + lastPage0 + "/" + lastPageCount
@@ -591,21 +624,23 @@ public class BilingualSession {
             return 0;
         }
         int total = paras.size();
-        int from = pageStart(pageFrom, lastPageCount, total);
-        int to = pageStart(pageTo, lastPageCount, total) - 1;
+        int off = ordOffset;
+        int from = Math.max(0, Math.min(total - 1, pageStart(pageFrom, lastPageCount, total) + off));
+        int to = Math.max(0, Math.min(total - 1, pageStart(pageTo, lastPageCount, total) + off) - 1);
         int added = 0;
-        for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+        for (int i = from; i <= to; i++) {
             BilingualBuilder.Para p = paras.get(i);
             if (p == null || p.md5 == null || TxtUtils.isEmpty(p.text)) {
                 continue;
             }
-            if (done.containsKey(p.md5) || pending.contains(p.md5) || inFlight.contains(p.md5)
-                    || queued.contains(p.md5)) {
+            if (done.containsKey(p.md5) || inFlight.contains(p.md5)) {
                 continue;
             }
             if (lane == 0) {
                 // the reader is looking at it: allow one more retry after failure
                 failed.remove(p.md5);
+            } else if (failed.contains(p.md5)) {
+                continue;
             }
             pending.add(p.md5);
             queued.add(p.md5);
@@ -1062,13 +1097,31 @@ public class BilingualSession {
                 return;
             }
             String[] frags = dc.getPageParagraphs(p);
+            // remember which source paragraphs are ACTUALLY on this page
+            // (the linear page estimate drifts as the bilingual file grows)
+            currentPageMd5s = matchPageParagraphs(frags);
             String anchor = anchorOfFragments(frags);
             if (anchor == null) {
                 anchor = fallbackAnchor();
             }
             if (anchor != null) {
                 anchorMd5 = anchor;
-                android.util.Log.i("BENCH", "BilingualSession anchor p=" + p + " md5=" + anchor);
+                // calibrate the linear estimate: measure how far the real
+                // anchor ordinal sits from the pageStart estimate
+                BilingualBuilder.Para ap = paraByMd5 == null ? null : paraByMd5.get(anchor);
+                if (ap != null && lastPageCount > 0) {
+                    ordOffset = ap.ordinal - pageStart(lastPage0, lastPageCount, paras.size());
+                    int maxOff = paras.size();
+                    if (ordOffset < -maxOff) {
+                        ordOffset = -maxOff;
+                    }
+                    if (ordOffset > maxOff) {
+                        ordOffset = maxOff;
+                    }
+                }
+                android.util.Log.i("BENCH", "BilingualSession anchor p=" + p + " md5=" + anchor
+                        + " pageParas=" + (currentPageMd5s == null ? -1 : currentPageMd5s.size())
+                        + " ord=" + (ap == null ? -1 : ap.ordinal) + " ordOffset=" + ordOffset);
             }
             long now = System.currentTimeMillis();
             if (now - lastPageLogMs >= 15000) {
@@ -1100,7 +1153,8 @@ public class BilingualSession {
                 return null;
             }
             List<BilingualBuilder.Para> ps = paras;
-            if (ps == null || ps.isEmpty()) {
+            List<String> norms = paraNorms;
+            if (ps == null || norms == null || ps.size() != norms.size()) {
                 return null;
             }
             for (String f : frags) {
@@ -1113,11 +1167,12 @@ public class BilingualSession {
                 }
                 String best = null;
                 int bestLen = 0;
-                for (BilingualBuilder.Para p : ps) {
+                for (int i = 0; i < ps.size(); i++) {
+                    BilingualBuilder.Para p = ps.get(i);
                     if (p.md5 == null || TxtUtils.isEmpty(p.text)) {
                         continue;
                     }
-                    String np = norm(p.text);
+                    String np = norms.get(i);
                     if (np.length() >= nf.length() && np.indexOf(nf) >= 0 && np.length() > bestLen) {
                         bestLen = np.length();
                         best = p.md5;
@@ -1131,6 +1186,80 @@ public class BilingualSession {
             LOG.e(t);
         }
         return null;
+    }
+
+    /**
+     * Match the rendered page's text layer back to the source paragraphs it
+     * contains. Returns null when nothing matched (caller falls back to the
+     * linear page estimate).
+     */
+    private Set<String> matchPageParagraphs(String[] frags) {
+        try {
+            if (frags == null || frags.length == 0) {
+                return null;
+            }
+            List<BilingualBuilder.Para> ps = paras;
+            List<String> norms = paraNorms;
+            if (ps == null || norms == null || ps.size() != norms.size()) {
+                return null;
+            }
+            Set<String> out = new HashSet<String>();
+            for (String f : frags) {
+                if (TxtUtils.isEmpty(f)) {
+                    continue;
+                }
+                String nf = norm(f);
+                if (nf.length() < 6) {
+                    continue;
+                }
+                for (int i = 0; i < ps.size(); i++) {
+                    BilingualBuilder.Para p = ps.get(i);
+                    if (p == null || p.md5 == null) {
+                        continue;
+                    }
+                    String np = norms.get(i);
+                    if (np.length() < 6) {
+                        continue;
+                    }
+                    if (np.indexOf(nf) >= 0) {
+                        // the page fragment sits inside this source paragraph
+                        out.add(p.md5);
+                    } else if (np.length() >= 8 && nf.indexOf(np) >= 0) {
+                        // a short paragraph fully contained in a page fragment
+                        out.add(p.md5);
+                    }
+                }
+            }
+            return out.isEmpty() ? null : out;
+        } catch (Throwable t) {
+            LOG.e(t);
+            return null;
+        }
+    }
+
+    /**
+     * Fill {@code out} with the md5s of the paragraphs the current page shows:
+     * precise text-layer match when available, else the linear estimate.
+     */
+    private void collectCurrentPage(Set<String> out) {
+        Set<String> exact = currentPageMd5s;
+        if (exact != null && !exact.isEmpty()) {
+            out.addAll(exact);
+            return;
+        }
+        List<BilingualBuilder.Para> ps = paras;
+        if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
+            return;
+        }
+        int total = ps.size();
+        int from = pageStart(lastPage0, lastPageCount, total);
+        int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
+        for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+            BilingualBuilder.Para p = ps.get(i);
+            if (p != null && p.md5 != null) {
+                out.add(p.md5);
+            }
+        }
     }
 
     private String fallbackAnchor() {
@@ -1156,23 +1285,18 @@ public class BilingualSession {
             if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
                 return false;
             }
-            int total = ps.size();
-            int from = pageStart(lastPage0, lastPageCount, total);
-            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             Set<String> built = builtMd5s;
+            Set<String> page = new HashSet<String>();
+            collectCurrentPage(page);
             synchronized (queueLock) {
-                for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
-                    BilingualBuilder.Para p = ps.get(i);
-                    if (p == null || p.md5 == null) {
-                        continue;
-                    }
-                    if (done.containsKey(p.md5)) {
+                for (String md5 : page) {
+                    if (done.containsKey(md5)) {
                         // translated but the open book predates it
-                        if (!built.contains(p.md5)) {
+                        if (!built.contains(md5)) {
                             return true;
                         }
-                    } else if (!failed.contains(p.md5)) {
+                    } else if (!failed.contains(md5)) {
                         // still translating / queued / not started
                         return true;
                     }
@@ -1195,23 +1319,18 @@ public class BilingualSession {
             if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
                 return null;
             }
-            int total = ps.size();
-            int from = pageStart(lastPage0, lastPageCount, total);
-            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             Set<String> built = builtMd5s;
+            Set<String> page = new HashSet<String>();
+            collectCurrentPage(page);
             int pageLeft = 0;
             synchronized (queueLock) {
-                for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
-                    BilingualBuilder.Para p = ps.get(i);
-                    if (p == null || p.md5 == null) {
-                        continue;
-                    }
-                    if (done.containsKey(p.md5)) {
-                        if (!built.contains(p.md5)) {
+                for (String md5 : page) {
+                    if (done.containsKey(md5)) {
+                        if (!built.contains(md5)) {
                             pageLeft++;
                         }
-                    } else if (!failed.contains(p.md5)) {
+                    } else if (!failed.contains(md5)) {
                         pageLeft++;
                     }
                 }
@@ -1255,17 +1374,12 @@ public class BilingualSession {
             if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
                 return false;
             }
-            int total = ps.size();
-            int from = pageStart(lastPage0, lastPageCount, total);
-            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             Set<String> built = builtMd5s;
-            for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
-                BilingualBuilder.Para p = ps.get(i);
-                if (p == null || p.md5 == null) {
-                    continue;
-                }
-                if (done.containsKey(p.md5) && !built.contains(p.md5)) {
+            Set<String> page = new HashSet<String>();
+            collectCurrentPage(page);
+            for (String md5 : page) {
+                if (done.containsKey(md5) && !built.contains(md5)) {
                     return true;
                 }
             }

@@ -59,14 +59,13 @@ public class BrightnessHelper {
             if (appBrightness == AppState.AUTO_BRIGTNESS) {
                 myBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
             } else if (appBrightness == 0) {
-                if (AppState.get().isAllowMinBrigthness) {
-                    myBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF;
-                } else {
-                    myBrightness = 0.01f;
-                }
+                // never turn the screen fully OFF (BRIGHTNESS_OVERRIDE_OFF is
+                // indistinguishable from a powered-off display): always keep a
+                // small floor, the dimming overlay handles the rest
+                myBrightness = 0.02f;
             } else {
                 float value = (float) appBrightness / 100;
-                myBrightness = Math.max(0.01f, value);
+                myBrightness = Math.max(0.02f, value);
             }
 
             if (myBrightness != lp.screenBrightness) {
@@ -165,10 +164,13 @@ public class BrightnessHelper {
             overlay.setVisibility(View.VISIBLE);
             int alpha;
 
+            // cap the dimming overlay: with the near-black filter color, the
+            // old 160-200 alpha combined with a dimmed backlight read as a
+            // fully black screen — keep the maximum at a usable darkness
             if (AppState.get().isAllowMinBrigthness) {
-                alpha = Math.min(200, (200 * blueLightAlpha()) / 100);
+                alpha = Math.min(150, (150 * blueLightAlpha()) / 100);
             } else {
-                alpha = Math.min(160, (160 * blueLightAlpha()) / 100);
+                alpha = Math.min(120, (120 * blueLightAlpha()) / 100);
             }
 
 
