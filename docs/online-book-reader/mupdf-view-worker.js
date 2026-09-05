@@ -37,22 +37,25 @@ importScripts("lib/mupdf-wasm.js")
 // GitHub Pages does not compress .wasm on the wire, and raw downloads stall on
 // slow/limited links (e.g. github.io access from China).
 function loadWasmBinary() {
-	if (typeof DecompressionStream === "function") {
-		return fetch("lib/mupdf-wasm.wasm.gz")
-			.then((response) => {
-				if (!response.ok)
-					throw new Error("Failed to load mupdf-wasm.wasm.gz: HTTP " + response.status)
-				return response.arrayBuffer()
-			})
-			.then((gzBuffer) =>
-				new Response(new Blob([ gzBuffer ]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()
-			)
+	const loadPlain = () =>
+		fetch("lib/mupdf-wasm.wasm").then((response) => {
+			if (!response.ok)
+				throw new Error("Failed to load mupdf-wasm.wasm: HTTP " + response.status)
+			return response.arrayBuffer()
+		})
+	if (typeof DecompressionStream !== "function") {
+		return loadPlain()
 	}
-	return fetch("lib/mupdf-wasm.wasm").then((response) => {
-		if (!response.ok)
-			throw new Error("Failed to load mupdf-wasm.wasm: HTTP " + response.status)
-		return response.arrayBuffer()
-	})
+	return fetch("lib/mupdf-wasm.wasm.gz")
+		.then((response) => {
+			if (!response.ok)
+				throw new Error("Failed to load mupdf-wasm.wasm.gz: HTTP " + response.status)
+			return response.arrayBuffer()
+		})
+		.then((gzBuffer) =>
+			new Response(new Blob([ gzBuffer ]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()
+		)
+		.catch(loadPlain)
 }
 
 loadWasmBinary()
