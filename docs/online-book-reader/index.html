@@ -1,829 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-    <title>HowRead 在线阅读器 Online Book Reader (EPUB, PDF, FB2, CBZ)</title>
-    <meta charset="utf-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <style>
-
-        :root {
-            --menubar-height: 32pt;
-            --sidebar-width: 250px;
-        }
-
-        html, body { margin: 0; padding: 0; }
-
-        html { background-color: gray; }
-
-        input, button {
-            display: block;
-            border:none;
-            background-image:none;
-            background-color:transparent;
-            box-shadow: none;
-        }
-
-        input, button {
-            font-size: 16px;
-            line-height: 20px;
-            height: 24px;
-            margin: 0 4px;
-        }
-        input {
-            background-color: white;
-            padding: 4px 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            color: #333;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #3f51b5;
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
-            background-color: #fafafa;
-        }
-        
-        input:hover {
-            border-color: #999;
-            background-color: #f9f9f9;
-        }
-        button {
-            font-family: monospace;
-            background-color: gainsboro;
-            border: 2px outset white;
-            outline: 1px solid black;
-            padding: 1px 10px 1px 10px;
-        }
-        button:disabled {
-            color: gray;
-            border: 2px solid gainsboro;
-            outline: 1px solid gray;
-        }
-        button:enabled:active:hover {
-            border: 2px inset white;
-            padding: 2px 9px 0px 11px;
-        }
-
-        /* MENUS */
-
-        #grid-menubar { font-family: "Segoe UI", "Arial", "sans-serif"; }
-
-        #grid-menubar {
-            position: fixed;
-            z-index: 3;
-            top: 0;
-            left: 0;
-            font-size: 12pt;
-            line-height: 1;
-            height: var(--menubar-height);
-            width: 100%;
-            background-color: lightsteelblue;
-            user-select: none;
-            box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            padding-left: 32px;
-        }
-
-        .menu { 
-            display: flex;
-            align-items: center;
-        }
-
-        .menu-button { padding: 5pt 8pt; }
-
-        .menu-popup {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 20ex;
-            white-space: nowrap;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 3;
-        }
-
-        .menu-popup hr { margin: 0; border-bottom: 0; border-top: 1px solid gray; }
-        .menu-popup div { padding: 5pt 10pt; }
-        .menu-popup div:hover { background-color: steelblue; color: white; }
-
-        .menu:hover .menu-popup { display: block; }
-        .menu:hover .menu-button { background-color: steelblue; color: white; }
-        
-        /* Enhanced hover effects for menu buttons */
-        .menu-button {
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        
-        .menu-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        .menu-button:active {
-            transform: scale(0.95);
-        }
-
-        /* SIDEBAR - Local Design */
-
-        #grid-sidebar {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            top: var(--menubar-height);
-            left: 0;
-            width: var(--sidebar-width);
-            height: calc(100% - var(--menubar-height));
-            background-color: #f4f4f9;
-            border-right: 2px solid #ddd;
-            overflow-y: auto;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-bottom: 1px solid #ddd;
-            background-color: #f8f8f8;
-        }
-        
-        .sidebar-title {
-            font-weight: bold;
-            font-size: 12pt;
-            color: #333;
-        }
-        
-        .sidebar-close {
-            background: none;
-            border: none;
-            font-size: 16px;
-            color: #666;
-            cursor: pointer;
-            padding: 4px;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 3px;
-        }
-        
-        .sidebar-close:hover {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-
-        #outline {
-            margin: 0;
-            padding: 10px 0;
-            list-style-type: none;
-            font-size: 15px;
-        }
-
-        #outline ul {
-            margin: 0;
-            padding: 0;
-            list-style-type: none;
-        }
-
-        #outline a {
-            display: block;
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #333;
-            border-left: 3px solid transparent;
-            transition: background-color 0.3s, border-left 0.3s;
-        }
-
-        #outline a:hover {
-            background-color: #e0e0e0;
-            border-left: 3px solid #3f51b5;
-            color: #3f51b5;
-        }
-
-        #outline a.active {
-            background-color: #d1d1d1;
-            border-left: 3px solid #3f51b5;
-            color: #3f51b5;
-        }
-
-        .outline-item-expandable {
-            position: relative;
-        }
-
-        .outline-item-expandable::after {
-            content: '\25BA';
-            position: absolute;
-            right: 15px;
-            font-size: 12px;
-            color: #444;
-            transition: transform 0.3s;
-        }
-
-        .outline-item-expandable.expanded::after {
-            transform: rotate(90deg);
-        }
-
-        /* DIALOGS - Modern Local Design */
-
-        div.dialog {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 370px;
-            max-width: 90vw;
-            background-color: #e0f2f1;
-            border-radius: 8px;
-            padding: 16px;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.12);
-            border: 1px solid #b2dfdb;
-        }
-        
-        @media screen and (max-width: 480px) {
-            div.dialog {
-                top: 5px;
-                left: 5px;
-                right: 5px;
-                width: auto;
-                max-width: none;
-                transform: none;
-                padding: 12px;
-            }
-        }
-
-        div.dialog::backdrop,
-        div.dialog-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .dialog-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .dialog-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin: 0;
-        }
-
-        .dialog-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #666;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .dialog-close:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .dialog-content {
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: #3f51b5;
-            box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.1);
-        }
-        
-        @media screen and (max-width: 480px) {
-            #search-text {
-                font-size: 14px;
-                padding: 8px 12px;
-            }
-        }
-
-        .search-options {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .search-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .search-checkbox input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #3f51b5;
-        }
-
-        div.flex {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #b2dfdb;
-            background-color: transparent;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            min-width: 100px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
-            color: #ffffff;
-            border: 2px solid transparent;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #3949ab 0%, #5e35b1 100%);
-            border: 2px solid #fff;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            color: #3f51b5;
-            border: 2px solid #3f51b5;
-        }
-
-        .btn-secondary:hover {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #3949ab;
-            border: 2px solid #3949ab;
-        }
-
-        #search-status {
-            padding: 12px 0;
-            color: #666;
-            font-size: 14px;
-            font-style: italic;
-        }
-
-        .search-results {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            margin-top: 12px;
-        }
-
-        .search-result-item {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .search-result-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        /* PAGES */
-
-        #grid-main { padding-top: var(--menubar-height); }
-        #grid-main.sidebarVisible { padding-left: var(--sidebar-width); }
-        #grid-main.sidebarHidden { padding-left: 0; }
-
-        #pages { margin: 0 auto; }
-        #placeholder { margin: 0 auto; }
-
-        #placeholder div {
-            padding-top:3em;
-            text-align: center;
-            font-size: 24pt;
-            font-weight: bold;
-            color: silver;
-        }
-        #placeholder div.error {
-            text-align: left;
-            color: hotpink;
-        }
-
-        div.error {
-            padding: 1em;
-            color: hotpink;
-            font-size: 20pt;
-        }
-
-        a.anchor {
-            display:block;
-            position:relative;
-            top:-22pt;
-            visibility:hidden;
-        }
-
-        div.page {
-            position:relative;
-            background-color:white;
-            margin:16px auto;
-            box-shadow: 0px 4px 16px 0px rgba(0,0,0,0.2);
-        }
-
-        div.page canvas {
-            position:absolute;
-            user-select:none;
-        }
-
-        div.links { position:absolute; }
-        div.links a { position:absolute; }
-        div.links a:hover { outline: 1px dotted blue; }
-
-        div.text { position:absolute; }
-        div.text span {
-            position:absolute;
-            white-space:pre;
-            line-height:1;
-            color:transparent;
-        }
-        div.text ::selection {
-            background: rgba(0, 10, 240, 0.4);
-        }
-
-        @media screen and (max-width: 1000px) {
-            .document-title {
-                display: none !important;
-            }
-        }
-
-        div.searchHitList { position:absolute; }
-        div.searchHit { position:absolute; pointer-events:none; outline: 1px solid hotpink; background-color: lightpink; mix-blend-mode: multiply; }
-
-        /* ICON HOVER EFFECTS */
-        
-        #menu-toggle {
-            transition: all 0.2s ease;
-        }
-        
-        #menu-toggle:hover {
-            transform: scale(1.1);
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            padding: 2px;
-        }
-        
-        #menu-toggle:hover span {
-            background: #000 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        
-        .icon-button {
-            transition: all 0.2s ease;
-        }
-        
-        .icon-button:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        .icon-button:hover svg {
-            stroke: #000;
-            stroke-width: 2.5;
-        }
-        
-        .icon-button:active {
-            transform: scale(0.95);
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-    </style>
-    <script>
-        let fileName = ""
-
-        let isShow = 1
-
-        function hide (elements) {
-  elements = elements.length ? elements : [elements];
-  for (var index = 0; index < elements.length; index++) {
-    elements[index].style.display = 'none';
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HowRead 在线阅读器 Online Book Reader (EPUB, MOBI, PDF, FB2, CBZ, TXT)</title>
+<link rel="icon" href="../web/256.png" type="image/png">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #525659; overflow: hidden; }
+  #chooser {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; color: #ddd;
+    background: radial-gradient(1200px 600px at 50% 20%, #5a5e63, #4a4d51);
   }
-}
-function show (elements) {
-  elements = elements.length ? elements : [elements];
-  for (var index = 0; index < elements.length; index++) {
-    // Preserve original display style for menubar
-    if (elements[index].id === 'grid-menubar') {
-      elements[index].style.display = 'flex';
-    } else {
-      elements[index].style.display = 'block';
-    }
+  #chooser h1 { font-size: 26px; margin: 0; font-weight: 500; }
+  #chooser h1 span { color: #9fb4ff; }
+  #chooser p.sub { margin: 0 0 6px; color: #bbb; font-size: 14px; }
+  #dropzone {
+    width: min(560px, 86vw); border: 2px dashed #888; border-radius: 12px;
+    padding: 34px 20px; text-align: center; color: #bbb; font-size: 14px;
+    transition: all .15s; cursor: pointer;
   }
-}
-        function showHide(){
-            if(isShow){
-                hide(document.getElementById('grid-menubar'))
-                isShow = 0;
-            }else{
-               show(document.getElementById('grid-menubar'))
-               isShow = 1;
-            }
-        }
-        
-        function closeSidebar(){
-            hide(document.getElementById('grid-sidebar'))
-            document.getElementById('grid-main').className = 'sidebarHidden';
-        }
-
-
-    </script>
+  #dropzone.drag { border-color: #9fb4ff; background: rgba(159,180,255,.08); color: #cdd6ff; }
+  #dropzone .big { font-size: 34px; margin-bottom: 8px; }
+  #openBtn {
+    background: #3f51b5; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 26px; font-size: 15px; cursor: pointer;
+  }
+  #openBtn:hover { background: #4d5fce; }
+  #urlrow { display: flex; gap: 8px; width: min(560px, 86vw); }
+  #urlInput {
+    flex: 1; background: #3c3f43; border: 1px solid #666; border-radius: 6px;
+    color: #eee; padding: 9px 12px; font-size: 13px;
+  }
+  #urlBtn { background: #444; color: #eee; border: 1px solid #666; border-radius: 6px; padding: 9px 16px; cursor: pointer; }
+  #formats { color: #999; font-size: 12px; }
+  #stage { position: absolute; inset: 0; display: none; }
+  #stage.on { display: block; }
+  iframe { border: none; width: 100%; height: 100%; }
+  #backBtn {
+    position: absolute; top: 6px; right: 10px; z-index: 30; display: none;
+    background: rgba(43,43,43,.85); color: #eee; border: 1px solid #666; border-radius: 6px;
+    padding: 5px 12px; cursor: pointer; font-size: 13px;
+  }
+  #backBtn.on { display: block; }
+  #loader {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    color: #ddd; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px;
+    flex-direction: column; gap: 10px; background: #525659; z-index: 25;
+  }
+  #loader.on { display: flex; }
+</style>
 </head>
-
 <body>
-
-<button id="menu-toggle" onclick="showHide()" style="
-    z-index: 10;
-    position: fixed;
-    top: 13px;
-    left: 8px;
-    width: 16px;
-    height: 14px;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0;
-    margin: 0;
-">
-    <span style="
-        display: block;
-        width: 16px;
-        height: 2px;
-        background: #333;
-    "></span>
-    <span style="
-        display: block;
-        width: 16px;
-        height: 2px;
-        background: #333;
-    "></span>
-    <span style="
-        display: block;
-        width: 16px;
-        height: 2px;
-        background: #333;
-    "></span>
-</button>
-
-<div id="grid-menubar">
-    <div class="menu">
-        <div class="menu-button" onclick="document.getElementById('open-file-input').click()">
-            Open...
-        </div>
-    </div>
-
-    <div class="menu">
-        <button class="icon-button" onclick="documentViewer.toggleOutline()" title="Toggle Outline" style="
-            background: none;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px;
-            margin: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-        ">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-        </button>
-    </div>
-
-    <div class="menu">
-        <button class="icon-button" onclick="documentViewer.showSearchBox()" title="Search" style="
-            background: none;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px;
-            margin: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-        ">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-            </svg>
-        </button>
-    </div>
-
-    <div class="menu">
-        <input min="1" max="100" onchange="if(fileName) documentViewer.openFile(fileName);"
-               type="number" id="document-font-size" size="2" value="14"
-               placeholder="Font size" title="Font Size"/>
-    </div>
-
-    <div class="menu">
-        <input onchange="if(fileName) documentViewer.openFile(fileName);" type="text"
-               id="document-width" size="3" value="500" placeholder="Width" title="Document Width"/>
-    </div>
-    <div class="menu">
-        <input onchange="if(fileName) documentViewer.openFile(fileName);" type="text"
-               id="document-height" size="3" value="650" placeholder="Height" title="Document Height"/>
-    </div>
-
-
+<div id="chooser">
+  <h1>HowRead <span>在线阅读</span> Online Reader</h1>
+  <p class="sub">在浏览器中直接阅读电子书，无需安装 Read books in your browser, no install needed</p>
+  <div id="dropzone">
+    <div class="big">📚</div>
+    拖放文件到这里，或点击选择<br>Drop a file here, or click to choose
+  </div>
+  <button id="openBtn">打开文件 Open file</button>
+  <div id="urlrow">
+    <input id="urlInput" placeholder="或输入文档 URL (https://… .pdf / .epub)">
+    <button id="urlBtn">打开</button>
+  </div>
+  <div id="formats">支持 Supported: PDF · EPUB · MOBI · AZW3 · FB2 · CBZ · TXT</div>
 </div>
+<div id="stage"><iframe id="pdfframe" title="PDF viewer"></iframe></div>
+<div id="readerhost" style="position:absolute;inset:0;display:none"></div>
+<button id="backBtn" title="返回首页">← 首页</button>
+<div id="loader"><div>正在打开文档… Opening document…</div></div>
+<input type="file" id="fileInput" accept=".pdf,.epub,.mobi,.azw3,.azw,.fb2,.cbz,.zip,.txt" hidden>
 
+<script type="module">
+import { mountReader } from './reader/reader-page.js'
+import { txtToEpubBlob } from './reader/txt-to-epub.js'
 
-<div id="grid-sidebar">
-    <div class="sidebar-header">
-        <span class="sidebar-title">Outline</span>
-        <button class="sidebar-close" onclick="closeSidebar()" title="Close outline">×</button>
-    </div>
-    <ul id="outline"></ul>
-</div>
+const $ = id => document.getElementById(id)
+const params = new URLSearchParams(location.search)
+const fileParam = params.get('file')
 
-<div id="grid-main" class="sidebarHidden">
-    <div id="pages">
-    </div>
-    <div id="placeholder">
-        <div>
-            Loading, please wait...
-        </div>
-    </div>
-</div>
+const isPdf = name => /\.pdf$/i.test(name || '')
+const showStage = on => {
+  $('chooser').style.display = on ? 'none' : 'flex'
+  $('stage').classList.toggle('on', on)
+  $('backBtn').classList.toggle('on', on)
+}
 
-<div id="search-dialog" class="dialog" style="display:none">
-</div>
+function openPdf(url, name) {
+  showStage(true)
+  $('pdfframe').src = 'pdf/viewer.html?file=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name || '')
+}
 
-<input type="file" id="open-file-input" style="display:none"
-       accept=".fb2,.epub,.cbz,.pdf,.mobi,.txt,application/pdf"
-       oninput="fileName=event.target.files[0]; documentViewer.openFile(fileName);"/>
+async function openOther(urlOrBlob, name) {
+  showStage(true)
+  $('loader').classList.add('on')
+  $('loader').innerHTML = '<div>正在打开文档… Opening document…</div>'
+  try {
+    let target = urlOrBlob
+    if (/\.txt$/i.test(name || '')) target = await txtToEpubBlob(urlOrBlob)
+    await mountReader(target, $('readerhost'), {
+      title: (name || '').replace(/\.[^.]+$/, ''),
+      onBack: () => {
+        $('readerhost').style.display = 'none'
+        $('readerhost').innerHTML = ''
+        showStage(false)
+      },
+    })
+    // reveal only after the reader finished mounting, then force foliate to re-layout
+    $('readerhost').style.display = 'block'
+    window.dispatchEvent(new Event('resize'))
+  } catch (err) {
+    // keep the loader visible: it doubles as the error banner
+    $('loader').innerHTML = '<div>打开失败 Failed to open: ' + (err?.message || err) + '</div>'
+    return
+  }
+  $('loader').classList.remove('on')
+}
 
-</body>
+function route(source, name) {
+  if (isPdf(source)) {
+    openPdf(source, name)
+  } else {
+    openOther(source, name)
+  }
+}
 
-<script src="mupdf-view.js"></script>
-<script src="mupdf-view-page.js"></script>
-<script>
-    "use strict";
+function handleFile(file) {
+  if (!file) return
+  const blobUrl = URL.createObjectURL(file)
+  if (isPdf(file.name)) {
+    openPdf(blobUrl, file.name)
+  } else {
+    openOther(file, file.name)
+  }
+}
 
-    var height = window.innerHeight;
-    var width = window.innerWidth;
-    //alert(height+"x"+width);
+$('openBtn').addEventListener('click', () => $('fileInput').click())
+$('dropzone').addEventListener('click', () => $('fileInput').click())
+$('fileInput').addEventListener('change', e => handleFile(e.target.files[0]))
+$('dropzone').addEventListener('dragover', e => { e.preventDefault(); $('dropzone').classList.add('drag') })
+$('dropzone').addEventListener('dragleave', () => $('dropzone').classList.remove('drag'))
+$('dropzone').addEventListener('drop', e => {
+  e.preventDefault()
+  $('dropzone').classList.remove('drag')
+  handleFile(e.dataTransfer.files[0])
+})
+$('urlBtn').addEventListener('click', () => {
+  const url = $('urlInput').value.trim()
+  if (url) route(url, url)
+})
+$('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('urlBtn').click() })
+$('backBtn').addEventListener('click', () => {
+  $('pdfframe').src = 'about:blank'
+  $('readerhost').style.display = 'none'
+  $('readerhost').innerHTML = ''
+  showStage(false)
+})
 
-    if(width >height){
-        width = height*0.75*0.75
-    }else {
-        width = width*0.75
-    }
-
-    document.getElementById("document-width").value=Math.round(width);
-    document.getElementById("document-height").value=Math.round(height*0.70);
-
-
-    let params = new URLSearchParams(window.location.search);
-
-    let documentViewer = new MupdfDocumentViewer(mupdfView)
-
-    // wasm download progress (reported by the worker until READY)
-    mupdfView.onwasmprogress = function (p) {
-        const el = document.getElementById("placeholder")
-        if (!el) return
-        const pct = p.total ? Math.min(100, Math.round((p.received / p.total) * 100)) : 0
-        const received = (p.received / 1048576).toFixed(1)
-        const total = p.total ? " / " + (p.total / 1048576).toFixed(1) + " MB" : " MB"
-        el.innerHTML = "<div style=\"font-family:'Segoe UI',Arial,sans-serif;color:#eee;text-align:center;padding-top:40px\">" +
-            "<div style=\"font-size:15px;margin-bottom:12px\">正在加载阅读器组件 Loading reader components… " + pct + "%</div>" +
-            "<div style=\"width:min(420px,70vw);height:10px;margin:0 auto;background:#777;border-radius:5px;overflow:hidden\">" +
-            "<div style=\"width:" + pct + "%;height:100%;background:#3f51b5;transition:width .2s\"></div></div>" +
-            "<div style=\"margin-top:8px;font-size:12px;color:#ccc\">" + received + total + "</div>" +
-            "<div style=\"margin-top:14px;font-size:12px;color:#aaa\">首次加载需要下载渲染引擎，之后 10 分钟内无需重复下载<br>First load downloads the rendering engine; reloads within 10 minutes are cached</div></div>"
-    }
-
-    mupdfView.ready
-        .then(function () {
-            if (params.has("file")) {
-                documentViewer.openURL(params.get("file"), params.get("progressive") | 0, params.get("prefetch") | 0);
-            }
-            else {
-                documentViewer.openEmpty();
-            }
-        })
-        .catch(function (error) {
-            documentViewer.showDocumentError("Load", error);
-        });
-
-    window.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            documentViewer.hideSearchBox();
-        }
-
-        if (event.ctrlKey || event.metaKey) {
-            switch (event.keyCode) {
-            // '=' / '+' on various keyboards
-            case 61:
-            case 107:
-            case 187:
-            case 171:
-                documentViewer.zoomIn();
-                event.preventDefault();
-                break;
-            // '-'
-            case 173:
-            case 109:
-            case 189:
-                documentViewer.zoomOut();
-                event.preventDefault();
-                break;
-            // '0'
-            case 48:
-            case 96:
-                documentViewer.setZoom(100);
-                break;
-            case 70: // 'F':
-                event.preventDefault();
-                documentViewer.showSearchBox();
-                break;
-            case 71: // 'G':
-                event.preventDefault();
-                documentViewer.showSearchBox();
-                runSearch(event.shiftKey ? -1 : 1);
-                break;
-            }
-        }
-    });
-
+// direct link support: ?file=<url>
+if (fileParam) {
+  const name = params.get('name') || decodeURIComponent(fileParam.split('/').pop() || '')
+  route(fileParam, name)
+}
 </script>
+</body>
 </html>

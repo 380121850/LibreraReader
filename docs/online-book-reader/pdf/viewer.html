@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HowRead PDF 在线阅读</title>
+<link rel="stylesheet" href="web/pdf_viewer.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #525659; overflow: hidden; }
+  #toolbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 38px; z-index: 10;
+    display: flex; align-items: center; gap: 4px; padding: 0 8px;
+    background: #2b2b2b; color: #eee; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  }
+  #toolbar button {
+    background: transparent; border: none; color: #eee; font-size: 15px; line-height: 1;
+    padding: 6px 9px; border-radius: 4px; cursor: pointer;
+  }
+  #toolbar button:hover { background: #444; }
+  #toolbar .sep { width: 1px; height: 20px; background: #555; margin: 0 4px; }
+  #pageNumber { width: 42px; text-align: center; background: #444; color: #eee; border: 1px solid #666; border-radius: 3px; padding: 3px 2px; }
+  #numPages { color: #aaa; }
+  #scaleSelect { background: #444; color: #eee; border: 1px solid #666; border-radius: 3px; padding: 2px; }
+  #toolbar .spacer { flex: 1; }
+  #title { color: #ccc; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+  #sidebar {
+    position: absolute; top: 38px; bottom: 0; left: 0; width: 260px; z-index: 9;
+    background: #262626; color: #ddd; overflow: auto; display: none;
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;
+    border-right: 1px solid #444;
+  }
+  #sidebar.open { display: block; }
+  #sidebar h3 { margin: 10px 12px 6px; font-size: 13px; color: #999; }
+  #outlineTree ul { list-style: none; margin: 0; padding-left: 16px; }
+  #outlineTree > ul { padding-left: 8px; }
+  #outlineTree li { margin: 2px 0; }
+  #outlineTree a { color: #ddd; text-decoration: none; display: block; padding: 3px 6px; border-radius: 3px; cursor: pointer; }
+  #outlineTree a:hover { background: #3a3a3a; }
+  #viewerContainer {
+    position: absolute; top: 38px; bottom: 0; left: 0; right: 0;
+    overflow: auto; background: #525659;
+  }
+  body.side-open #viewerContainer { left: 260px; }
+  #findbar {
+    position: absolute; top: 40px; right: 10px; z-index: 11;
+    background: #2b2b2b; color: #eee; padding: 8px; border-radius: 6px;
+    display: none; gap: 6px; align-items: center;
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
+  #findbar.open { display: flex; }
+  #findInput { background: #444; color: #eee; border: 1px solid #666; border-radius: 3px; padding: 4px 6px; width: 160px; }
+  #findbar button { background: transparent; border: none; color: #eee; cursor: pointer; padding: 4px 6px; border-radius: 3px; }
+  #findbar button:hover { background: #444; }
+  #findMsg { color: #aaa; min-width: 60px; text-align: center; }
+  #loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #ddd; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; z-index: 5;
+    background: #525659; flex-direction: column; gap: 10px;
+  }
+  #loading .err { color: #ff9a9a; max-width: 80vw; word-break: break-all; }
+  @media (max-width: 600px) { #title { display: none; } }
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <button id="outlineBtn" title="目录 Outline">☰</button>
+  <span class="sep"></span>
+  <button id="prevBtn" title="上一页">◀</button>
+  <input id="pageNumber" type="number" min="1" value="1">
+  <span id="numPages">/ –</span>
+  <button id="nextBtn" title="下一页">▶</button>
+  <span class="sep"></span>
+  <button id="zoomOutBtn" title="缩小">−</button>
+  <select id="scaleSelect">
+    <option value="auto">自适应</option>
+    <option value="page-fit">适合页面</option>
+    <option value="page-width">适合宽度</option>
+    <option value="0.5">50%</option>
+    <option value="0.75">75%</option>
+    <option value="1" selected>100%</option>
+    <option value="1.25">125%</option>
+    <option value="1.5">150%</option>
+    <option value="2">200%</option>
+  </select>
+  <button id="zoomInBtn" title="放大">＋</button>
+  <span class="spacer"></span>
+  <span id="title"></span>
+  <span class="spacer"></span>
+  <button id="findBtn" title="搜索">🔍</button>
+  <button id="downloadBtn" title="下载">⬇</button>
+</div>
+<div id="sidebar"><h3>目录 Outline</h3><div id="outlineTree"></div></div>
+<div id="viewerContainer">
+  <div id="viewer" class="pdfViewer"></div>
+</div>
+<div id="findbar">
+  <input id="findInput" placeholder="查找内容…">
+  <span id="findMsg"></span>
+  <button id="findPrev" title="上一个">◀</button>
+  <button id="findNext" title="下一个">▶</button>
+  <button id="findClose" title="关闭">×</button>
+</div>
+<div id="loading"><div>正在加载 PDF… Loading PDF…</div></div>
+
+<script type="module">
+import * as pdfjsLib from './build/pdf.min.mjs'
+import { EventBus, PDFLinkService, PDFFindController, PDFViewer } from './web/pdf_viewer.mjs'
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = './build/pdf.worker.min.mjs'
+
+const $ = id => document.getElementById(id)
+const params = new URLSearchParams(location.search)
+const fileUrl = params.get('file')
+const eventBus = new EventBus()
+const linkService = new PDFLinkService({ eventBus })
+const findController = new PDFFindController({ eventBus, linkService })
+const pdfViewer = new PDFViewer({
+  container: $('viewerContainer'),
+  viewer: $('viewer'),
+  eventBus,
+  linkService,
+  findController,
+  textLayerMode: 2,
+})
+
+linkService.setViewer(pdfViewer)
+
+let pdfDocument = null
+
+if (!fileUrl) {
+  $('loading').innerHTML = '<div class="err">缺少 file 参数 Missing ?file= parameter</div>'
+} else {
+  const loadingTask = pdfjsLib.getDocument({
+    url: fileUrl,
+    cMapUrl: './cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: './standard_fonts/',
+    wasmUrl: './wasm/',
+  })
+  loadingTask.onProgress = ({ loaded, total }) => {
+    if (total) {
+      const pct = Math.round((loaded / total) * 100)
+      $('loading').firstElementChild.textContent =
+        `正在加载 PDF… Loading PDF… ${pct}%  (${(loaded / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB)`
+    }
+  }
+  loadingTask.promise.then(async doc => {
+    pdfDocument = doc
+    $('loading').remove()
+    $('numPages').textContent = '/ ' + doc.numPages
+    $('title').textContent = (params.get('name') || '').replace(/\.(pdf|PDF)$/, '')
+    pdfViewer.setDocument(doc)
+    linkService.setDocument(doc, null)
+    await buildOutline(doc)
+  }).catch(err => {
+    $('loading').innerHTML = '<div class="err">加载失败 Failed to load: ' + (err?.message || err) + '</div>'
+  })
+}
+
+async function buildOutline(doc) {
+  const outline = await doc.getOutline()
+  if (!outline || !outline.length) {
+    $('outlineBtn').style.display = 'none'
+    return
+  }
+  const tree = $('outlineTree')
+  const build = (items, parent) => {
+    const ul = document.createElement('ul')
+    for (const item of items) {
+      const li = document.createElement('li')
+      const a = document.createElement('a')
+      a.textContent = item.title || '–'
+      a.addEventListener('click', () => {
+        linkService.goToDestination(item.dest).catch(() => {})
+        if (window.innerWidth <= 600) toggleSidebar(false)
+      })
+      li.appendChild(a)
+      parent.appendChild(ul)
+      if (item.items && item.items.length) build(item.items, li)
+    }
+    return ul
+  }
+  tree.innerHTML = ''
+  tree.appendChild(build(outline, tree))
+}
+
+function toggleSidebar(force) {
+  const open = force != null ? force : !$('sidebar').classList.contains('open')
+  $('sidebar').classList.toggle('open', open)
+  document.body.classList.toggle('side-open', open)
+}
+
+$('outlineBtn').addEventListener('click', () => toggleSidebar())
+$('prevBtn').addEventListener('click', () => { pdfViewer.currentPageNumber = Math.max(1, pdfViewer.currentPageNumber - 1) })
+$('nextBtn').addEventListener('click', () => { pdfViewer.currentPageNumber = Math.min(pdfViewer.pagesCount, pdfViewer.currentPageNumber + 1) })
+$('pageNumber').addEventListener('change', () => {
+  const n = parseInt($('pageNumber').value, 10)
+  if (n >= 1 && n <= pdfViewer.pagesCount) pdfViewer.currentPageNumber = n
+})
+$('zoomOutBtn').addEventListener('click', () => {
+  const steps = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4]
+  const cur = pdfViewer.currentScale
+  const next = steps.filter(s => s < cur).pop()
+  if (next) pdfViewer.currentScaleValue = String(next)
+})
+$('zoomInBtn').addEventListener('click', () => {
+  const steps = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4]
+  const cur = pdfViewer.currentScale
+  const next = steps.find(s => s > cur)
+  if (next) pdfViewer.currentScaleValue = String(next)
+})
+$('scaleSelect').addEventListener('change', () => { pdfViewer.currentScaleValue = $('scaleSelect').value })
+$('downloadBtn').addEventListener('click', () => {
+  if (!pdfDocument) return
+  pdfDocument.getData().then(data => {
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+    a.download = (params.get('name') || 'document.pdf').replace(/^.*[\\/]/, '')
+    a.click()
+  })
+})
+
+// --- find bar ---
+function toggleFind(force) {
+  const open = force != null ? force : !$('findbar').classList.contains('open')
+  $('findbar').classList.toggle('open', open)
+  if (open) $('findInput').focus()
+  else findController?.eventBus?.dispatch('findbarclose', { source: window })
+}
+$('findBtn').addEventListener('click', () => toggleFind())
+$('findClose').addEventListener('click', () => toggleFind(false))
+function runFind(type) {
+  eventBus.dispatch('find', {
+    source: window,
+    type,
+    query: $('findInput').value,
+    phraseSearch: true,
+    caseSensitive: false,
+    entireWord: false,
+    highlightAll: true,
+    findPrevious: type === 'again' && arguments[1] === -1,
+  })
+}
+$('findInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runFind('again', e.shiftKey ? -1 : 1)
+  if (e.key === 'Escape') toggleFind(false)
+})
+$('findNext').addEventListener('click', () => runFind('again', 1))
+$('findPrev').addEventListener('click', () => runFind('again', -1))
+eventBus.on('updatefindmatchescount', e => {
+  const { current, total } = e.matchesCount
+  $('findMsg').textContent = total ? `${current} / ${total}` : '0'
+})
+eventBus.on('updatefindcontrolstate', e => {
+  const { current, total } = e.matchesCount
+  if (total) $('findMsg').textContent = `${current} / ${total}`
+})
+
+// --- sync toolbar state ---
+eventBus.on('pagechanging', e => { $('pageNumber').value = e.pageNumber })
+eventBus.on('pagerendered', () => { $('pageNumber').value = pdfViewer.currentPageNumber })
+window.addEventListener('resize', () => { eventBus.dispatch('resize', { source: window }) })
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') { toggleFind(true); e.preventDefault() }
+  if (e.key === 'Escape') toggleFind(false)
+})
+</script>
+</body>
+</html>

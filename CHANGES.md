@@ -5,6 +5,22 @@
 
 ---
 
+## [2026-09-05] 在线阅读器重构：弃用 MuPDF WASM，改用浏览器原生引擎（pdf.js + foliate-js）——彻底解决中文乱码，体积从 7.7MB 降到 <2MB
+
+**背景**：上一轮已确认乱码根因是 wasm 编译参数 `-DTOFU_CJK` 剔除了 CJK 回退字体，修复需要 emscripten 重编译内嵌中文字体。因服务器到 GitHub 仅 ~20KB/s 无法拉取 emsdk，评估后选定**浏览器原生方案**（用户确认）：PDF 用 Mozilla pdf.js（Firefox 内置同款引擎），EPUB/MOBI/AZW3/FB2/CBZ/TXT 用 foliate-js（渲染为 HTML 由浏览器排版）——中文直接用浏览器系统字体回退，天然无乱码；首次加载从 7.7MB（1~3 分钟）降到 <2MB（普通网络秒开）。
+
+**重构 `docs/online-book-reader/`**：
+- `index.html` 全新入口页：打开文件/拖放/URL 输入，按扩展名路由——PDF 全屏 iframe 嵌入 `pdf/viewer.html`，其余格式动态挂载 foliate 阅读组件；保留 `?file=` 直连参数；错误显示在加载横幅上（修复了此前错误提示被隐藏的问题）。
+- `pdf/viewer.html`（新写）：基于 pdfjs-dist 6.3.289 legacy 构建的 `pdf_viewer.mjs` 组件组装——工具栏（翻页/页码跳转/缩放档位/自适应）、目录侧栏（goToDestination）、搜索栏（PDFFindController 高亮+计数）、下载；`cMapUrl`/`standardFontDataUrl`/`wasmUrl` 指向本地目录保证非内嵌 CJK PDF 正常；加载进度百分比显示。
+- `reader/reader-page.js`（新写）：`<foliate-view>` 组件挂载 + 工具栏（返回/目录/翻页/进度滑条/A± 字号/relocate 百分比），`book.toc` + ui/tree.js 生成目录。**关键坑：foliate `view.open()` 不会渲染首屏，需显式 `goToFraction(0)` 触发**。
+- `reader/txt-to-epub.js`（新写）：foliate 1.0.1 不支持 TXT，内存中将 TXT 转为最小 EPUB 再挂载——按"第N章/节/回/序章/楔子"等标题智能分章，zip 写入使用与 foliate 读取端同源的 zip.js ZipWriter。**两个关键坑**：①章节 zip 条目必须带 `OEBPS/` 前缀（否则 foliate 按 OPF 目录解析 404→size 0→空白页）；②add 必须用 `TextReader` 而非流式输入（否则 zip.js 不记录 `uncompressedSize`→section size 0→空白页）。
+- 删除：`lib/`（mupdf wasm 14.4MB + gz 7.7MB + 绑定层）、`mupdf-view*.js`、`mupdf.c`、`build.sh`、`.gitignore`（mupdf-* 规则已无用）。
+- 库来源均走 npmmirror 国内镜像（pdfjs-dist 8.5MB tgz、foliate-js 104KB tgz、@zip.js/zip.js dist/zip-core.js 320KB）。
+
+**局域网端到端验证**（python http.server + 浏览器逐格式截图）：中文 PDF 简繁英全部清晰、目录/搜索/缩放工具齐全；中文 EPUB 正文/TOC 跳转/进度/字号正常；中文 TXT 分章正确、渲染清晰；demo.mobi 打开正常。未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 官网在线阅读器增加 wasm 下载进度显示：worker 流式读取统计已接收字节并 postMessage PROGRESS，页面 Loading 区显示百分比+进度条+已下载/总量
 
 **实现**：`mupdf-view-worker.js` 新增 `fetchWithProgress()`——用 `response.body.getReader()` 流式读取 wasm（.gz 优先，回退 .wasm），按 Content-Length 统计进度，每收到一个分块向页面 `postMessage(["PROGRESS", {received, total}])`，读取完拼接为 ArrayBuffer（替代直接 arrayBuffer()）。`mupdf-view.js` 初始消息处理（READY 之前）放行 PROGRESS 类型并转发给 `mupdfView.onwasmprogress` 回调（原先非 READY/ERROR 首消息会直接 reject）。`index.html` 注册回调：在 #placeholder 渲染「正在加载阅读器组件 Loading reader components… xx%」+ 进度条 + 已下载/总量 MB + "首次加载需下载渲染引擎，10 分钟内缓存" 提示；READY 后 openEmpty()/openURL() 自动替换该区域。
