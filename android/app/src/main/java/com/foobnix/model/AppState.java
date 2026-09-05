@@ -101,10 +101,7 @@ public class AppState {
             "#000000");
     public final static String OPDS_DEFAULT = "" + //
             "https://www.gutenberg.org/ebooks/search.opds/,Project Gutenberg,Project Gutenberg,assets://opds/opds.png;" +
-            "https://wolnelektury.pl/opds/,Wolne Lektury,Wolne Lektury,assets://opds/opds.png;" +
-            "https://textos.info/opds,textos.info,textos.info,assets://opds/opds.png;" +
-            "https://wenyuange.org/opds/,文渊阁（公版部分）,文渊阁（公版部分）,assets://opds/opds.png;" +
-            "http://www.cbeta.org/opds/,CBETA 电子佛典,CBETA 电子佛典,assets://opds/opds.png;"
+            "https://archive2.cbeta.org/opds/,CBETA 电子佛典,CBETA 电子佛典,assets://opds/opds.png;"
             //
             // end
             ;

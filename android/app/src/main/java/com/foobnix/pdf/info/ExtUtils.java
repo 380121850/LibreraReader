@@ -1928,21 +1928,24 @@ public class ExtUtils {
     public static boolean deleteRecursive(File fileOrDirectory) {
         try {
             LOG.d("deleteRecursive", fileOrDirectory);
+            boolean ok = true;
             if (fileOrDirectory.isDirectory()) {
                 final File[] files = fileOrDirectory.listFiles();
                 if (files == null) {
-                    return true;
+                    // unreadable dir (permission/IO error): the real delete()
+                    // below fails for a non-empty dir -> honest false instead
+                    // of a silent success
+                    return fileOrDirectory.delete();
                 }
                 for (File child : files) {
-                    deleteRecursive(child);
+                    ok &= deleteRecursive(child);
                 }
             }
-            fileOrDirectory.delete();
+            return ok && fileOrDirectory.delete();
         } catch (Exception e) {
             LOG.e(e);
             return false;
         }
-        return true;
     }
 
     public static void finishOtherViewer(Activity a, Class<? extends Activity> otherActivityClass) {

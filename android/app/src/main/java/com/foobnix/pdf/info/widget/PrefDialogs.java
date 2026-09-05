@@ -148,6 +148,8 @@ public class PrefDialogs {
                 String path = result.getPath();
                 LOG.d("TEST", "Remove " + path);
                 BookCSS.get().searchPathsJson = JsonDB.remove(BookCSS.get().searchPathsJson, path);
+                // keep removed storage defaults hidden (see BookCSS.searchPathsHiddenJson)
+                BookCSS.get().searchPathsHiddenJson = JsonDB.add(BookCSS.get().searchPathsHiddenJson, path);
                 LOG.d("TEST", "Remove " + BookCSS.get().searchPathsJson);
                 recentAdapter.setPaths(JsonDB.get(BookCSS.get().searchPathsJson));
                 onChanges.run();
@@ -189,6 +191,8 @@ public class PrefDialogs {
                         Toast.makeText(a, String.format("[ %s == %s ] %s", nPath, existPath, a.getString(R.string.this_directory_is_already_in_the_list)), Toast.LENGTH_LONG).show();
                     } else {
                         BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        // explicitly added again: lift the fallback exclusion
+                        BookCSS.get().searchPathsHiddenJson = JsonDB.remove(BookCSS.get().searchPathsHiddenJson, nPath);
                     }
                     dialog.dismiss();
                     onChanges.run();
@@ -222,6 +226,8 @@ public class PrefDialogs {
                         Toast.makeText(a, String.format("[ %s == %s ] %s", nPath, existPath, a.getString(R.string.this_directory_is_already_in_the_list)), Toast.LENGTH_LONG).show();
                     } else {
                         BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                        // explicitly added again: lift the fallback exclusion
+                        BookCSS.get().searchPathsHiddenJson = JsonDB.remove(BookCSS.get().searchPathsHiddenJson, nPath);
                     }
                     dialog.dismiss();
                     onChanges.run();

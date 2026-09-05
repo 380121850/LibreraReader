@@ -65,6 +65,10 @@ public class BookCSS {
     public static List<String> fontExts = Arrays.asList(".ttf", ".otf");
     private static BookCSS instance = new BookCSS();
     public String searchPathsJson;
+    // folders the user removed from the "my files" root list while they were
+    // only shown as empty-list fallback defaults (storage root / Downloads):
+    // without this the fallback re-adds them and the delete looks dead
+    public String searchPathsHiddenJson = "[]";
 
     public String cachePath = new File(AppProfile.DOWNLOADS_DIR, "HowRead/Cache").getPath();
     public String downlodsPath;
@@ -304,11 +308,17 @@ public class BookCSS {
                     extFolders.add(Environment.getExternalStorageDirectory().getPath());
                 }
 
+                // don't resurrect storage defaults the user removed from the
+                // "my files" root list (possibly leaving it empty on purpose)
+                extFolders.removeAll(JsonDB.get(instance.searchPathsHiddenJson));
                 instance.searchPathsJson = JsonDB.set(extFolders);
                 LOG.d("searchPaths-all", 2, instance.searchPathsJson);
             }
         } catch (Exception e) {
-            instance.searchPathsJson = JsonDB.set(List.of(AppProfile.DOWNLOADS_DIR.getPath()));
+            List<String> fallbackList = new ArrayList<String>();
+            fallbackList.add(AppProfile.DOWNLOADS_DIR.getPath());
+            fallbackList.removeAll(JsonDB.get(instance.searchPathsHiddenJson));
+            instance.searchPathsJson = JsonDB.set(fallbackList);
             LOG.e(e);
         }
 

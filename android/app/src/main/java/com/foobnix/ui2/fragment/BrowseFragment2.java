@@ -740,6 +740,13 @@ import java.util.Map;
                                     @Override public void run() {
                                         BookCSS.get().searchPathsJson =
                                                 JsonDB.remove(BookCSS.get().searchPathsJson, result.getPath());
+                                        // remember the removal: if this was an
+                                        // empty-list fallback default (storage
+                                        // root / Downloads) the fallbacks below
+                                        // and on next start would re-add it and
+                                        // the delete would look like a no-op
+                                        BookCSS.get().searchPathsHiddenJson =
+                                                JsonDB.add(BookCSS.get().searchPathsHiddenJson, result.getPath());
                                         AppProfile.save(getActivity());
                                         populate();
                                     }
@@ -997,10 +1004,19 @@ import java.util.Map;
                     }
                 }
                 if (roots.isEmpty()) {
-                    roots.add(rootDirMeta(Environment.getExternalStorageDirectory().getPath()));
-                    String pathDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+                    // standard quick dirs for an empty list, minus the ones the
+                    // user explicitly removed from this list before
+                    final List<String> hidden = JsonDB.get(BookCSS.get().searchPathsHiddenJson);
+                    final List<String> fallback = new ArrayList<String>();
+                    fallback.add(Environment.getExternalStorageDirectory().getPath());
+                    final String pathDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
                     if (new File(pathDownloads).isDirectory()) {
-                        roots.add(rootDirMeta(pathDownloads));
+                        fallback.add(pathDownloads);
+                    }
+                    for (String fallbackPath : fallback) {
+                        if (!hidden.contains(fallbackPath) && new File(fallbackPath).isDirectory()) {
+                            roots.add(rootDirMeta(fallbackPath));
+                        }
                     }
                 }
                 return roots;
@@ -1348,6 +1364,9 @@ import java.util.Map;
                             Toast.makeText(fa, R.string.this_directory_is_already_in_the_list, Toast.LENGTH_LONG).show();
                         } else {
                             BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                            // an explicitly added folder is wanted again: lift
+                            // any earlier fallback-exclusion of it
+                            BookCSS.get().searchPathsHiddenJson = JsonDB.remove(BookCSS.get().searchPathsHiddenJson, nPath);
                         }
                         dialog.dismiss();
                         AppProfile.save(fa);
@@ -1372,6 +1391,9 @@ import java.util.Map;
                             Toast.makeText(fa, R.string.this_directory_is_already_in_the_list, Toast.LENGTH_LONG).show();
                         } else {
                             BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, nPath);
+                            // an explicitly added folder is wanted again: lift
+                            // any earlier fallback-exclusion of it
+                            BookCSS.get().searchPathsHiddenJson = JsonDB.remove(BookCSS.get().searchPathsHiddenJson, nPath);
                         }
                         dialog.dismiss();
                         AppProfile.save(fa);

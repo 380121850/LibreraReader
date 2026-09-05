@@ -184,7 +184,7 @@
                             android:layout_gravity="center"
                             android:gravity="center"
                             android:maxLines="1"
-                            android:text="值得读的，好好读"
+                            android:text="值得读，好好读"
                             android:textColor="#FFFFFF"
                             android:textSize="32sp"
                             android:textStyle="bold"

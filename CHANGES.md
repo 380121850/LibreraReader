@@ -5,6 +5,26 @@
 
 ---
 
+## [2026-09-05] 修复：「我的文件→书库文件夹」删除条目"没反应"——删除其实生效了，但空列表兜底与启动默认回填立即把存储根目录等标准目录重新显示出来；新增已移除目录的隐藏记忆
+
+**根因**（华为畅享20 Plus 真机复现）：根页书库文件夹列表来自 `BookCSS.searchPathsJson`；当它为空时有两处兜底会**立即重新显示**标准目录（存储根 `/storage/emulated/0` + Download）：①`BrowseFragment2.prepareDataInBackground` 根页兜底（删掉唯一条目后 populate 当场复活）；②`BookCSS.load1` 启动时用全部外部存储回填（重启后复活）。于是"长按→删除→确认"虽然真实移除了条目，用户看到的却是"还在"，即"删除后没有反应"。之前的 deleteRecursive 修复解决的是"磁盘文件夹删不掉"，本条解决"列表条目删不掉"，是两个独立问题。
+
+**修复**：`BookCSS` 新增 `searchPathsHiddenJson`（随 app-CSS.json 持久化/同步）记录用户明确移除过的目录——①根页长按删除（BrowseFragment2）与旧偏好设置删除（PrefDialogs）时同步写入隐藏列表；②根页空列表兜底与 `load1` 默认回填（含异常分支）都跳过隐藏项，删了就不再复活（可以删空，"+"添加即可恢复）；③所有"添加书库文件夹/文件"入口在添加时把该路径移出隐藏列表。磁盘文件照旧不删（提示文案不变）。
+
+**验证**（华为畅享20 Plus，Pro arm 包）：重启后书库文件夹=[0]→长按"0"→删除→"0"立即消失（剩 Download）；force-stop 重启后"0"不再复活。三渠道 Release 重新编译 `BUILD SUCCESSFUL`。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
+## [2026-09-05] 优化：①侧边栏标语改为"值得读，好好读" ②修复"我的文件"删除文件夹静默假成功（华为真机删不掉还弹"成功"）③OPDS 默认源 5 条精简为 2 条（Project Gutenberg + CBETA 电子佛典）
+
+**① 标语**：`main_tabs.xml` 的 drawerTagline 文本"值得读的，好好读"→"值得读，好好读"（硬编码文本，无 flavor 覆盖）。
+
+**② 删除文件夹修复**：删除走 `ExtUtils.deleteRecursive()`，原实现吞掉全部失败——目录 `listFiles()==null`（权限/IO 错误）直接返回 true、子项递归结果与 `File.delete()` 返回值全部忽略，几乎永远返回 true，UI 永远弹"成功"。现改为逐项累积真实结果并返回 `ok && delete()`，`listFiles()==null` 时以真实 `delete()` 结果为准——任何一步失败都会如实弹"失败"（AppProfile.deleteProfiles 等忽略返回值的调用方行为不变）。华为畅享20 Plus 真机验证：Download 下新建含子目录+文件的"删除测试"文件夹→长按删除→确认→磁盘与列表均清除；根目录长按书库条目仍为"从书库列表移除（磁盘不动）"设计并有明确提示。
+
+**③ OPDS 默认源**：`AppState.OPDS_DEFAULT` 由 5 条精简为 2 条——Project Gutenberg（海外）+ CBETA 电子佛典（中国，URL 从 `http://www.cbeta.org/opds/` 改为 301 后的 `https://archive2.cbeta.org/opds/`，应用内 http→https 跳转不可靠；原"文渊阁"wenyuange.org 实测已无法连接故移除）。存量设备已保存的列表不受影响，在"网上书库→重置"即可拿到新默认。华为真机验证：重置后仅剩 Gutenberg + CBETA 两条，CBETA 目录可正常浏览（大正藏/卍續藏等）。三渠道 Release 重新编译 `BUILD SUCCESSFUL`；MI9 与华为机均已装入新包回归通过。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 修复：WebDAV 配置再次丢失——A 机（旧整文件同步包）把昨天"被冲掉的陈旧快照"重新上传覆盖服务器，MI9 按规则正确下拉后被清空；同步修复 `isEmptyValue` 把字符串形式空容器（`"[]"`/`"{}"`）判为"未配置"，防止陈旧设备的空列表在首同步时盖掉有效配置；MI9 数据已全部恢复
 
 **日志定位**（MI9 `app-SyncLog.json`，30 轮全量回查）：本机从未上行过空值——16:06:06 一轮出现成批 **down**（服务器→本地）：`allWebDavLinks → (空)`、`app-NetworkSources.webdav → []`、`webdavSyncIntervalMin 5→15`、OPDS 回退旧列表等，且该服务器快照携带**旧版专有字段** `isSaveAiTranslation:true`（今日新包已删除该字段）、无 `aiConfigs/aiConfigName`——即昨天事故时 A 机被冲掉的"事故态快照"。结论：16:01–16:06 之间 **A 机用旧包（整文件 mtime 新者胜，先导出重写本地文件致 mtime 恒最新）做了一次同步，把自己的陈旧快照重新发布到服务器**；MI9 16:06 的周期同步按"本地未改、服务器已改→采纳服务器"的删除传播规则正确下拉，于是配置再次丢失（合并逻辑本身行为符合设计）。
