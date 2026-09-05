@@ -5,6 +5,22 @@
 
 ---
 
+## [2026-09-05] 在线阅读器四项体验升级：①鼠标滚轮/点击翻页 ②刷新保持阅读（IndexedDB 会话+位置恢复）③非内嵌字体 PDF 兼容模式 ④小数进度显示；用《白鹿原》真实三格式实测
+
+**背景**：用户以《白鹿原》(epub/pdf/mobi，X 盘真实藏书) 实测反馈：PDF 打开无文字、刷新退出阅读界面、页面偏暗。诊断：白鹿原.pdf 为 2009 年版本，**0 个内嵌字体**（BaseFont 为 GBK 十六进制名的宋体/华文行楷，Encoding=GBK-EUC-H），pdf.js 在 Chrome 内核下因 local() 系统字体限制无法绘制非内嵌中文字形（仅标点/西文可见）——Chrome 平台硬限制。
+
+**① 滚轮/点击翻页**：`reader/foliate/paginator.js` 注入 wheel+click 处理（分页模式）——滚轮下/上=后/前一页（400ms 节流），点击左 1/3=上一页、右 2/3=下一页；书内 a/button 等元素点击不触发翻页；拖选文字（位移>6px）不误翻；scrolled 流保持原生滚动。坑：初版引用了 `#iframe` 私有字段，但该字段属于文件内另一个类，运行时 SyntaxError"Private field must be declared in an enclosing class"——改用元素自身 clientWidth + pointerdown/up 位移判定。
+
+**② 刷新保持阅读**：新增 `reader/session.js`（IndexedDB 存最近阅读：文件 Blob/URL + 名称 + 位置{cfi,fraction,page}）；index.html 启动时无 `?file=` 参数则自动恢复最近会话（本地文件从 IndexedDB 取 Blob 重建，PDF 带 `&page=N`），有 `?file=` 时若与所存 URL 相同则恢复到保存位置；EPUB/TXT 的 `relocate` 事件回传 `{cfi,fraction}` 节流 800ms 落库；PDF 的 `pagechanging` 经 postMessage 通知父页落库；`pdf/viewer.html` 支持 `?page=N` 初始页。坑：挂载容器在 `display:none` 时 foliate 的 `goTo` 永不完成（无排版无 relocate）——容器必须先可见再挂载/跳转。
+
+**③ PDF 兼容模式**：`pdf/viewer.html` 工具栏新增 🖥 按钮——用浏览器原生 PDFium 查看器（embed）打开同一文件，系统字体渲染，非内嵌中文 PDF 完整显示；带"← 返回"切回 pdf.js 视图。
+
+**④ 进度小数显示**：fraction<10% 时显示一位小数（如 0.5%），避免长书开头进度恒显 0%。
+
+**验证**（LAN + 浏览器逐项）：白鹿原 EPUB 自动跳过空白分隔节直达第一章、35 章目录、滚轮/点击翻页生效、刷新后 CFI 恢复原位；白鹿原 MOBI 打开渲染；白鹿原 PDF 兼容模式可切换（pdf.js 视图内汉字缺失为 Chrome 平台限制，EPUB/MOBI 版本与兼容模式为推荐读法）；中文 TXT/EPUB 回归正常。未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 在线阅读器重构：弃用 MuPDF WASM，改用浏览器原生引擎（pdf.js + foliate-js）——彻底解决中文乱码，体积从 7.7MB 降到 <2MB
 
 **背景**：上一轮已确认乱码根因是 wasm 编译参数 `-DTOFU_CJK` 剔除了 CJK 回退字体，修复需要 emscripten 重编译内嵌中文字体。因服务器到 GitHub 仅 ~20KB/s 无法拉取 emsdk，评估后选定**浏览器原生方案**（用户确认）：PDF 用 Mozilla pdf.js（Firefox 内置同款引擎），EPUB/MOBI/AZW3/FB2/CBZ/TXT 用 foliate-js（渲染为 HTML 由浏览器排版）——中文直接用浏览器系统字体回退，天然无乱码；首次加载从 7.7MB（1~3 分钟）降到 <2MB（普通网络秒开）。

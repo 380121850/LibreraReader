@@ -74,8 +74,9 @@
 <input type="file" id="fileInput" accept=".pdf,.epub,.mobi,.azw3,.azw,.fb2,.cbz,.zip,.txt" hidden>
 
 <script type="module">
-import { mountReader } from './reader/reader-page.js'
-import { txtToEpubBlob } from './reader/txt-to-epub.js'
+import { mountReader } from './reader/reader-page.js?v=20260905b'
+import { txtToEpubBlob } from './reader/txt-to-epub.js?v=20260905b'
+import { saveSession, loadSession } from './reader/session.js?v=20260905b'
 
 const $ = id => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -88,13 +89,31 @@ const showStage = on => {
   $('backBtn').classList.toggle('on', on)
 }
 
-function openPdf(url, name) {
+// --- last-session persistence (IndexedDB) ---
+let sessionRec = null
+let sessionSaveTimer = null
+function persistSession() {
+  if (!sessionRec) return
+  clearTimeout(sessionSaveTimer)
+  sessionSaveTimer = setTimeout(() => saveSession(sessionRec), 800)
+}
+window.addEventListener('message', e => {
+  if (e.data?.type === 'hr-pdf-page' && sessionRec) {
+    sessionRec.pos = { ...(sessionRec.pos || {}), page: e.data.page }
+    persistSession()
+  }
+})
+
+function openPdf(url, name, page) {
   showStage(true)
-  $('pdfframe').src = 'pdf/viewer.html?file=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name || '')
+  $('pdfframe').src = 'pdf/viewer.html?file=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name || '') + (page ? '&page=' + page : '')
 }
 
-async function openOther(urlOrBlob, name) {
+async function openOther(urlOrBlob, name, initialPos) {
   showStage(true)
+  // the reader must be visible while mounting — foliate needs real layout
+  // to resolve page positions (goTo/CFI never settles inside a hidden container)
+  $('readerhost').style.display = 'block'
   $('loader').classList.add('on')
   $('loader').innerHTML = '<div>正在打开文档… Opening document…</div>'
   try {
@@ -102,39 +121,60 @@ async function openOther(urlOrBlob, name) {
     if (/\.txt$/i.test(name || '')) target = await txtToEpubBlob(urlOrBlob)
     await mountReader(target, $('readerhost'), {
       title: (name || '').replace(/\.[^.]+$/, ''),
+      initialPos,
       onBack: () => {
         $('readerhost').style.display = 'none'
         $('readerhost').innerHTML = ''
         showStage(false)
       },
+      onProgress: pos => {
+        if (sessionRec) {
+          sessionRec.pos = { ...(sessionRec.pos || {}), ...pos }
+          persistSession()
+        }
+      },
     })
-    // reveal only after the reader finished mounting, then force foliate to re-layout
-    $('readerhost').style.display = 'block'
     window.dispatchEvent(new Event('resize'))
   } catch (err) {
     // keep the loader visible: it doubles as the error banner
+    $('readerhost').innerHTML = ''
     $('loader').innerHTML = '<div>打开失败 Failed to open: ' + (err?.message || err) + '</div>'
     return
   }
   $('loader').classList.remove('on')
 }
 
-function route(source, name) {
+// remember what is being read; local files are kept as blobs so a refresh reopens them
+function remember(source, name, pos) {
+  sessionRec = {
+    name,
+    type: isPdf(name) ? 'pdf' : 'book',
+    blob: typeof source === 'string' ? null : source,
+    url: typeof source === 'string' ? source : null,
+    pos: pos || {},
+  }
+  persistSession()
+}
+
+function route(source, name, pos) {
+  remember(source, name, pos)
   if (isPdf(source)) {
-    openPdf(source, name)
+    openPdf(source, name, pos?.page)
   } else {
-    openOther(source, name)
+    openOther(source, name, pos)
   }
 }
 
 function handleFile(file) {
   if (!file) return
+  sessionRec = null // a new file starts a fresh position
   const blobUrl = URL.createObjectURL(file)
   if (isPdf(file.name)) {
     openPdf(blobUrl, file.name)
   } else {
     openOther(file, file.name)
   }
+  remember(file, file.name)
 }
 
 $('openBtn').addEventListener('click', () => $('fileInput').click())
@@ -149,7 +189,7 @@ $('dropzone').addEventListener('drop', e => {
 })
 $('urlBtn').addEventListener('click', () => {
   const url = $('urlInput').value.trim()
-  if (url) route(url, url)
+  if (url) route(url, url, sessionRec?.url === url ? sessionRec?.pos : undefined)
 })
 $('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('urlBtn').click() })
 $('backBtn').addEventListener('click', () => {
@@ -159,10 +199,28 @@ $('backBtn').addEventListener('click', () => {
   showStage(false)
 })
 
-// direct link support: ?file=<url>
+// direct link support: ?file=<url> — takes precedence, but resume position if it
+// is the same book as the saved session
 if (fileParam) {
   const name = params.get('name') || decodeURIComponent(fileParam.split('/').pop() || '')
-  route(fileParam, name)
+  loadSession().then(rec => {
+    const same = rec && rec.url === fileParam
+    if (same) sessionRec = rec
+    route(fileParam, name, same ? rec.pos : undefined)
+  })
+} else {
+  // reopen the last book so a refresh stays in the reading view
+  loadSession().then(rec => {
+    if (!rec) return
+    sessionRec = rec
+    if (rec.type === 'pdf' && rec.blob) {
+      openPdf(URL.createObjectURL(rec.blob), rec.name, rec.pos?.page)
+    } else if (rec.blob) {
+      openOther(rec.blob, rec.name, rec.pos)
+    } else if (rec.url) {
+      route(rec.url, rec.name, rec.pos)
+    }
+  })
 }
 </script>
 </body>

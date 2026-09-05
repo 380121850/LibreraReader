@@ -3,7 +3,7 @@ import { createTOCView } from './foliate/ui/tree.js'
 
 const $ = document.createElement.bind(document)
 
-export async function mountReader(target, host, { title = '', onBack = () => {} } = {}) {
+export async function mountReader(target, host, { title = '', onBack = () => {}, onProgress = null, initialPos = null } = {}) {
   host.innerHTML = ''
   const style = document.createElement('style')
   style.textContent = `
@@ -103,10 +103,11 @@ export async function mountReader(target, host, { title = '', onBack = () => {} 
   const percent = root.querySelector('.hr-percent')
   slider.addEventListener('input', () => view.goToFraction(parseFloat(slider.value) / 1000))
   view.addEventListener('relocate', e => {
-    const { fraction, tocItem } = e.detail
+    const { fraction, tocItem, cfi } = e.detail
     slider.value = Math.round(fraction * 1000)
-    percent.textContent = Math.round(fraction * 100) + '%'
+    percent.textContent = (fraction * 100).toFixed(fraction < 0.1 ? 1 : 0) + '%'
     if (tocItem?.label) root.querySelector('.hr-title').textContent = title ? title + ' · ' + tocItem.label.trim() : tocItem.label.trim()
+    onProgress?.({ cfi, fraction })
   })
   view.addEventListener('load', e => {
     const meta = e.detail?.metadata
@@ -122,8 +123,18 @@ export async function mountReader(target, host, { title = '', onBack = () => {} 
 
   await view.open(target)
   applyFont()
-  // foliate does not render the first section until a navigation happens
-  await view.goToFraction(0).catch(() => {})
+  // resume to the saved position, or skip past tiny divider/cover sections
+  if (initialPos?.cfi) {
+    await view.goTo(initialPos.cfi).catch(() => view.goToFraction(initialPos.fraction ?? 0))
+  } else if (initialPos?.fraction) {
+    await view.goToFraction(initialPos.fraction)
+  } else {
+    const sections = view.book?.sections ?? []
+    let i = 0
+    while (i < sections.length - 1 && (sections[i].size ?? 0) < 3000) i++
+    if (i > 0) await view.goTo(sections[i].id).catch(() => {})
+    else await view.goToFraction(0).catch(() => {})
+  }
 
   const toc = view.book?.toc
   if (toc && toc.length) {

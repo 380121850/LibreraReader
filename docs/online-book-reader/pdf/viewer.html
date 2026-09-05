@@ -89,6 +89,7 @@
   <span id="title"></span>
   <span class="spacer"></span>
   <button id="findBtn" title="搜索">🔍</button>
+  <button id="sysBtn" title="系统查看器（某些老 PDF 用此模式中文更完整）">🖥</button>
   <button id="downloadBtn" title="下载">⬇</button>
 </div>
 <div id="sidebar"><h3>目录 Outline</h3><div id="outlineTree"></div></div>
@@ -103,6 +104,10 @@
   <button id="findClose" title="关闭">×</button>
 </div>
 <div id="loading"><div>正在加载 PDF… Loading PDF…</div></div>
+<div id="nativeWrap" style="display:none; position:absolute; top:38px; left:0; right:0; bottom:0; z-index:12; background:#525659;">
+  <embed id="nativeEmbed" type="application/pdf" style="width:100%; height:100%">
+  <button id="nativeBack" style="position:absolute; top:6px; right:10px; background:rgba(43,43,43,.9); color:#eee; border:1px solid #666; border-radius:6px; padding:5px 12px; cursor:pointer; font-size:13px;">← 返回</button>
+</div>
 
 <script type="module">
 import * as pdfjsLib from './build/pdf.min.mjs'
@@ -153,6 +158,8 @@ if (!fileUrl) {
     $('title').textContent = (params.get('name') || '').replace(/\.(pdf|PDF)$/, '')
     pdfViewer.setDocument(doc)
     linkService.setDocument(doc, null)
+    const initialPage = parseInt(params.get('page'), 10)
+    if (initialPage > 1 && initialPage <= doc.numPages) pdfViewer.currentPageNumber = initialPage
     await buildOutline(doc)
   }).catch(err => {
     $('loading').innerHTML = '<div class="err">加载失败 Failed to load: ' + (err?.message || err) + '</div>'
@@ -222,6 +229,18 @@ $('downloadBtn').addEventListener('click', () => {
   })
 })
 
+// native (browser PDFium) viewer fallback — renders CJK text for old PDFs
+// whose fonts are not embedded (pdf.js on Chrome cannot use system CJK fonts)
+$('sysBtn').addEventListener('click', () => {
+  if (!fileUrl) return
+  $('nativeEmbed').src = fileUrl
+  $('nativeWrap').style.display = 'block'
+})
+$('nativeBack').addEventListener('click', () => {
+  $('nativeEmbed').src = 'about:blank'
+  $('nativeWrap').style.display = 'none'
+})
+
 // --- find bar ---
 function toggleFind(force) {
   const open = force != null ? force : !$('findbar').classList.contains('open')
@@ -259,7 +278,10 @@ eventBus.on('updatefindcontrolstate', e => {
 })
 
 // --- sync toolbar state ---
-eventBus.on('pagechanging', e => { $('pageNumber').value = e.pageNumber })
+eventBus.on('pagechanging', e => {
+  $('pageNumber').value = e.pageNumber
+  try { if (window.parent !== window) parent.postMessage({ type: 'hr-pdf-page', page: e.pageNumber }, '*') } catch (_) {}
+})
 eventBus.on('pagerendered', () => { $('pageNumber').value = pdfViewer.currentPageNumber })
 window.addEventListener('resize', () => { eventBus.dispatch('resize', { source: window }) })
 window.addEventListener('keydown', e => {

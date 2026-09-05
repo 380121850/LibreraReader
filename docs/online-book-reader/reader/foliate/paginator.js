@@ -611,6 +611,11 @@ export class Paginator extends HTMLElement {
                 requestAnimationFrame(() => this.#scrollToAnchor(e.target)))
         })
 
+        // --- mouse wheel + click page-turning (paginated mode only) ---
+        this.addEventListener('wheel', e => this.#hrWheel(e), { passive: false })
+        this.addEventListener('pointerdown', e => { this.#hrDownX = e.clientX; this.#hrDownY = e.clientY })
+        this.addEventListener('click', e => this.#hrClick(e))
+
         this.#mediaQueryListener = () => {
             if (!this.#view) return
             this.#replaceBackground(this.#view.docBackground, this.columnCount)
@@ -1103,6 +1108,27 @@ export class Paginator extends HTMLElement {
         })
         if (shouldGo || !this.hasAttribute('animated')) await wait(100)
         this.#locked = false
+    }
+    #hrWheelLocked = false
+    #hrDownX = 0
+    #hrDownY = 0
+    #hrWheel(e) {
+        if (this.scrolled) return // native scrolling in scrolled mode
+        e.preventDefault()
+        if (this.#hrWheelLocked) return
+        this.#hrWheelLocked = true
+        setTimeout(() => { this.#hrWheelLocked = false }, 400)
+        if (e.deltaY > 0) this.next()
+        else if (e.deltaY < 0) this.prev()
+    }
+    #hrClick(e) {
+        if (this.scrolled) return
+        if (e.target.closest && e.target.closest('a, button, video, audio, aside')) return
+        // ignore drags (text selection) — only treat still clicks as page turns
+        if (Math.abs(e.clientX - this.#hrDownX) + Math.abs(e.clientY - this.#hrDownY) > 6) return
+        const w = this.clientWidth || window.innerWidth
+        if (e.clientX < w / 3) this.prev()
+        else this.next()
     }
     async prev(distance) {
         return await this.#turnPage(-1, distance)
