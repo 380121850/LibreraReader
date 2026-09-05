@@ -7,7 +7,7 @@ layout: page
 ## HowRead 好好读 (current version)
 
 * [Releases & release notes on GitHub](https://github.com/380121850/howread/releases)
-* Current version: **0.9.x** — see the [download page]({{ site.baseurl }}/download) for APKs.
+* Current version: **1.0.x** — see the [download page]({{ site.baseurl }}/download) for APKs.
 
 ## Legacy Librera changelog (archive)
 

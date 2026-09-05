@@ -7,7 +7,7 @@ layout: page
 ## HowRead 好好读（当前版本）
 
 * [GitHub Releases 与版本说明](https://github.com/380121850/howread/releases)
-* 当前版本：**0.9.x** — APK 下载见[下载页]({{ site.baseurl }}/download/zh)。
+* 当前版本：**1.0.x** — APK 下载见[下载页]({{ site.baseurl }}/download/zh)。
 
 ## 旧版 Librera 更新日志（存档）
 
