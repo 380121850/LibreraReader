@@ -5,6 +5,23 @@
 
 ---
 
+## [2026-09-05] 优化：翻译窗口改后5/前2页+三条并发队列（当前页/往后/往前各自直连AI）、提示字体加大并实时显示"本页剩X段·队列Y段"、双语开启时对话框如实显示且禁用开始翻译、修复已删书籍的书签笔记被服务器同步回来
+
+**需求**：①"正在翻译中..."字体加大，同时显示当前翻译段落队列；②优先级：当前页最优先 → 往后5页 → 往前2页，翻页后新的当前页优先翻译；③后台3条队列并发请求 AI 提效；④双语开启状态下点 AI 翻译按钮：勾选框没勾（状态显示错误），且此时应禁用"开始翻译"，只能取消或关闭页内双语；⑤书签笔记里已删除书籍仍会被服务器同步回来。
+
+**改动**：
+- `com/foobnix/ai/BilingualSession.java`：窗口改 `AHEAD_PAGES=5 / BACK_PAGES=2`；单队列拆为**三条并发车道** `lanes[0]=当前页 / [1]=往后页 / [2]=往前页`（统一 `queueLock`），worker 改为 3 个线程（BiTran-0/1/2）各消费本车道、空闲时按"当前→往后→往前"窃取，最多 3 个 AI 请求并发（批量5段/请求不变）；跳页时三条车道全部清空重排（翻页后新当前页最优先）；暂停按来源车道放回队首；失败重试进入最低优先的前方车道；新增 `currentHintText()` 计算"正在翻译中… 本页剩 X 段 · 队列 Y 段"（随翻页与每段落完成实时刷新）；BENCH 日志带各车道长度。
+- `com/foobnix/ai/BilingualHintUi.java`：接口改为 `setBilingualHint(String text)`（null/空=隐藏）；两个阅读 Activity 同步适配（有文字才显示并 setText）。
+- `res/layout/activity_horiziontal_view.xml` / `activity_vertical_view.xml`：提示字体 12sp→16sp。
+- `com/foobnix/ai/AiTranslateDialog.java`：`isBilingualActive` 时勾选框如实 `setChecked(true)` 并禁用，"开始翻译" `setEnabled(false)+setAlpha(0.4)` 置灰——只能"取消"或红色"关闭页内双语模式"退出；未激活时维持默认不勾选、可开始。
+- **已删书书签复活修复**（根因：删书只删 FileMeta 行，不删该书书签/进度、不打墓碑，而 `WebDavSyncer` 对书签逐条 union 且把无文件的书当 pending 持续维护服务器副本）：
+  - `com/foobnix/pdf/info/BookmarksData.java` 新增 `removeByBook(path)`（删该书全部书签/AI笔记 + 逐 key "b" 墓碑 + 书级墓碑 + `deleteProgress` 清进度记 "p" 墓碑）与 `pruneDeletedBooks()`（清理历史遗留：文件已不存在、存储已挂载、书库中无同名条目——即确已删除而非移动——的书签批量删除并打墓碑，防误删移动中的书）；
+  - `DefaultListeners.deleteFile()` 删除成功后与 `CheckDeletedBooksWorker` 发现文件丢失删除 FileMeta 行的同一处调用 `removeByBook`；
+  - `WebDavSyncer.doSync()` 在构建本地书籍信息前先 `pruneDeletedBooks()`；书级/key 级墓碑使既有合并守卫（`delBookmarks`/`deletedKeys`）跳过并回、并删除服务器 `books/<hash>.json` 副本。
+
+**验证（MI9 真机 pro 包，BENCH 日志 + UI dump + 截图）**：①跳到未译页后 `lanes=[5,22,9]` 三车道同时入队，**同一毫秒 3 个线程各发一个批量请求**（ords 互不相同、含当前页/往后/往前三组）；提示以 16sp 显示"正在翻译中… 本页剩 4 段 · 队列 13 段"（bounds [116,2058][963,2145]，底部居中），当前页译完合入后提示消失；停留期间仅 `rebuild skipped`、无周期性重载。②双语激活时打开 AI 对话框：勾选框 `checked=true enabled=false`（如实显示开启）、"开始翻译" `enabled=false` 置灰，仅"取消"与红色"关闭页内双语模式"可点（截图确认）；点关闭后回原书、`aiBilingual=false` 落盘。③删书书签测试：给《客户端AMR编解码库API参考.pdf》添加快速书签后经书库菜单删除——`app-Bookmarks.json` 该书条目即清零，`app-DeletedBooks.json` 出现完整墓碑（书级"b"+逐key+"p"），下一轮同步 `deleted=8、associated 53→52`（服务器副本被清理），同步后书签条目仍为 0（不再被合回）。鸿蒙零改动，未执行任何 git 命令。
+
+
 ## [2026-09-05] 修复与优化：双语跳页后当前页优先翻译、停留只提示不刷新、退出阅读页自动退出双语、AI对话框记住语言配置且双语默认不勾选、5段批量翻译提效
 
 **需求**：①"正在翻译中..."提示只在单击时出现，应停靠未译页即提示；跳到书中间未译页一直显示翻译中、页面定时刷新但没有英文；②优先翻译当前页；③退出阅读页时若在双语模式则同时退出双语；④重新打开 AI 翻译对话框应回显上次配置（此前中文→英文再打开仍显示中文→中文）；⑤开启 AI 翻译时"双语对照"默认不选中；⑥逐段请求 AI 效率低，改为约5段一批（AI 按段编号翻译、不思考不分析仅译文），提高效率。

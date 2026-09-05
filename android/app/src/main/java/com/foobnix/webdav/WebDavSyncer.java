@@ -340,6 +340,14 @@ public class WebDavSyncer {
 
             // ---- local state: progress per book + bookmarks by creation time
             final boolean farther = "farther".equals(AppState.get().webdavSyncPolicy);
+            // stale leftovers of books deleted before the delete-flow cleanup
+            // existed: drop (and tombstone) them so the merge below cannot
+            // keep resurrecting bookmarks of books that no longer exist
+            try {
+                com.foobnix.pdf.info.BookmarksData.get().pruneDeletedBooks();
+            } catch (Exception pruneError) {
+                LOG.e(pruneError);
+            }
             final LinkedJSONObject localP = IO.readJsonObject(AppProfile.syncProgress);
             final LinkedJSONObject localB = IO.readJsonObject(AppProfile.syncBookmarks);
 

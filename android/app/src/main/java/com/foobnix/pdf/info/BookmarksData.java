@@ -18,9 +18,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class BookmarksData {
@@ -317,5 +319,122 @@ public class BookmarksData {
                 com.foobnix.LibreraApp.context);
     }
 
+    /**
+     * Remove every bookmark / AI note of ONE book (matched by file name, like
+     * {@link #getBookmarksByBook}) and tombstone the deletion so the WebDAV
+     * sync removes the server copies instead of merging them back. Used when
+     * the book itself is deleted — without this the remote bookmarks of the
+     * deleted book keep resurrecting on every sync.
+     */
+    public void removeByBook(String path) {
+        try {
+            if (TxtUtils.isEmpty(path)) {
+                return;
+            }
+            List<AppBookmark> mine = getBookmarksByBook(path);
+            if (mine.isEmpty()) {
+                return;
+            }
+            boolean changed = false;
+            for (AppBookmark b : mine) {
+                if (b.file == null) {
+                    continue;
+                }
+                LinkedJSONObject obj = IO.readJsonObject(b.file);
+                if (obj.has("" + b.t)) {
+                    obj.remove("" + b.t);
+                    IO.writeObjSync(b.file, obj);
+                    changed = true;
+                }
+                if (TxtUtils.isNotEmpty(b.getPath())) {
+                    SharedBooks.DeletedBooks.record(b.getPath(), "b");
+                    SharedBooks.DeletedBooks.recordKey(b.getPath(), b.t);
+                }
+            }
+            // the deleted book must not keep feeding the sync with progress /
+            // dead-book entries either
+            org.ebookdroid.common.settings.books.SharedBooks.deleteProgress(path);
+            if (changed) {
+                LOG.d("BookmarksData", "removeByBook", path, mine.size());
+                com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(
+                        com.foobnix.LibreraApp.context);
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /**
+     * One-time cleanup for leftovers of books deleted BEFORE the delete flow
+     * started cleaning up: bookmarks whose book file is gone (storage mounted,
+     * no library entry under that name — i.e. not just moved) are removed and
+     * tombstoned so the WebDAV sync deletes the server copies instead of
+     * merging them back on every round. Called at the start of doSync().
+     */
+    public synchronized void pruneDeletedBooks() {
+        try {
+            // file names the library still knows (book may just have moved)
+            Set<String> knownNames = new HashSet<String>();
+            try {
+                for (com.foobnix.dao2.FileMeta m : com.foobnix.ui2.AppDB.get().getAll()) {
+                    String p = m.getPath();
+                    if (TxtUtils.isEmpty(p) || p.startsWith("content:")) {
+                        continue;
+                    }
+                    knownNames.add(ExtUtils.getFileName(p));
+                }
+            } catch (Exception dbError) {
+                LOG.e(dbError);
+            }
+
+            Map<String, List<AppBookmark>> byPath = new java.util.LinkedHashMap<String, List<AppBookmark>>();
+            for (AppBookmark b : getAll()) {
+                String p = b.getPath();
+                if (TxtUtils.isEmpty(p)) {
+                    continue;
+                }
+                List<AppBookmark> list = byPath.get(p);
+                if (list == null) {
+                    list = new ArrayList<AppBookmark>();
+                    byPath.put(p, list);
+                }
+                list.add(b);
+            }
+
+            boolean changed = false;
+            for (Map.Entry<String, List<AppBookmark>> e : byPath.entrySet()) {
+                String p = e.getKey();
+                File f = new File(p);
+                if (f.isFile() || !ExtUtils.isMounted(f)) {
+                    continue; // book exists, or storage unavailable: don't guess
+                }
+                if (knownNames.contains(ExtUtils.getFileName(p))) {
+                    continue; // library still has it under this name (moved)
+                }
+                for (AppBookmark b : e.getValue()) {
+                    if (b.file != null) {
+                        LinkedJSONObject obj = IO.readJsonObject(b.file);
+                        if (obj.has("" + b.t)) {
+                            obj.remove("" + b.t);
+                            IO.writeObjSync(b.file, obj);
+                            changed = true;
+                        }
+                    }
+                    if (TxtUtils.isNotEmpty(b.getPath())) {
+                        SharedBooks.DeletedBooks.record(b.getPath(), "b");
+                        SharedBooks.DeletedBooks.recordKey(b.getPath(), b.t);
+                    }
+                }
+                SharedBooks.deleteProgress(p);
+                LOG.d("BookmarksData", "pruneDeletedBooks", p, e.getValue().size());
+            }
+            if (changed) {
+                com.foobnix.webdav.WebDavSyncer.notifyConfigChanged(
+                        com.foobnix.LibreraApp.context);
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
 
 }

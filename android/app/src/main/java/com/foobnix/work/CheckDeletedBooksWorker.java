@@ -59,6 +59,14 @@ public class CheckDeletedBooksWorker extends MessageWorker {
                 if (!bookFile.exists()) {
                     AppDB.get()
                          .delete(meta);
+                    // the file is gone for real (storage is mounted): drop its
+                    // bookmarks/notes & progress and tombstone them so the
+                    // WebDAV sync stops resurrecting them
+                    try {
+                        com.foobnix.pdf.info.BookmarksData.get().removeByBook(meta.getPath());
+                    } catch (Exception e) {
+                        LOG.e(e);
+                    }
                     LOG.d("BooksService", "Delete-setIsSearchBook", meta.getPath());
                 }
             }

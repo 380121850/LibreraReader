@@ -112,6 +112,13 @@ public class AiTranslateDialog {
                 // only the list panel works for this format
                 modeBox.setChecked(false);
                 modeBox.setVisibility(View.GONE);
+            } else if (isBilingualActive) {
+                // mode is ON for this book: show it truthfully and lock the
+                // dialog down to "cancel" or the red "关闭页内双语模式" button
+                modeBox.setChecked(true);
+                modeBox.setEnabled(false);
+                start.setEnabled(false);
+                start.setAlpha(0.4f);
             } else {
                 // bilingual is opt-in: the checkbox is never pre-selected,
                 // the user turns it on explicitly each time

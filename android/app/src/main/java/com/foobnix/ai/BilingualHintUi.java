@@ -6,6 +6,9 @@ package com.foobnix.ai;
  */
 public interface BilingualHintUi {
 
-    /** Show/hide the bottom "正在翻译中…" hint for the current page. */
-    void setBilingualHint(boolean show);
+    /**
+     * Show the bottom hint with the given text (live queue counters), or hide
+     * it when the text is null/empty.
+     */
+    void setBilingualHint(String text);
 }

@@ -92,11 +92,16 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
     }
 
     @Override
-    public void setBilingualHint(boolean show) {
+    public void setBilingualHint(String text) {
         if (aiTranHint == null) {
             return;
         }
-        aiTranHint.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (text == null || text.length() == 0) {
+            aiTranHint.setVisibility(View.GONE);
+        } else {
+            aiTranHint.setText(text);
+            aiTranHint.setVisibility(View.VISIBLE);
+        }
     }
 
     /**

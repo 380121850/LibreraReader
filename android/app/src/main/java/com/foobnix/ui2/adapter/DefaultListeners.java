@@ -23,6 +23,7 @@ import com.foobnix.pdf.info.ADS;
 import com.foobnix.pdf.info.Clouds;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.IMG;
+import com.foobnix.pdf.info.BookmarksData;
 import com.foobnix.pdf.info.Playlists;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.view.Dialogs;
@@ -276,6 +277,13 @@ public class DefaultListeners {
             AppDB.get()
                  .delete(result);
             Tags2.updateTagsDB();
+            // the book is gone: drop its bookmarks/notes & progress and
+            // tombstone them, or the WebDAV sync keeps merging them back
+            try {
+                BookmarksData.get().removeByBook(result.getPath());
+            } catch (Exception e) {
+                LOG.e(e);
+            }
 
             searchAdapter.getItemsList()
                          .remove(result);

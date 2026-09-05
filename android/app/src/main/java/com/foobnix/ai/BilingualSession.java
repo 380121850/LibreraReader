@@ -51,10 +51,12 @@ public class BilingualSession {
     }
 
     // page window around the current reading position
-    private static final int BACK_PAGES = 3;
-    private static final int AHEAD_PAGES = 10;
+    private static final int BACK_PAGES = 2;
+    private static final int AHEAD_PAGES = 5;
     // paragraphs sent to the AI in one request
     private static final int BATCH_SIZE = 5;
+    // parallel translation lanes: 0 = current page, 1 = ahead pages, 2 = back pages
+    private static final int LANES = 3;
     // merge window for rebuilds triggered by finished paragraphs
     private static final long REBUILD_DEBOUNCE_MS = 3000;
 
@@ -264,9 +266,9 @@ public class BilingualSession {
             @Override public void requestHintUpdate() {
                 try {
                     BilingualSession s = attachOrNull(path);
-                    boolean show = s != null && s.isCurrentPagePending();
+                    String text = s == null ? null : s.currentHintText();
                     if (activity instanceof BilingualHintUi) {
-                        ((BilingualHintUi) activity).setBilingualHint(show);
+                        ((BilingualHintUi) activity).setBilingualHint(text);
                     }
                 } catch (Throwable t) {
                     LOG.e(t);
@@ -329,7 +331,7 @@ public class BilingualSession {
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean building = new AtomicBoolean(false);
 
-    private Thread worker;
+    private Thread[] worker;
     private final Object workerLock = new Object();
 
     // source paragraphs (lazily enumerated from the base file the doc opened)
@@ -340,7 +342,10 @@ public class BilingualSession {
     private final Set<String> queued = new HashSet<String>();
     private final Set<String> inFlight = new HashSet<String>();
     private final Set<String> failed = new HashSet<String>();
-    private final ArrayDeque<String> queue = new ArrayDeque<String>();
+    // three translation lanes: current page / ahead pages / back pages, each
+    // served by its own worker (stolen from in priority order when idle)
+    private final ArrayDeque<String>[] lanes = new ArrayDeque[LANES];
+    private final Object queueLock = new Object();
     private final Map<String, Integer> attempts = new HashMap<String, Integer>();
 
     private int lastPage0 = -1;
@@ -387,6 +392,9 @@ public class BilingualSession {
         this.src = src;
         this.tgt = tgt;
         this.cache = new TranslationCache(book);
+        for (int i = 0; i < LANES; i++) {
+            lanes[i] = new ArrayDeque<String>();
+        }
     }
 
     public File getBook() {
@@ -422,7 +430,7 @@ public class BilingualSession {
     private void setActive(boolean on) {
         active.set(on);
         if (on) {
-            synchronized (queue) {
+            synchronized (queueLock) {
                 pending.clear();
             }
         }
@@ -438,13 +446,17 @@ public class BilingualSession {
     private void startWorker() {
         synchronized (workerLock) {
             if (worker == null) {
-                worker = new Thread(new Runnable() {
-                    @Override public void run() {
-                        workerLoop();
-                    }
-                }, "BiTran");
-                worker.setDaemon(true);
-                worker.start();
+                worker = new Thread[LANES];
+                for (int i = 0; i < LANES; i++) {
+                    final int lane = i;
+                    worker[i] = new Thread(new Runnable() {
+                        @Override public void run() {
+                            workerLoop(lane);
+                        }
+                    }, "BiTran-" + i);
+                    worker[i].setDaemon(true);
+                    worker[i].start();
+                }
             }
         }
     }
@@ -461,19 +473,21 @@ public class BilingualSession {
         ui.postDelayed(hintRecheckRunnable, 500);
         if (jumped && page0 >= 0) {
             // the reader moved to a different page: drop everything not yet
-            // started so the new position is translated first (an in-flight
-            // request cannot be cancelled and keeps running)
-            synchronized (queue) {
-                if (!queue.isEmpty()) {
-                    int dropped = 0;
-                    for (String m : queue) {
-                        pending.remove(m);
-                        dropped++;
-                    }
-                    queue.clear();
-                    queued.clear();
+            // started so the new position is translated first (in-flight
+            // requests cannot be cancelled and keep running)
+            synchronized (queueLock) {
+                int dropped = 0;
+                for (int i = 0; i < LANES; i++) {
+                    dropped += lanes[i].size();
+                    lanes[i].clear();
+                }
+                queued.clear();
+                // not-started items lived in lanes+queued; in-flight ones were
+                // already removed from pending when polled, so clear it all
+                pending.clear();
+                if (dropped > 0) {
                     android.util.Log.i("BENCH", "BilingualSession jump to page=" + page0
-                            + " -> queue re-prioritized, dropped=" + dropped);
+                            + " -> queues re-prioritized, dropped=" + dropped);
                 }
             }
         }
@@ -550,29 +564,29 @@ public class BilingualSession {
             int to = pageStart(lastPage0 + AHEAD_PAGES + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             int added = 0;
-            synchronized (pending) {
-                synchronized (queue) {
-                    // current page first, then ahead pages, then back pages
-                    added += enqueuePageRange(done, lastPage0, lastPage0 + 1, true);
-                    for (int d = 1; d <= AHEAD_PAGES; d++) {
-                        added += enqueuePageRange(done, lastPage0 + d, lastPage0 + d + 1, false);
-                    }
-                    for (int d = 1; d <= BACK_PAGES; d++) {
-                        added += enqueuePageRange(done, lastPage0 - d, lastPage0 - d + 1, false);
-                    }
+            synchronized (queueLock) {
+                // current page -> lane 0, ahead pages -> lane 1, back pages -> lane 2
+                added += enqueuePageRange(done, lastPage0, lastPage0 + 1, 0);
+                for (int d = 1; d <= AHEAD_PAGES; d++) {
+                    added += enqueuePageRange(done, lastPage0 + d, lastPage0 + d + 1, 1);
+                }
+                for (int d = 1; d <= BACK_PAGES; d++) {
+                    added += enqueuePageRange(done, lastPage0 - d, lastPage0 - d + 1, 2);
                 }
             }
             android.util.Log.i("BENCH", "BilingualSession onView page=" + lastPage0 + "/" + lastPageCount
                     + " winPages=[" + (lastPage0 - BACK_PAGES) + "," + (lastPage0 + AHEAD_PAGES) + "]"
                     + " winParas=[" + from + "," + to + "] queued=" + added
-                    + " done=" + done.size() + " pending=" + pending.size() + " queuedSet=" + queued.size());
+                    + " done=" + done.size() + " pending=" + pending.size() + " queuedSet=" + queued.size()
+                    + " lanes=[" + lanes[0].size() + "," + lanes[1].size() + "," + lanes[2].size() + "]");
             updateHint();
         } catch (Throwable t) {
             LOG.e(t);
         }
     }
 
-    private int enqueuePageRange(Map<String, String> done, int pageFrom, int pageTo, boolean currentPage) {
+    /** Enqueue one page range into the given lane (0 = current, 1 = ahead, 2 = back). */
+    private int enqueuePageRange(Map<String, String> done, int pageFrom, int pageTo, int lane) {
         if (lastPageCount <= 0) {
             return 0;
         }
@@ -589,21 +603,25 @@ public class BilingualSession {
                     || queued.contains(p.md5)) {
                 continue;
             }
-            if (currentPage) {
+            if (lane == 0) {
                 // the reader is looking at it: allow one more retry after failure
                 failed.remove(p.md5);
             }
             pending.add(p.md5);
             queued.add(p.md5);
-            queue.addLast(p.md5);
+            lanes[lane].addLast(p.md5);
             added++;
         }
         return added;
     }
 
-    private void workerLoop() {
+    /**
+     * One worker per lane. Each drains its own lane first (up to BATCH_SIZE in
+     * one AI request); when its lane is empty it steals from the others in
+     * priority order (current -> ahead -> back).
+     */
+    private void workerLoop(final int lane) {
         while (!stopped.get()) {
-            List<String> batch = new ArrayList<String>();
             synchronized (workerLock) {
                 if (!active.get()) {
                     try {
@@ -614,21 +632,39 @@ public class BilingualSession {
                     continue;
                 }
             }
-            synchronized (queue) {
-                while (batch.size() < BATCH_SIZE) {
-                    String md5 = queue.pollFirst();
+            List<String> batch = new ArrayList<String>();
+            List<Integer> batchLanes = new ArrayList<Integer>();
+            synchronized (queueLock) {
+                int guard = 0;
+                while (batch.size() < BATCH_SIZE && guard++ < LANES * 2) {
+                    int take = lane;
+                    if (lanes[take].isEmpty()) {
+                        take = -1;
+                        // steal: current lane first, then ahead, then back
+                        for (int i = 0; i < LANES; i++) {
+                            if (!lanes[i].isEmpty()) {
+                                take = i;
+                                break;
+                            }
+                        }
+                        if (take < 0) {
+                            break;
+                        }
+                    }
+                    String md5 = lanes[take].pollFirst();
                     if (md5 == null) {
-                        break;
+                        continue;
                     }
                     queued.remove(md5);
                     pending.remove(md5);
                     batch.add(md5);
+                    batchLanes.add(take);
                 }
             }
             if (batch.isEmpty()) {
                 try {
                     synchronized (workerLock) {
-                        if (!stopped.get() && queue.isEmpty()) {
+                        if (!stopped.get() && allLanesEmpty()) {
                             workerLock.wait(800);
                         }
                     }
@@ -638,11 +674,12 @@ public class BilingualSession {
                 continue;
             }
             if (!active.get() || host == null) {
-                // paused (activity restarting/detached): keep the items, wait
-                synchronized (queue) {
+                // paused (activity restarting/detached): keep the items, back
+                // to the front of their own lanes
+                synchronized (queueLock) {
                     for (int i = batch.size() - 1; i >= 0; i--) {
                         String md5 = batch.get(i);
-                        queue.addFirst(md5);
+                        lanes[batchLanes.get(i)].addFirst(md5);
                         queued.add(md5);
                         pending.add(md5);
                     }
@@ -659,6 +696,17 @@ public class BilingualSession {
                 continue;
             }
             translateBatch(batch);
+        }
+    }
+
+    private boolean allLanesEmpty() {
+        synchronized (queueLock) {
+            for (int i = 0; i < LANES; i++) {
+                if (!lanes[i].isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -865,16 +913,18 @@ public class BilingualSession {
         int attempt = n == null ? 0 : n;
         attempts.put(md5, attempt + 1);
         if (attempt < 2) {
-            synchronized (queue) {
+            synchronized (queueLock) {
                 if (!pending.contains(md5) && !queued.contains(md5)) {
                     pending.add(md5);
                     queued.add(md5);
-                    queue.addLast(md5);
+                    // retries go to the lowest-priority (back) lane so fresh
+                    // window paragraphs stay ahead of them
+                    lanes[2].addLast(md5);
                 }
             }
             android.util.Log.i("BENCH", "BilingualSession " + md5 + " retry attempt=" + attempt);
         } else {
-            synchronized (queue) {
+            synchronized (queueLock) {
                 failed.add(md5);
             }
             android.util.Log.i("BENCH", "BilingualSession " + md5 + " FAILED err=" + err);
@@ -1111,7 +1161,7 @@ public class BilingualSession {
             int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
             Map<String, String> done = cache.doneByTextHash(src, tgt);
             Set<String> built = builtMd5s;
-            synchronized (queue) {
+            synchronized (queueLock) {
                 for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
                     BilingualBuilder.Para p = ps.get(i);
                     if (p == null || p.md5 == null) {
@@ -1132,6 +1182,51 @@ public class BilingualSession {
         } catch (Throwable t) {
             LOG.e(t);
             return false;
+        }
+    }
+
+    /**
+     * Bottom-hint text with live queue counters, or null when nothing is
+     * pending for the current page.
+     */
+    public String currentHintText() {
+        try {
+            List<BilingualBuilder.Para> ps = paras;
+            if (ps == null || ps.isEmpty() || lastPageCount <= 0 || lastPage0 < 0) {
+                return null;
+            }
+            int total = ps.size();
+            int from = pageStart(lastPage0, lastPageCount, total);
+            int to = pageStart(lastPage0 + 1, lastPageCount, total) - 1;
+            Map<String, String> done = cache.doneByTextHash(src, tgt);
+            Set<String> built = builtMd5s;
+            int pageLeft = 0;
+            synchronized (queueLock) {
+                for (int i = Math.max(0, from); i <= Math.min(total - 1, to); i++) {
+                    BilingualBuilder.Para p = ps.get(i);
+                    if (p == null || p.md5 == null) {
+                        continue;
+                    }
+                    if (done.containsKey(p.md5)) {
+                        if (!built.contains(p.md5)) {
+                            pageLeft++;
+                        }
+                    } else if (!failed.contains(p.md5)) {
+                        pageLeft++;
+                    }
+                }
+            }
+            if (pageLeft <= 0) {
+                return null;
+            }
+            int inQueue;
+            synchronized (queueLock) {
+                inQueue = pending.size() + inFlight.size();
+            }
+            return "正在翻译中… 本页剩 " + pageLeft + " 段 · 队列 " + inQueue + " 段";
+        } catch (Throwable t) {
+            LOG.e(t);
+            return null;
         }
     }
 
@@ -1202,7 +1297,11 @@ public class BilingualSession {
         }
         try {
             if (worker != null) {
-                worker.interrupt();
+                for (Thread w : worker) {
+                    if (w != null) {
+                        w.interrupt();
+                    }
+                }
             }
         } catch (Exception e) {
             LOG.e(e);

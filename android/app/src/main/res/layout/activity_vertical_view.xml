@@ -225,7 +225,7 @@
             android:paddingBottom="5dp"
             android:text="@string/ai_tran_hint"
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="16sp"
             android:visibility="gone" />
 
         <TextView

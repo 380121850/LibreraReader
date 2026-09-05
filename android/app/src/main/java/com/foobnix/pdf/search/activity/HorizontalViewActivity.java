@@ -1882,11 +1882,16 @@ public class HorizontalViewActivity extends AdsFragmentActivity implements Bilin
     }
 
     @Override
-    public void setBilingualHint(boolean show) {
+    public void setBilingualHint(String text) {
         if (aiTranHint == null) {
             return;
         }
-        aiTranHint.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (TxtUtils.isEmpty(text)) {
+            aiTranHint.setVisibility(View.GONE);
+        } else {
+            aiTranHint.setText(text);
+            aiTranHint.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
