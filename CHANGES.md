@@ -5,6 +5,20 @@
 
 ---
 
+## [2026-09-05] 全量 BUG 修复：两轮独立代码审查合并清单（除两处存疑项外全修），约 40 项，覆盖同步引擎/持久化/AI/阅读引擎/UI 五个板块
+
+**同步/持久化（数据安全主线）**：①WebDAV 列目录失败时跳过书籍上传与服务器删除阶段（此前网络抖动会把本地全部书籍信息以旧进度全量重传覆盖服务器）；②`syncThreeWayFile` 稳态下远端 404/空文件不再被当作"远端全字段删除"——原逻辑会清空本地配置并广播到所有设备（历史配置丢失事故的完整根源），现按首同步处理为"本地上传播种"；③`buildInfoWithHash` 的 `t=now` 不再混入变更比较（新增 `sameIgnoringT`）：修掉了每台设备每轮同步对每本书无条件 PUT 的风暴，`booksSynced` 统计改为真实上传数；④doSync 回写改为 `mergeSnapshotsAtEnd` 增量合并（进度按键比较 t 新者胜、书签并集、写回前按最新墓碑删除已删键）——同步期间翻页/加删书签不再被陈旧快照吞掉；⑤墓碑生命周期三重修复：新增 `DeletedBooks.expireOlderThan`（30 天过期）、列目录成功后清除服务器上已不存在的陈旧墓碑（防止日后误删同名新书的服务器信息）、发布信息携带 `dk`(键→删除时间) 供其它设备应用/越过删除（多设备删除不再复活）；⑥`IO.java` 加固：`getLock` 改 ConcurrentHashMap（修复多线程 HashMap 竞态导致锁失效）、`writeString` 临时文件+rename 原子替换+显式 UTF-8（进程死亡不再产生截断 JSON）、`readJsonObject` 解析失败先把损坏内容备份为 `*.corrupt`（不再静默清空）、`readString` 缓存键加入分隔符标志（修 .txt 编辑器换行丢失）、`copyFile` 后失效缓存；⑦`merge3` 双端新增嵌套对象改 firstSyncMerge 结构合并（不再丢远端整对象）、`unionArrays` 保留元素类型与标量侧（不再把对象压成字符串）；⑧404 判定去掉消息子串匹配（URL 含 404 的哈希不再被误判）；⑨`SyncChangeLog` 加 begun 守卫（异常路径不再重复提交上一轮日志）；⑩Sardine/OkHttp 客户端按凭据缓存复用（不再每轮新建连接池）；⑪备份恢复/异机配置采纳：`unZipFolder` 解压后删除外来 `.base/.tmp/.corrupt`、`adoptForeignDeviceConfigs` 采纳后同步写 base=采纳内容（不再把恢复配置误判为本地改动强推服务器）；⑫`JsonDB.get` 不再每次排序（保持用户顺序）、解析失败返回可变列表（修 add/remove 崩溃）；⑬书签键同毫秒碰撞时 t+1ms 挪位（不再互相覆盖）。
+
+**AI（配置与 KEY 的存取保持现状，只修功能性缺陷）**：①OpenAI 兼容分支仅对非 api.openai.com 端点发送 `chat_template_kwargs`/`enable_thinking`（官方 OpenAI 之前必 400）；②Anthropic 回复解析遍历 content 拼接 text 块（思考模式下不再"空回复"）；③OkHttpClient 按超时档缓存复用；④旧翻译面板关闭"保存翻译结果"时改用 `inMemory` 缓存（会话内仍命中，不再重复计费请求）；⑤`TranslationCache.flush` 与 `BilingualBuilder` 双语 epub 构建改临时文件+原子改名（截断缓存不再被永久信任，ensure 增加 ZipFile 可读校验）；⑥`BilingualSession` 的 attempts 改 ConcurrentHashMap、空段枚举判空、`suppressExitOnDestroy` 失败复位。
+
+**阅读引擎/UI**：①解码执行器 catch 移入任务级（一次异常不再白屏到重启）；`saveAnnotations` 回调放 finally（"正在保存…"对话框不再永久卡死）；`searchText` 整体 try/finally+判空+同步回收页面（搜索状态不再卡死）；`shutdownInner` 与 `getPageHolder` 同锁+判空（native 泄漏）；`nextTask`/`addAny` 以服务实例为锁（shutdown/restore 竞态不再双执行任务）；②退出"另存新文件"的整本拷贝移到后台执行器（修 ANR+流泄漏）；`onScrollYPercent` 强转优先级修复；`getScrollValue` 判空；③`MuPdfDocument.isHasChanges` 加 volatile、`getPageCountSafe` 缓存成功后才提交且键改 `w*31+h`（旋转不再取错页数）、保存后验证输出文件才清脏标记；④`AdvGuestureDetector.destroy()` 注销 EventBus 并在切换控制器时调用（修 Activity 视图树泄漏与幽灵事件）；⑤TTS：通知 PendingIntent 加 `FLAG_UPDATE_CURRENT`（回书不再停旧页）、封面失败也发完整控制通知、`START_STICKY` 重启不再常驻"请稍候"通知；⑥拒授"所有文件访问"不再触发删库重扫（先 `isExternalStorageManager()` 确认）；`navigateToTab` 先关悬浮页（抽屉导航失效修复）；FAB 取最近书目不再在主线程解析整本书；`SearchAllBooksWorker` 的 `List.of`（minSdk24 崩溃）改 singletonList、实验扫描 `JsonDB.set`→`add`（不再清空书库文件夹）；`BookCSS.load1` 存储未挂载时跳过过滤回写（SD 卡未挂载不再清掉书库文件夹配置）；`AlertDialogs` 取消不再双跑 onDismiss、文本编辑保存不再 trim 换行；`ClickUtils` 点击区整数除法精度修复；小组件 null action 判空。
+
+**过程说明**：`BilingualSession.java` 在编辑中被一次 PowerShell 编码操作损坏（GBK/UTF-8 混写），已通过字节级逆向还原+从 21:58 旧构建 APK 的 dex 字符串池提取原始中文提示词/正则逐一恢复（翻译提示词、【编号】解析正则、底部提示语均与原文一致），修复后全文件扫描无残留损坏字符。
+
+**验证**：三渠道 Release `BUILD SUCCESSFUL`；MI9（google arm64）与华为机（pro arm）安装启动正常、书库/统计完好、AI 配置测试连接"连接成功"；A机（12S）USB 掉线待重连后补装（pro arm64 包已备好）。**同步实测**（MI9 app-SyncLog + BENCH 日志）：新代码首轮收敛上传 429 本（历史各设备书签路径互相不同的一次性合法收敛）后，**后续两轮静默周期同步均为 synced=0**——旧算法每轮无条件 429 个 PUT 的风暴彻底消除；顺带把 `searchPathsHiddenJson`（隐藏书库文件夹记忆，设备相关路径）加入 CSS_DEVICE_FIELDS 保持本机，不再跨设备同步。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 在线阅读器四项体验升级：①鼠标滚轮/点击翻页 ②刷新保持阅读（IndexedDB 会话+位置恢复）③非内嵌字体 PDF 兼容模式 ④小数进度显示；用《白鹿原》真实三格式实测
 
 **背景**：用户以《白鹿原》(epub/pdf/mobi，X 盘真实藏书) 实测反馈：PDF 打开无文字、刷新退出阅读界面、页面偏暗。诊断：白鹿原.pdf 为 2009 年版本，**0 个内嵌字体**（BaseFont 为 GBK 十六进制名的宋体/华文行楷，Encoding=GBK-EUC-H），pdf.js 在 Chrome 内核下因 local() 系统字体限制无法绘制非内嵌中文字形（仅标点/西文可见）——Chrome 平台硬限制。

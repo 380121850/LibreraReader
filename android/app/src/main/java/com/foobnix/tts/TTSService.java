@@ -436,12 +436,17 @@ import java.util.List;
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        // a START_STICKY restart (process kill) delivers intent==null: going
+        // foreground FIRST used to pin the "please wait" placeholder
+        // notification forever, with no playback ever resuming
+        if (intent == null) {
+            stopSelf();
+            return START_STICKY;
+        }
+
         startMyForeground();
 
         LOG.d(TAG, "onStartCommand", intent);
-        if (intent == null) {
-            return START_STICKY;
-        }
 
         updateTimer();
         MediaButtonReceiver.handleIntent(mMediaSessionCompat, intent);

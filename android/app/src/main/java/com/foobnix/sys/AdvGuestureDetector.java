@@ -60,6 +60,21 @@ public class AdvGuestureDetector extends SimpleOnGestureListener implements IMul
         EventBus.getDefault().register(this);
     }
 
+    /**
+     * Release the greenrobot EventBus subscription (strong reference). A new
+     * detector is built on every controller switch / activity recreation;
+     * without the unregister each retired instance leaked its whole
+     * controller+activity view graph and kept receiving text-selection
+     * events for a destroyed reader.
+     */
+    public void destroy() {
+        try {
+            EventBus.getDefault().unregister(this);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
     public void updateBorders() {
         clickUtils.initMusician();
     }

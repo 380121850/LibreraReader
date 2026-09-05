@@ -89,7 +89,10 @@ public class AiTranslator {
             return;
         }
         boolean saveEnabled = AppState.get().aiSaveTranslation;
-        TranslationCache cache = saveEnabled ? new TranslationCache(book) : null;
+        // inMemory() also READS the on-disk cache (session hits) but never
+        // writes: with "save results" off the panel still reuses translations
+        // instead of re-asking the provider for every paragraph
+        TranslationCache cache = TranslationCache.inMemory(book);
 
         int total = dc.getPageCount();
         int current = dc.getCurentPageFirst1(); // 1-based

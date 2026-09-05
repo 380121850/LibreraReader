@@ -33,10 +33,16 @@ public class SyncChangeLog {
     /** Items of the run currently being collected. */
     private static final List<LinkedJSONObject> ITEMS = new ArrayList<LinkedJSONObject>();
 
+    /** True between begin() and the first commit(): without this guard an
+     * exception BEFORE begin() made the catch-path commit commit the
+     * PREVIOUS run's items again (duplicated log runs). */
+    private static volatile boolean begun = false;
+
     public static void begin() {
         synchronized (ITEMS) {
             ITEMS.clear();
         }
+        begun = true;
     }
 
     /** True when the current run recorded at least one config change. */
@@ -92,8 +98,10 @@ public class SyncChangeLog {
             run.put("s", summary == null ? "" : summary);
             final JSONArray arr = new JSONArray();
             synchronized (ITEMS) {
-                for (LinkedJSONObject it : ITEMS) {
-                    arr.put(it);
+                if (begun) {
+                    for (LinkedJSONObject it : ITEMS) {
+                        arr.put(it);
+                    }
                 }
             }
             run.put("items", arr);
@@ -106,6 +114,7 @@ public class SyncChangeLog {
             }
             root.put("runs", out);
             IO.writeObjSync(AppProfile.syncLog, root);
+            begun = false;
         } catch (Exception e) {
             LOG.e(e);
         }

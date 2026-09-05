@@ -68,7 +68,9 @@ public class RecentBooksWidget extends AppWidgetProvider {
         AppProfile.init(context);
 
         LOG.d("RecentBooksWidget", intent, intent.getData(), intent.getExtras());
-        if (intent.getAction().equals(ACTION_MY)) {
+        // a null-action broadcast (sticky/system redelivery) used to NPE here
+        final String action = intent == null ? null : intent.getAction();
+        if (ACTION_MY.equals(action)) {
 
             Class clazz = AppSP.get().readingMode == AppState.READING_MODE_BOOK ? HorizontalViewActivity.class : VerticalViewActivity.class;
 
@@ -85,7 +87,7 @@ public class RecentBooksWidget extends AppWidgetProvider {
 
         }
 
-        if (intent.getAction().equals("android.appwidget.action.APPWIDGET_UPDATE")) {
+        if ("android.appwidget.action.APPWIDGET_UPDATE".equals(action)) {
             int[] appWidgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, RecentBooksWidget.class));
             if (Build.VERSION.SDK_INT >= 16 && AppState.get().widgetType == AppState.WIDGET_GRID) {
                 AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(appWidgetIds, R.id.gridView1);

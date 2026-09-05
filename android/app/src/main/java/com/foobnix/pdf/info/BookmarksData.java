@@ -44,6 +44,13 @@ public class BookmarksData {
         }
         try {
             LinkedJSONObject obj = IO.readJsonObject(AppProfile.syncBookmarks);
+            // the key is the creation timestamp in ms: two bookmarks created
+            // in the same millisecond shared a key and the second silently
+            // replaced the first. Nudging t keeps the key numeric, so
+            // remove()/tombstones/sync keep working unchanged.
+            while (obj.has("" + bookmark.t)) {
+                bookmark.t += 1;
+            }
             obj.put("" + bookmark.t, Objects.toJSONObject(bookmark));
             IO.writeObjSync(AppProfile.syncBookmarks, obj);
         } catch (Exception e) {

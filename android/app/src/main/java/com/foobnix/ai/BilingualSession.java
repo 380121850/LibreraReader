@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -255,7 +256,15 @@ public class BilingualSession {
             @Override public void requestRestart() {
                 if (dc != null) {
                     suppressExitOnDestroy = true;
-                    dc.restartActivity();
+                    try {
+                        dc.restartActivity();
+                    } catch (Throwable t) {
+                        // the restart never reached onDestroy: without the
+                        // reset the next REAL exit would skip the bilingual
+                        // shutdown and leave a stale session behind
+                        suppressExitOnDestroy = false;
+                        LOG.e(t);
+                    }
                 }
             }
 
@@ -287,14 +296,24 @@ public class BilingualSession {
                 ((com.foobnix.pdf.search.activity.HorizontalViewActivity) activity).reloadBilingualInPlace();
             } else if (dc != null) {
                 suppressExitOnDestroy = true;
-                dc.restartActivitySilently(page0, anchorMd5);
+                try {
+                    dc.restartActivitySilently(page0, anchorMd5);
+                } catch (Throwable t) {
+                    suppressExitOnDestroy = false;
+                    throw t;
+                }
             }
         } catch (Throwable t) {
             LOG.e(t);
             try {
                 if (dc != null) {
                     suppressExitOnDestroy = true;
-                    dc.restartActivity();
+                    try {
+                        dc.restartActivity();
+                    } catch (Throwable t2) {
+                        suppressExitOnDestroy = false;
+                        throw t2;
+                    }
                 }
             } catch (Throwable t2) {
                 LOG.e(t2);
@@ -348,7 +367,7 @@ public class BilingualSession {
     // served by its own worker (stolen from in priority order when idle)
     private final ArrayDeque<String>[] lanes = new ArrayDeque[LANES];
     private final Object queueLock = new Object();
-    private final Map<String, Integer> attempts = new HashMap<String, Integer>();
+    private final Map<String, Integer> attempts = new ConcurrentHashMap<String, Integer>();
 
     private int lastPage0 = -1;
     private int lastPageCount = 0;
@@ -563,6 +582,11 @@ public class BilingualSession {
     private void recomputeWindow() {
         try {
             ensureParas();
+            if (paras == null) {
+                // legitimately no paragraph enumeration (empty base file):
+                // nothing to build a window for
+                return;
+            }
             int total = paras.size();
             if (total == 0 || lastPageCount <= 0 || lastPage0 < 0) {
                 return;
@@ -845,7 +869,7 @@ public class BilingualSession {
 
     /**
      * Split a numbered reply into {@code n} segments. Accepts the requested
-     * "【1】…" format and common variants ("1." / "1、" / "[1]" / "1)"). Each
+     * "【N】" format and common variants ("1." / "1、" / "[1]" / "1)"). Each
      * parsed segment must be non-empty, otherwise null is returned (the caller
      * falls back to per-paragraph translation).
      */

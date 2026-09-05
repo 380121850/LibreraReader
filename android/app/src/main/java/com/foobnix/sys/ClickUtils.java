@@ -17,16 +17,18 @@ public class ClickUtils {
         WIDHT_X = Dips.screenWidth();
         HEIGHT_Y = Dips.screenHeight();
 
-        border_side = Dips.screenWidth() / 100 * AppState.get().tapzoneSize;
-        border_top = Dips.screenHeight() / 100 * AppState.get().tapzoneSize;
+        // multiply FIRST: "width / 100 * size" loses ~8% of the tap zone to
+        // integer division (1080/100=10, size 15 → 150px instead of 162px)
+        border_side = Dips.screenWidth() * AppState.get().tapzoneSize / 100;
+        border_top = Dips.screenHeight() * AppState.get().tapzoneSize / 100;
     }
 
 
     public void initMusician() {
         WIDHT_X = Dips.screenWidth();
         HEIGHT_Y = Dips.screenHeight();
-        border_side = AppSP.get().readingMode == AppState.READING_MODE_MUSICIAN ? 0 : Dips.screenWidth() / 100 * AppState.get().tapzoneSize;
-        border_top = AppSP.get().readingMode == AppState.READING_MODE_MUSICIAN ? 0 : Dips.screenHeight() / 100 * AppState.get().tapzoneSize;
+        border_side = AppSP.get().readingMode == AppState.READING_MODE_MUSICIAN ? 0 : Dips.screenWidth() * AppState.get().tapzoneSize / 100;
+        border_top = AppSP.get().readingMode == AppState.READING_MODE_MUSICIAN ? 0 : Dips.screenHeight() * AppState.get().tapzoneSize / 100;
     }
 
     public boolean isClickCenter(float x, float y) {

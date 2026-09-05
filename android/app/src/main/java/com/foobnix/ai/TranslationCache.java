@@ -211,22 +211,45 @@ public class TranslationCache {
         }
     }
 
-    /** Write pending changes to disk (no-op in in-memory mode). */
+    /** Write pending changes to disk (no-op in in-memory mode). The whole
+     * JSONL is rewritten, so an interrupted direct write would truncate the
+     * cache — build a temp file first and rename it atomically. */
     public synchronized void flush() {
         if (ephemeral || !dirty) {
             return;
         }
+        File tmp = null;
         BufferedWriter out = null;
         try {
-            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            new File(file.getParent()).mkdirs();
+            tmp = new File(file.getParentFile(), file.getName() + ".tmp");
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), "UTF-8"));
             for (String line : lines.values()) {
                 out.write(line);
                 out.newLine();
             }
             out.flush();
+            out.close();
+            out = null;
+            if (!tmp.renameTo(file)) {
+                // fall back to an in-place rewrite (rename can fail if the
+                // target is held by a reader on some filesystems)
+                BufferedWriter direct = new BufferedWriter(
+                        new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+                for (String line : lines.values()) {
+                    direct.write(line);
+                    direct.newLine();
+                }
+                direct.flush();
+                direct.close();
+                tmp.delete();
+            }
             dirty = false;
         } catch (Exception e) {
             LOG.e(e);
+            if (tmp != null) {
+                tmp.delete();
+            }
         } finally {
             if (out != null) {
                 try {

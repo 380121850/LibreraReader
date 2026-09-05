@@ -145,6 +145,13 @@ public class ProfileStateIO {
      * fields…), OPDS server logins, the app/book passwords and the reader
      * button-layout cache. Written before export / sync, restored after.
      */
+    /** Root of app-Misc.json exactly as exportMisc wrote it this round (the
+     * round-start snapshot). importMisc compares against it so only fields
+     * the merge actually changed are applied back — a whole-object restore
+     * used to revert everything (reading stats, config edits) changed on this
+     * device while the network round was running. */
+    private static volatile String lastExportedMisc;
+
     public static void exportMisc(Context c) {
         try {
             if (AppProfile.syncMisc == null) {
@@ -156,6 +163,7 @@ public class ProfileStateIO {
             root.put(SEC_PASSWORD, snapshotPrefs(c, SEC_PASSWORD));
             root.put(SEC_POPUPS, snapshotPrefs(c, SEC_POPUPS));
             writeIfChanged(AppProfile.syncMisc, root.toString());
+            lastExportedMisc = root.toString();
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -171,27 +179,73 @@ public class ProfileStateIO {
             if (root.length() == 0) {
                 return;
             }
+            // snapshot of what THIS device exported at the start of the round;
+            // absent (e.g. a manual backup restore) → full apply as before
+            LinkedJSONObject exportRoot = lastExportedMisc == null
+                    ? new LinkedJSONObject() : new LinkedJSONObject(lastExportedMisc);
+
             LinkedJSONObject sp = root.optJSONObject(SEC_APPSP);
+            LinkedJSONObject spExp = exportRoot.optJSONObject(SEC_APPSP);
             if (sp != null && sp.length() > 0) {
-                // the AppSP snapshot carries the source device's identity:
-                // its storage root, profile and last-read book never migrate
-                final AppSP app = AppSP.get();
-                final String rootPath = app.rootPath1;
-                final String profile = app.currentProfile;
-                final String syncRoot = app.syncRootID;
-                final String lastBook = app.lastBookPath;
-                final int lastPage = app.lastBookPage;
-                com.foobnix.android.utils.Objects.loadFromJson(app, sp);
-                app.rootPath1 = rootPath;
-                app.currentProfile = profile;
-                app.syncRootID = syncRoot;
-                app.lastBookPath = lastBook;
-                app.lastBookPage = lastPage;
-                app.save();
+                // apply only the fields the merge actually changed this round
+                final LinkedJSONObject apply = changedFields(sp, spExp);
+                if (apply.length() > 0) {
+                    // the AppSP snapshot carries the source device's identity:
+                    // its storage root, profile and last-read book never migrate
+                    final AppSP app = AppSP.get();
+                    final String rootPath = app.rootPath1;
+                    final String profile = app.currentProfile;
+                    final String syncRoot = app.syncRootID;
+                    final String lastBook = app.lastBookPath;
+                    final int lastPage = app.lastBookPage;
+                    com.foobnix.android.utils.Objects.loadFromJson(app, apply);
+                    app.rootPath1 = rootPath;
+                    app.currentProfile = profile;
+                    app.syncRootID = syncRoot;
+                    app.lastBookPath = lastBook;
+                    app.lastBookPage = lastPage;
+                    app.save();
+                }
             }
-            restorePrefs(c, SEC_OPDS, root.optJSONObject(SEC_OPDS));
-            restorePrefs(c, SEC_PASSWORD, root.optJSONObject(SEC_PASSWORD));
-            restorePrefs(c, SEC_POPUPS, root.optJSONObject(SEC_POPUPS));
+            restorePrefsDiff(c, SEC_OPDS, root.optJSONObject(SEC_OPDS), exportRoot.optJSONObject(SEC_OPDS));
+            restorePrefsDiff(c, SEC_PASSWORD, root.optJSONObject(SEC_PASSWORD), exportRoot.optJSONObject(SEC_PASSWORD));
+            restorePrefsDiff(c, SEC_POPUPS, root.optJSONObject(SEC_POPUPS), exportRoot.optJSONObject(SEC_POPUPS));
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
+    /** Keys of {@code file} whose value differs from the round-start
+     * snapshot {@code exported} (i.e. the merge changed them). */
+    private static LinkedJSONObject changedFields(LinkedJSONObject file, LinkedJSONObject exported) {
+        final LinkedJSONObject out = new LinkedJSONObject();
+        try {
+            for (Iterator<String> it = file.keys(); it.hasNext();) {
+                final String k = it.next();
+                final Object fv = file.opt(k);
+                final Object ev = exported == null ? null : exported.opt(k);
+                if (exported == null || !String.valueOf(fv).equals(String.valueOf(ev))) {
+                    out.put(k, fv);
+                }
+            }
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+        return out;
+    }
+
+    /** restorePrefs, but only for keys the merge changed relative to the
+     * round-start snapshot (full apply when the snapshot is absent). */
+    private static void restorePrefsDiff(Context c, String prefsName, LinkedJSONObject data, LinkedJSONObject exported) {
+        try {
+            if (data == null || data.length() == 0) {
+                return;
+            }
+            if (exported == null || exported.length() == 0) {
+                restorePrefs(c, prefsName, data);
+                return;
+            }
+            restorePrefs(c, prefsName, changedFields(data, exported));
         } catch (Exception e) {
             LOG.e(e);
         }
@@ -607,7 +661,19 @@ public class ProfileStateIO {
                     }
                 }
                 if (best != null) {
-                    IO.copyFile(best, new File(deviceDir, name));
+                    final File target = new File(deviceDir, name);
+                    IO.copyFile(best, target);
+                    // keep the three-way base snapshot in sync: with the old
+                    // (own) base next to the adopted file, every personal
+                    // field looked "locally changed" and was force-published
+                    // over the server on the next sync — clobbering whatever
+                    // the other devices had converged on since
+                    try {
+                        final File base = new File(target.getParentFile(), target.getName() + ".base");
+                        IO.copyFile(target, base);
+                    } catch (Exception baseError) {
+                        LOG.e(baseError);
+                    }
                     LOG.d("ProfileStateIO", "adopted", name, "from", best.getParent());
                 }
             }

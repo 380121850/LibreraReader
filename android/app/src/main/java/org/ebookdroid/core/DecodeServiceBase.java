@@ -114,14 +114,21 @@ public class DecodeServiceBase implements DecodeService {
 
             @Override
             public void run() {
-                LOG.d("saveAnnotations Begin");
-                if (hasAnnotationChanges()) {
-                    codecDocument.saveAnnotations(path);
-                } else {
-                    LOG.d("NO Annotations for save!!!");
+                try {
+                    LOG.d("saveAnnotations Begin");
+                    if (hasAnnotationChanges()) {
+                        codecDocument.saveAnnotations(path);
+                    } else {
+                        LOG.d("NO Annotations for save!!!");
+                    }
+                    LOG.d("saveAnnotations DONE");
+                } catch (Throwable th) {
+                    // a failed native save must never strand the caller: the
+                    // response dismisses the uncancelable "Saving…" dialog
+                    LOG.e(th);
+                } finally {
+                    response.run();
                 }
-                LOG.d("saveAnnotations DONE");
-                response.run();
             }
         });
     }
@@ -203,70 +210,85 @@ public class DecodeServiceBase implements DecodeService {
         Thread t = new Thread("@T searchText") {
             @Override
             public void run() {
-                PageSearcher pageSearcher = new PageSearcher();
-                pageSearcher.setTextForSearch(text);
-                pageSearcher.setListener(new PageSearcher.OnWordSearched() {
-                    @Override
-                    public void onSearch(TextWord word, Object data) {
-                        if (!(data instanceof Page)) return;
-                        Page page = (Page) data;
-                        if (page.selectedText == null || page.selectedText.size() <= 0) {
-                            response.onResultRecive(page.index.docIndex);
-                            LOG.d("Find on page", page.index.docIndex, text);
+                // failure-safe: any exception (e.g. the document recycled mid
+                // search → getPage() returns null) must still clear the global
+                // search flag and finish the UI, or the search dialog hangs
+                // forever and the next search click is swallowed
+                try {
+                    PageSearcher pageSearcher = new PageSearcher();
+                    pageSearcher.setTextForSearch(text);
+                    pageSearcher.setListener(new PageSearcher.OnWordSearched() {
+                        @Override
+                        public void onSearch(TextWord word, Object data) {
+                            if (!(data instanceof Page)) return;
+                            Page page = (Page) data;
+                            if (page.selectedText == null || page.selectedText.size() <= 0) {
+                                response.onResultRecive(page.index.docIndex);
+                                LOG.d("Find on page", page.index.docIndex, text);
+                            }
+                            if (page.selectedText == null) page.selectedText = new ArrayList<>();
+                            if (!page.selectedText.contains(word)) page.selectedText.add(word);
                         }
-                        if (page.selectedText == null) page.selectedText = new ArrayList<>();
-                        if (!page.selectedText.contains(word)) page.selectedText.add(word);
-                    }
-                });
-                for (Page page : pages) {
+                    });
+                    for (Page page : pages) {
 
 
-                    if (!TempHolder.isSeaching) {
-                        response.onResultRecive(Integer.MAX_VALUE);
-                        finish.run();
-                        return;
-                    }
-                    if (page.index.docIndex < firstPage) {
-                        continue;
-                    }
-                    if (page.index.docIndex > lastPage) {
-                        continue;
-                    }
+                        if (!TempHolder.isSeaching) {
+                            response.onResultRecive(Integer.MAX_VALUE);
+                            finish.run();
+                            return;
+                        }
+                        if (page.index.docIndex < firstPage) {
+                            continue;
+                        }
+                        if (page.index.docIndex > lastPage) {
+                            continue;
+                        }
 
-                    if (page.index.docIndex > 1) {
-                        response.onResultRecive(page.index.docIndex * -1);
-                    }
+                        if (page.index.docIndex > 1) {
+                            response.onResultRecive(page.index.docIndex * -1);
+                        }
 
-                    if (isRecycled.get()) {
-                        TempHolder.isSeaching = false;
-                        return;
-                    }
-                    if (page.texts == null) {
-                        final CodecPage page2 = codecDocument.getPage(page.index.docIndex);
-                        page.texts = page2.getText();
-                        if (!page2.isRecycled()) {
-                            executor.addAny(new Task(0) {
-
-                                @Override
-                                public void run() {
+                        if (isRecycled.get()) {
+                            TempHolder.isSeaching = false;
+                            return;
+                        }
+                        if (page.texts == null) {
+                            final CodecPage page2 = codecDocument == null
+                                    ? null : codecDocument.getPage(page.index.docIndex);
+                            if (page2 != null) {
+                                page.texts = page2.getText();
+                                // the caller is already a background thread:
+                                // recycle synchronously instead of queueing a
+                                // task that a dead/shut-down executor never
+                                // runs (native handle leak)
+                                if (!page2.isRecycled()) {
                                     page2.recycle();
                                 }
-                            });
+                            }
                         }
-                    }
 
-                    page.selectedText = new ArrayList<TextWord>();
-                    List<TextWord> findText = page.findText(text);
-                    if (findText != null && !findText.isEmpty()) {
-                        page.selectedText = findText;
-                        response.onResultRecive(page.index.docIndex);
-                        LOG.d("Find on page1", page.index.docIndex, text);
+                        page.selectedText = new ArrayList<TextWord>();
+                        List<TextWord> findText = page.findText(text);
+                        if (findText != null && !findText.isEmpty()) {
+                            page.selectedText = findText;
+                            response.onResultRecive(page.index.docIndex);
+                            LOG.d("Find on page1", page.index.docIndex, text);
+                        }
+                        pageSearcher.searchAtPage(page);
                     }
-                    pageSearcher.searchAtPage(page);
+                    response.onResultRecive(-1);
+                    finish.run();
+                    TempHolder.isSeaching = false;
+                } catch (Throwable th) {
+                    LOG.e(th);
+                    TempHolder.isSeaching = false;
+                    try {
+                        response.onResultRecive(-1);
+                        finish.run();
+                    } catch (Throwable ignored) {
+                    }
                 }
-                response.onResultRecive(-1);
-                finish.run();
-                TempHolder.isSeaching = false;
             }
 
             ;
@@ -668,52 +690,69 @@ public class DecodeServiceBase implements DecodeService {
                     final Runnable r = nextTask();
                     if (r != null) {
                         //BitmapManager.release();
-                        r.run();
+                        // per-task guard: one throwing task (typically an
+                        // annotation op racing a document recycle) used to
+                        // kill the whole loop → blank pages until the reader
+                        // was reopened
+                        try {
+                            r.run();
+                        } catch (final Throwable th) {
+                            LOG.e(th);
+                        }
                     }
                 }
                 LOG.d("Executor stopped");
             } catch (final Throwable th) {
-                th.printStackTrace();
+                LOG.e(th);
             } finally {
                 //BitmapManager.release();
             }
         }
 
         Runnable nextTask() {
-            // TempHolder.lock.lock();
-            try {
+            // synchronized on the executor: shutdown() flips run=false while
+            // the old thread may still be picking a task, and restore() hands
+            // the SAME tasks list to a fresh loop — without this monitor both
+            // consumers could select the same index and run one task twice
+            // (duplicated annotations in the worst case)
+            synchronized (DecodeServiceBase.this) {
+                try {
 
-                if (tasks != null && !tasks.isEmpty()) {
-                    final TaskComparator comp = new TaskComparator(viewState.get());
-                    Task candidate = null;
-                    int cindex = 0;
+                    if (tasks != null && !tasks.isEmpty()) {
+                        final TaskComparator comp = new TaskComparator(viewState.get());
+                        Task candidate = null;
+                        int cindex = 0;
 
-                    int index = 0;
-                    while (index < tasks.size() && candidate == null) {
-                        candidate = tasks.get(index);
-                        cindex = index;
-                        index++;
-                    }
-                    if (candidate == null) {
-                        tasks.clear();
-                    } else {
-                        while (index < tasks.size()) {
-                            final Task next = tasks.get(index);
-                            if (next != null && comp.compare(next, candidate) < 0) {
-                                candidate = next;
-                                cindex = index;
-                            }
+                        int index = 0;
+                        while (index < tasks.size() && candidate == null) {
+                            candidate = tasks.get(index);
+                            cindex = index;
                             index++;
                         }
-                        tasks.set(cindex, null);
+                        if (candidate == null) {
+                            tasks.clear();
+                        } else {
+                            while (index < tasks.size()) {
+                                final Task next = tasks.get(index);
+                                if (next != null && comp.compare(next, candidate) < 0) {
+                                    candidate = next;
+                                    cindex = index;
+                                }
+                                index++;
+                            }
+                            tasks.set(cindex, null);
+                        }
+                        if (candidate != null) {
+                            return candidate;
+                        }
                     }
-                    return candidate;
+                } catch (Exception e) {
+                    LOG.e(e);
                 }
-            } catch (Exception e) {
-                LOG.e(e);
-            } finally {
-                // TempHolder.lock.unlock();
             }
+            // idle: wait OUTSIDE the executor monitor — the monitor is also
+            // taken by UI-thread service methods and must never be held while
+            // this thread sleeps
             synchronized (run) {
                 try {
                     run.wait(1000);
@@ -728,16 +767,18 @@ public class DecodeServiceBase implements DecodeService {
 
             // TempHolder.lock.lock();
             try {
-                boolean added = false;
-                for (int index = 0; index < tasks.size(); index++) {
-                    if (null == tasks.get(index)) {
-                        tasks.set(index, task);
-                        added = true;
-                        break;
+                synchronized (DecodeServiceBase.this) {
+                    boolean added = false;
+                    for (int index = 0; index < tasks.size(); index++) {
+                        if (null == tasks.get(index)) {
+                            tasks.set(index, task);
+                            added = true;
+                            break;
+                        }
                     }
-                }
-                if (!added) {
-                    tasks.add(task);
+                    if (!added) {
+                        tasks.add(task);
+                    }
                 }
 
                 synchronized (run) {
@@ -849,13 +890,24 @@ public class DecodeServiceBase implements DecodeService {
             LOG.d("Begin shutdown 1");
             run.set(false);
 
-            for (final CodecPageHolder ref : getPages().values()) {
-                ref.recycle(-3, true);
+            // same monitor as nextTask/getPageHolder: without it a concurrent
+            // decode mutating the pages map could throw a CME here, skipping
+            // the native recycle below (per-session native memory leak)
+            synchronized (DecodeServiceBase.this) {
+                for (final CodecPageHolder ref : getPages().values()) {
+                    if (ref != null) {
+                        try {
+                            ref.recycle(-3, true);
+                        } catch (Throwable th) {
+                            LOG.e(th);
+                        }
+                    }
+                }
+
+                LOG.d("Begin shutdown 2");
+
+                getPages().clear();
             }
-
-            LOG.d("Begin shutdown 2");
-
-            getPages().clear();
 
             LOG.d("Begin shutdown 3");
             if (getCodecDocument() != null) {

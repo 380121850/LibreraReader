@@ -187,6 +187,61 @@ public class SharedBooks {
                 IO.writeObjSync(AppProfile.syncDeletedBooks, new LinkedJSONObject());
             }
         }
+
+        /**
+         * Drop tombstone entries (per book and per bookmark key) older than
+         * the given age. A deletion marker has no protective power after its
+         * sync converged; keeping it forever made a later, unrelated book
+         * with the same file name inherit the old deletion (its server info
+         * was suppressed or even removed on the next sync).
+         */
+        public static void expireOlderThan(long maxAgeMs) {
+            try {
+                if (AppProfile.syncDeletedBooks == null || maxAgeMs <= 0) {
+                    return;
+                }
+                final long cutoff = System.currentTimeMillis() - maxAgeMs;
+                LinkedJSONObject root = IO.readJsonObject(AppProfile.syncDeletedBooks);
+                boolean changed = false;
+                for (Iterator<String> it = root.keys(); it.hasNext();) {
+                    final String name = it.next();
+                    final LinkedJSONObject marks = root.optJSONObject(name);
+                    if (marks == null) {
+                        continue;
+                    }
+                    if (marks.optLong("p", 0) > 0 && marks.optLong("p", 0) < cutoff) {
+                        marks.remove("p");
+                        changed = true;
+                    }
+                    if (marks.optLong("b", 0) > 0 && marks.optLong("b", 0) < cutoff) {
+                        marks.remove("b");
+                        changed = true;
+                    }
+                    final LinkedJSONObject keys = marks.optJSONObject("keys");
+                    if (keys != null) {
+                        for (Iterator<String> kt = keys.keys(); kt.hasNext();) {
+                            final String k = kt.next();
+                            if (keys.optLong(k, 0) < cutoff) {
+                                kt.remove();
+                                changed = true;
+                            }
+                        }
+                        if (keys.length() == 0) {
+                            marks.remove("keys");
+                        }
+                    }
+                    if (marks.length() == 0) {
+                        it.remove();
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    IO.writeObjSync(AppProfile.syncDeletedBooks, root);
+                }
+            } catch (Exception e) {
+                LOG.e(e);
+            }
+        }
     }
 
     public static AppBook load(String fileName) {

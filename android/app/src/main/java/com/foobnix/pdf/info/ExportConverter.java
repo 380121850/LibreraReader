@@ -223,7 +223,28 @@ public class ExportConverter {
     public static void unZipFolder(File input, File output) throws ZipException {
         ZipFile zipFile = new ZipFile(input);
         zipFile.extractAll(output.getPath());
+        // a restored backup must not carry its (foreign) base snapshots: the
+        // three-way merge compares against them and would treat the restored
+        // config as "locally changed", force-publishing it over the server
+        // state the other devices converged on since the backup was made
+        deleteTempFiles(output);
         LOG.d("UnZipFolder", input, output);
+    }
+
+    /** Recursive cleanup of sync-internal artifacts (.base/.tmp/.corrupt). */
+    private static void deleteTempFiles(File dir) {
+        final File[] files = dir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File f : files) {
+            if (f.isDirectory()) {
+                deleteTempFiles(f);
+            } else if (f.getName().endsWith(".base") || f.getName().endsWith(".tmp")
+                    || f.getName().endsWith(".corrupt")) {
+                f.delete();
+            }
+        }
     }
 
 

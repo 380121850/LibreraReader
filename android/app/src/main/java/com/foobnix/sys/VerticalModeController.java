@@ -26,6 +26,7 @@ import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
 import com.foobnix.pdf.info.ExtUtils;
+import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.PageUrl;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.model.AnnotationType;
@@ -112,7 +113,9 @@ public class VerticalModeController extends DocumentController {
     @Override
     public void onScrollYPercent(float value) {
         if (true) {
-            int page = (int) value * getPageCount();
+            // cast the PRODUCT, not the operand: "(int) value * count" always
+            // evaluated to 0 for any value < 1.0
+            int page = (int) (value * getPageCount());
             ctr.getDocumentController().goToPage(page);
             return;
         }
@@ -631,11 +634,11 @@ public class VerticalModeController extends DocumentController {
         int value = ctr.getDocumentController().getView().getHeight() - Dips.dpToPx(4);
 
         View titleBar = activity.findViewById(R.id.titleBar);
-        if (titleBar.getVisibility() == View.VISIBLE) {
+        if (titleBar != null && titleBar.getVisibility() == View.VISIBLE) {
             value = value - titleBar.getHeight();
         }
         View progress = activity.findViewById(R.id.progressDraw);
-        if (progress.getVisibility() == View.VISIBLE) {
+        if (progress != null && progress.getVisibility() == View.VISIBLE) {
             value = value - progress.getHeight();
         }
 
@@ -801,15 +804,56 @@ public class VerticalModeController extends DocumentController {
                     public void onClick(DialogInterface dialog, int id) {
                         if (!path.toString().equals(getCurrentBook().getAbsolutePath())) {
                             LOG.d("Save TO new file", path.toString());
-                            File newBook = new File(path.toString());
+                            final File newBook = new File(path.toString());
                             newBook.delete();
-                            try {
-                                copy(getCurrentBook(), newBook);
+                            // copying a potentially huge book on the UI
+                            // thread ANRs; run it on the shared executor and
+                            // save only after the copy finished
+                            final ProgressDialog copyProgress = MyProgressDialog.show(getActivity(),
+                                    getActivity().getString(R.string.saving_));
+                            copyProgress.setCancelable(false);
+                            AppsConfig.executorServiceSingle.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    boolean ok = true;
+                                    try {
+                                        com.foobnix.android.utils.IO.copyFile(getCurrentBook(), newBook);
+                                    } catch (Throwable e) {
+                                        ok = false;
+                                        LOG.e(e);
+                                    }
+                                    final boolean copyOk = ok;
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            copyProgress.dismiss();
+                                            if (!copyOk) {
+                                                Toast.makeText(activity,
+                                                        "Copy failed: " + newBook.getName(),
+                                                        Toast.LENGTH_SHORT).show();
+                                            }
+                                            if (ctr == null || ctr.getDecodeService() == null) {
+                                                return;
+                                            }
+                                            final ProgressDialog progress = MyProgressDialog.show(getActivity(),
+                                                    getActivity().getString(R.string.saving_));
+                                            progress.setCancelable(false);
+                                            progress.show();
+                                            ctr.getDecodeService().saveAnnotations(path.toString(), new Runnable() {
 
-                            } catch (IOException e) {
-                                Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-
+                                                @Override
+                                                public void run() {
+                                                    LOG.d("saveAnnotations return 1");
+                                                    progress.dismiss();
+                                                    LOG.d("saveAnnotations return 2");
+                                                    ctr.closeActivity(null);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                            return;
                         }
                         final ProgressDialog progress = MyProgressDialog.show(getActivity(), getActivity().getString(R.string.saving_));
                         progress.setCancelable(false);

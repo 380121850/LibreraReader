@@ -103,12 +103,28 @@ public class AiClient {
      * GET /models, Gemini GET /models). Returns the model ids, or null when
      * the request failed (check {@link #lastError}).
      */
+    /** Shared clients: the translation lanes issue many requests and a fresh
+     * OkHttpClient per call defeats connection pooling / keep-alive. */
+    private static final java.util.concurrent.ConcurrentHashMap<String, OkHttpClient> CLIENTS =
+            new java.util.concurrent.ConcurrentHashMap<String, OkHttpClient>();
+
+    private static OkHttpClient sharedClient(boolean longRead) {
+        final String key = longRead ? "long" : "short";
+        OkHttpClient c = CLIENTS.get(key);
+        if (c == null) {
+            c = new OkHttpClient.Builder()
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(longRead ? 120 : 30, TimeUnit.SECONDS)
+                    .build();
+            CLIENTS.put(key, c);
+        }
+        return c;
+    }
+
     public static java.util.List<String> listModels(String protocol, String baseUrl, String apiKey) {
         lastError = "";
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = sharedClient(false);
         String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         try {
             Request.Builder builder = new Request.Builder().url(base + "/models");
@@ -171,11 +187,7 @@ public class AiClient {
             String model, String userText, int maxTokens, boolean thinking) {
         lastError = "";
         TestResult res = new TestResult();
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(120, TimeUnit.SECONDS)
-                .build();
+        OkHttpClient client = sharedClient(true);
         String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         try {
             Request request;
@@ -223,7 +235,10 @@ public class AiClient {
                         .build();
             } else {
                 // OpenAI-compatible: OpenAI / DeepSeek / gateways / Qwen3 on
-                // llama.cpp & vLLM — both flags cover the common servers
+                // llama.cpp & vLLM. The thinking flags are llama.cpp/vLLM
+                // extensions — the official OpenAI API rejects unknown
+                // top-level arguments with HTTP 400, so they are only sent
+                // to non-OpenAI endpoints.
                 LinkedJSONObject body = new LinkedJSONObject();
                 body.put("model", model);
                 body.put("max_tokens", maxTokens);
@@ -231,9 +246,11 @@ public class AiClient {
                 JSONArray messages = new JSONArray();
                 messages.put(new LinkedJSONObject().put("role", "user").put("content", userText));
                 body.put("messages", messages);
-                body.put("chat_template_kwargs",
-                        new LinkedJSONObject().put("enable_thinking", thinking));
-                body.put("enable_thinking", thinking);
+                if (!base.contains("api.openai.com")) {
+                    body.put("chat_template_kwargs",
+                            new LinkedJSONObject().put("enable_thinking", thinking));
+                    body.put("enable_thinking", thinking);
+                }
                 request = new Request.Builder()
                         .url(base + "/chat/completions")
                         .header("Authorization", "Bearer " + apiKey)
@@ -295,7 +312,17 @@ public class AiClient {
                         .getJSONObject(0).optString("text");
             }
             if (PROTOCOL_ANTHROPIC.equals(protocol)) {
-                return json.getJSONArray("content").getJSONObject(0).optString("text");
+                // extended thinking puts a {"type":"thinking"} block FIRST:
+                // concatenate the actual text blocks instead of reading [0]
+                final JSONArray content = json.getJSONArray("content");
+                final StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < content.length(); i++) {
+                    final LinkedJSONObject block = content.getJSONObject(i);
+                    if ("text".equals(block.optString("type"))) {
+                        sb.append(block.optString("text"));
+                    }
+                }
+                return sb.toString();
             }
             LinkedJSONObject message = json.getJSONArray("choices").getJSONObject(0)
                     .getJSONObject("message");

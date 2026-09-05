@@ -408,6 +408,11 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                 final IViewController newDc = DocumentViewMode.VERTICALL_SCROLL.create(this);
                 if (newDc != null) {
                     final IViewController oldDc = ctrl.getAndSet(newDc);
+                    if (oldDc instanceof org.ebookdroid.core.AbstractViewController) {
+                        // unsubscribe the retired controller's EventBus
+                        // listener (leak + ghost text-selection events)
+                        ((org.ebookdroid.core.AbstractViewController) oldDc).destroyGestures();
+                    }
                     getZoomModel().removeListener(oldDc);
                     getZoomModel().addListener(newDc);
                     return ctrl.get();

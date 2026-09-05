@@ -90,8 +90,25 @@ public abstract class AbstractViewController extends AbstractComponentController
         return detectors;
     }
 
+    /** The AdvGuestureDetector built in initGestureDetectors subscribes to
+     * the EventBus; called when this controller is retired so the retired
+     * instance stops receiving events and stops leaking its activity graph. */
+    public void destroyGestures() {
+        if (detectors != null) {
+            detectors.clear();
+            detectors = null;
+        }
+        if (guestureDetector != null) {
+            guestureDetector.destroy();
+            guestureDetector = null;
+        }
+    }
+
+    private AdvGuestureDetector guestureDetector;
+
     protected List<IGestureDetector> initGestureDetectors(final List<IGestureDetector> list) {
         final AdvGuestureDetector listener = new AdvGuestureDetector(this, base.getListener());
+        guestureDetector = listener;
         list.add(listener.innerDetector);
         list.add(new MultiTouchGestureDetector(listener));
         list.add(new DefaultGestureDetector(base.getContext(), listener));

@@ -157,20 +157,28 @@ public class MuPdfDocument extends AbstractCodecDocument {
 
         LOG.d("getPageCountSafe w h size", w, h, size);
 
-        if (handle == cacheHandle && size == cacheSize && w + h == cacheWH) {
+        // key on w and h separately: w+h collides for portrait/landscape
+        // (1080+1920 == 1920+1080) and served a stale page count after a
+        // device rotation for reflowable formats
+        final int whKey = w * 31 + h;
+        if (handle == cacheHandle && size == cacheSize && whKey == cacheWH) {
             LOG.d("getPageCount from cache", cacheCount);
             return cacheCount;
         }
         TempHolder.lock.lock();
         try {
-            cacheHandle = handle;
-            cacheSize = size;
-            cacheWH = w + h;
-            if(isRecycled()){
-                LOG.d("getPageCount","getPageCount isRecycled");
+            if (isRecycled()) {
+                LOG.d("getPageCount", "getPageCount isRecycled");
                 return 0;
             }
-            cacheCount = getPageCount(handle, w, h, size);
+            final int count = getPageCount(handle, w, h, size);
+            // commit the cache only after a successful native call: a throw
+            // used to leave the PREVIOUS document's count cached under the
+            // new key
+            cacheHandle = handle;
+            cacheSize = size;
+            cacheWH = whKey;
+            cacheCount = count;
             LOG.d("getPageCount put to  cache", cacheCount);
             return cacheCount;
         } catch (Exception e) {
@@ -384,7 +392,7 @@ public class MuPdfDocument extends AbstractCodecDocument {
      * Set by the mutating wrappers (setMeta, deleteAnnotation and the page
      * annotation additions), cleared after a successful save.
      */
-    boolean isHasChanges = false;
+    volatile boolean isHasChanges = false;
 
     public void markDirty() {
         isHasChanges = true;
@@ -399,7 +407,12 @@ public class MuPdfDocument extends AbstractCodecDocument {
         TempHolder.lock.lock();
         try {
             saveInternal(documentHandle, path);
-            isHasChanges = false;
+            // only trust the save when the output really appeared: a native
+            // save failing silently must not leave the book marked clean
+            // (the edits would be lost without any prompt)
+            if (new File(path).isFile() && new File(path).length() > 0) {
+                isHasChanges = false;
+            }
             LOG.d("Save Annotations saveInternal 2");
         } finally {
             TempHolder.lock.unlock();

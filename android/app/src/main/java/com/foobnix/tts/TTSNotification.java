@@ -111,7 +111,11 @@ public class TTSNotification {
                 intent.putExtra("page", page - 1);
             }
 
-            PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+            // FLAG_UPDATE_CURRENT: without it getActivity() hands back the
+            // PendingIntent created for the FIRST notification of this book
+            // and the fresh "page" extra is silently dropped
+            PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             PendingIntent playPause = PendingIntent.getService(context, 0, new Intent(TTS_PLAY_PAUSE, null, context, TTSService.class), PendingIntent.FLAG_IMMUTABLE);
             PendingIntent pause = PendingIntent.getService(context, 0, new Intent(TTS_PAUSE, null, context, TTSService.class), PendingIntent.FLAG_IMMUTABLE);
@@ -199,27 +203,20 @@ public class TTSNotification {
                 public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                     remoteViews.setImageViewBitmap(R.id.ttsIcon, resource);
                     remoteViewsSmall.setImageViewBitmap(R.id.ttsIcon, resource);
-
-                    builder.setContentIntent(contentIntent) //
-                            .setSmallIcon(R.drawable.glyphicons_smileys_100_headphones) //
-                            .setColor(color)
-                            .setOngoing(true)//
-                            .setPriority(NotificationCompat.PRIORITY_HIGH) //
-                            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)//
-                            .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
-                            .setSilent(true)
-                            .setCustomBigContentView(remoteViews) ///
-                            .setCustomContentView(remoteViewsSmall); ///
-                    Notification n = builder.build(); //
-
-                    nm.notify(NOT_ID, n);
-
-
+                    postNotification(builder, contentIntent, remoteViews, remoteViewsSmall, color);
                 }
 
                 @Override
                 public void onLoadCleared(@Nullable Drawable placeholder) {
+                    postNotification(builder, contentIntent, remoteViews, remoteViewsSmall, color);
+                }
 
+                @Override
+                public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                    // the media controls lived ONLY in the success callback:
+                    // a failed cover decode left the bare "please wait"
+                    // notification forever, with no working play/pause/stop
+                    postNotification(builder, contentIntent, remoteViews, remoteViewsSmall, color);
                 }
             });
 
@@ -233,6 +230,31 @@ public class TTSNotification {
             LOG.e(e);
         }
 
+    }
+
+    /** Build and post the media notification (shared by the cover-success and
+     * cover-failure paths). */
+    private static void postNotification(NotificationCompat.Builder builder,
+            PendingIntent contentIntent, RemoteViews remoteViews,
+            RemoteViews remoteViewsSmall, int color) {
+        try {
+            builder.setContentIntent(contentIntent) //
+                    .setSmallIcon(R.drawable.glyphicons_smileys_100_headphones) //
+                    .setColor(color)
+                    .setOngoing(true)//
+                    .setPriority(NotificationCompat.PRIORITY_HIGH) //
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)//
+                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
+                    .setSilent(true)
+                    .setCustomBigContentView(remoteViews) ///
+                    .setCustomContentView(remoteViewsSmall); ///
+            Notification n = builder.build(); //
+
+            NotificationManager nm = (NotificationManager) LibreraApp.context.getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.notify(NOT_ID, n);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
     }
 
     public static void hideNotification() {

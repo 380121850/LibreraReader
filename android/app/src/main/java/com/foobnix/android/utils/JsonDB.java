@@ -7,7 +7,6 @@ import com.foobnix.model.MyPath;
 import org.json.JSONArray;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class JsonDB {
@@ -60,12 +59,17 @@ public class JsonDB {
             for (int i = 0; i < array.length(); i++) {
                 res.add(array.getString(i));
             }
-            Collections.sort(res);
+            // keep the stored order: the list is persisted verbatim on every
+            // add/remove, so re-sorting here silently reshuffled the user's
+            // 书库文件夹 order on each round-trip
             return res;
         } catch (Exception e) {
             LOG.e(e);
 
         }
-        return Collections.emptyList();
+        // must be mutable: add()/remove() call list.add()/remove() on the
+        // result and crashed with UnsupportedOperationException on the
+        // previous immutable emptyList() when the stored JSON was corrupt
+        return new ArrayList<>();
     }
 }

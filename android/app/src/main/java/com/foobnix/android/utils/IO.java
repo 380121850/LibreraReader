@@ -16,25 +16,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.HashMap;
+import java.nio.charset.Charset;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IO {
 
-    static HashMap<Integer, Object> locks = new HashMap<>();
+    // must be thread-safe: getLock() is called from the UI thread, the sync
+    // worker and TTS/binder threads concurrently; a plain HashMap could hand
+    // out different monitors for the same file and silently break exclusion
+    static final ConcurrentHashMap<Integer, Object> locks = new ConcurrentHashMap<Integer, Object>();
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     public static Object getLock(File file) {
-        Object l = locks.get(file.hashCode());
-        if (l == null) {
-            l = new Object();
-            locks.put(file.hashCode(), l);
-        } else {
-            LOG.d("mylock", file.getPath(), l);
-        }
-        return l;
+        return locks.computeIfAbsent(file.hashCode(), k -> new Object());
     }
 
 
@@ -84,6 +82,17 @@ public class IO {
         try {
             return new LinkedJSONObject(s);
         } catch (JSONException e) {
+            // corrupted content (e.g. a write interrupted by process death):
+            // keep the broken text for diagnosis instead of letting the next
+            // save silently overwrite it — returning an empty object here is
+            // what turns one truncated file into full data loss downstream
+            LOG.e(e, "corrupt JSON in " + file.getPath());
+            try {
+                final File bad = new File(file.getParentFile(), file.getName() + ".corrupt");
+                writeString(bad, s);
+            } catch (Exception ex) {
+                LOG.e(ex);
+            }
             return new LinkedJSONObject();
         }
 
@@ -97,6 +106,13 @@ public class IO {
      * read the other's (favorite) content and wrote it back, destroying data.
      */
     private static volatile String[] cachePair = new String[]{null, null};
+
+    private static void invalidateCache(String path) {
+        final String[] cached = cachePair;
+        if (path.equals(cached[0])) {
+            cachePair = new String[]{null, null};
+        }
+    }
 
     public static String readString(File file) {
         return readString(file, false);
@@ -115,7 +131,10 @@ public class IO {
 
 
     public static String readString(File file, boolean withSeparator) {
-        final String path = file.getPath();
+        // the flag changes the returned content, so it must be part of the
+        // cache key — otherwise a plain read poisons the text editor (all
+        // lines joined) and the editor read poisons plain consumers
+        final String path = file.getPath() + (withSeparator ? "#sep" : "");
         final String[] cached = cachePair;
         if (path.equals(cached[0])) {
             LOG.d("lib-IO", "read cache", file);
@@ -131,7 +150,7 @@ public class IO {
                     LOG.d("lib-IO", "read file", file);
                     StringBuilder builder = new StringBuilder();
                     String aux = "";
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF8));
                     String separator = System.getProperty("line.separator");
 
                     while ((aux = reader.readLine()) != null) {
@@ -156,6 +175,8 @@ public class IO {
 
         synchronized (getLock(file)) {
 
+            OutputStream out = null;
+            File tmp = null;
             try {
                 if (string == null) {
                     string = "";
@@ -163,16 +184,45 @@ public class IO {
                 LOG.d("lib-IO", "write file", file);
                 new File(file.getParent()).mkdirs();
 
-                OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-                out.write(string.getBytes());
+                // atomic replace: a crash or power loss mid-write must never
+                // leave a truncated config/progress file behind (a truncated
+                // JSON reads back as an empty object → full data loss)
+                tmp = new File(file.getParentFile(), file.getName() + ".tmp");
+                out = new BufferedOutputStream(new FileOutputStream(tmp));
+                out.write(string.getBytes(UTF8));
                 out.flush();
                 out.close();
+                out = null;
 
-                cachePair = new String[]{file.getPath(), string};
+                if (tmp.renameTo(file)) {
+                    cachePair = new String[]{file.getPath(), string};
+                } else {
+                    // same-volume rename can only fail if the target cannot be
+                    // replaced; fall back to an in-place overwrite
+                    LOG.e(new IOException("rename failed, fallback write " + file.getPath()));
+                    out = new BufferedOutputStream(new FileOutputStream(file));
+                    out.write(string.getBytes(UTF8));
+                    out.flush();
+                    out.close();
+                    out = null;
+                    tmp.delete();
+                    cachePair = new String[]{file.getPath(), string};
+                }
 
             } catch (Exception e) {
                 LOG.e(e);
+                if (tmp != null) {
+                    tmp.delete();
+                }
                 return false;
+            } finally {
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        LOG.e(e);
+                    }
+                }
             }
             return true;
         }
@@ -187,6 +237,7 @@ public class IO {
 
             IOUtils.copyClose(input, output);
 
+            invalidateCache(to.getPath());
             LOG.d("Copy file form to", from, to);
         } catch (IOException e) {
             LOG.e(e);
@@ -204,6 +255,7 @@ public class IO {
 
             IOUtils.copyClose(input, output);
 
+            invalidateCache(to.getPath());
             LOG.d("Copy file form to", from, to);
         } catch (IOException e) {
             LOG.e(e);

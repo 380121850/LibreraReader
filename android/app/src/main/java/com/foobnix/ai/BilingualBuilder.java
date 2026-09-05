@@ -116,18 +116,52 @@ public class BilingualBuilder {
             return null;
         }
         File out = targetFile(base, done);
-        if (out.isFile() && out.length() > 0) {
+        if (out.isFile() && out.length() > 0 && isReadableZip(out)) {
             LOG.d("BilingualBuilder", "cached bilingual", out.getPath());
             return out;
         }
         try {
-            build(base, done, out);
+            // build to a temp name and rename atomically: a direct write that
+            // dies mid-zip used to leave a truncated file whose length>0 let
+            // every later open() trust it forever (book unopenable until the
+            // cache folder was cleared by hand)
+            File tmp = new File(out.getParentFile(), out.getName() + ".tmp");
+            tmp.delete();
+            build(base, done, tmp);
+            if (!isReadableZip(tmp)) {
+                throw new IllegalStateException("built bilingual epub is not a readable zip");
+            }
+            if (!tmp.renameTo(out)) {
+                out.delete();
+                if (!tmp.renameTo(out)) {
+                    throw new IllegalStateException("rename failed");
+                }
+            }
             cleanOldVersions(base, out);
             return out;
         } catch (Throwable t) {
             LOG.e(t);
             android.util.Log.i("BENCH", "BilingualBuilder FAIL " + t.getClass().getName() + " " + t.getMessage());
+            new File(out.getParentFile(), out.getName() + ".tmp").delete();
             return null;
+        }
+    }
+
+    /** Cheap structural check that the file is a readable zip container. */
+    private static boolean isReadableZip(File f) {
+        java.util.zip.ZipFile z = null;
+        try {
+            z = new java.util.zip.ZipFile(f);
+            return z.size() > 0;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (z != null) {
+                try {
+                    z.close();
+                } catch (Exception ignored) {
+                }
+            }
         }
     }
 

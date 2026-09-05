@@ -127,7 +127,10 @@ public class SearchAllBooksWorker extends MessageWorker {
             if(AppState.get().isExperimental) {
                 if (itemsMeta.isEmpty()) {
                     File path = AppProfile.DOWNLOADS_DIR;
-                    BookCSS.get().searchPathsJson = JsonDB.set(List.of(path.getPath()));
+                    // ADD the fallback folder, never REPLACE the list: the old
+                    // JsonDB.set reduced a multi-folder 书库文件夹 list to just
+                    // Downloads after one transiently empty scan
+                    BookCSS.get().searchPathsJson = JsonDB.add(BookCSS.get().searchPathsJson, path.getPath());
                     SearchCore.search(itemsMeta, AppProfile.DOWNLOADS_DIR, ExtUtils.seachExts);
                     LOG.d("SearchAllBooksWorker", "Files-emtpy", "DOWNLOADS_DIR");
                 }

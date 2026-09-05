@@ -129,6 +129,10 @@ public class WebDavSyncer {
             "searchPathsJson", "cachePath", "downlodsPath", "ttsSpeakPath", "backupPath",
             "dictPath", "fontFolder", "dirLastPath", "pathSAF", "mp3BookPathJson",
             "syncDropboxPath", "syncGdrivePath", "syncOneDrivePath",
+            // the removed-fallback-folders memory holds device-specific
+            // absolute paths: one device hiding ITS storage root must not
+            // hide another device's root
+            "searchPathsHiddenJson",
             "hashCode"));
 
     /**
@@ -371,6 +375,14 @@ public class WebDavSyncer {
             } catch (Exception pruneError) {
                 LOG.e(pruneError);
             }
+            // deletion markers older than DK_MAX_AGE_MS (buildDeletedKeys)
+            // have lost their protective power anyway: drop them so they can
+            // never suppress or delete data of a much later re-share
+            try {
+                SharedBooks.DeletedBooks.expireOlderThan(DK_MAX_AGE_MS);
+            } catch (Exception expireError) {
+                LOG.e(expireError);
+            }
             final LinkedJSONObject localP = IO.readJsonObject(AppProfile.syncProgress);
             final LinkedJSONObject localB = IO.readJsonObject(AppProfile.syncBookmarks);
 
@@ -393,6 +405,9 @@ public class WebDavSyncer {
             int pDown = 0, bDown = 0, associated = 0;
             Set<String> namesCovered = new HashSet<>();
             Set<String> uploadedHashes = new HashSet<>();
+            // every book name that exists on the server this round (for the
+            // stale-tombstone cleanup below)
+            final Set<String> remoteNames = new HashSet<>();
             // locally deleted progress/bookmarks (marked-unread, bookmark
             // removal): never merged back, server file removed when nothing
             // remains to keep it alive
@@ -404,6 +419,9 @@ public class WebDavSyncer {
             // resurrect deleted bookmarks
             final Set<String> consumedNames = new HashSet<>();
             final Map<String, String> deletedHashName = new HashMap<>();
+            // real uploads this round (the old "every iterated book" count was
+            // meaningless: every matched book re-PUT on every round)
+            final int[] putCount = {0};
 
             // ---- apply every remote book info INDEPENDENTLY (per-book restore:
             // one corrupt or conflicting book never blocks the others)
@@ -415,6 +433,7 @@ public class WebDavSyncer {
                     if (TxtUtils.isEmpty(name)) {
                         continue;
                     }
+                    remoteNames.add(name);
                     final boolean delProgress = markKind(deletedBooks, name, "p");
                     final boolean delBookmarks = markKind(deletedBooks, name, "b");
                     // specific bookmark keys the user deleted for this book:
@@ -423,6 +442,27 @@ public class WebDavSyncer {
                     // whose book still has progress/other notes would otherwise
                     // be union-merged back on a later round)
                     final Set<String> deletedKeys = SharedBooks.DeletedBooks.keysOf(deletedBooks, name);
+                    // deletion record carried by the server info (key → time):
+                    // other devices' bookmark deletions. A record newer than
+                    // the bookmark's creation key applies the deletion locally;
+                    // an older record means the bookmark was re-created later
+                    // and must survive.
+                    final LinkedJSONObject remoteDk = info.optJSONObject("dk");
+                    if (remoteDk != null) {
+                        for (Iterator<String> dks = remoteDk.keys(); dks.hasNext();) {
+                            final String dkKey = dks.next();
+                            final long dkTime = remoteDk.optLong(dkKey, 0);
+                            long created = Long.MAX_VALUE;
+                            try {
+                                created = Long.parseLong(dkKey);
+                            } catch (NumberFormatException notAKey) {
+                            }
+                            if (localB.has(dkKey) && dkTime > created) {
+                                localB.remove(dkKey);
+                                SyncChangeLog.add("books", name + " · 书签", "down", "(删除)", dkKey);
+                            }
+                        }
+                    }
                     if ((delProgress || delBookmarks)
                             && !localP.has(name) && subsetFor(localB, name).length() == 0) {
                         // everything the user deleted locally is gone here too:
@@ -467,6 +507,11 @@ public class WebDavSyncer {
                             if (localB.has(key) || deletedKeys.contains(key)) {
                                 continue;
                             }
+                            // deleted on another device after this key was
+                            // created: the server's dk record suppresses it
+                            if (remoteDk != null && remoteDk.has(key)) {
+                                continue;
+                            }
                             LinkedJSONObject bm = rbs.optJSONObject(key);
                             if (bm == null) {
                                 continue;
@@ -493,11 +538,22 @@ public class WebDavSyncer {
                                 pubBm.remove(dk);
                             }
                         }
+                        // carry the server's timestamp: comparing without "t"
+                        // below means a book whose progress/bookmarks did not
+                        // change is NOT re-PUT on every round (the previous
+                        // unconditional t=now made the equality check always
+                        // fail → one full PUT per book per device per round)
                         LinkedJSONObject merged = buildInfoWithHash(name, rHash,
-                                localP.optJSONObject(name), pubBm);
-                        if (merged != null && !merged.toString().equals(info.toString())) {
+                                localP.optJSONObject(name), pubBm, info.optLong("t", 0));
+                        final LinkedJSONObject pubDk = buildDeletedKeys(name, remoteDk, deletedBooks);
+                        if (pubDk != null) {
+                            merged.put("dk", pubDk);
+                        }
+                        if (merged != null && !sameIgnoringT(merged, info)) {
+                            merged.put("t", System.currentTimeMillis());
                             try {
                                 putBookInfo(s, booksUrl, rHash, merged);
+                                putCount[0]++;
                                 uploadedHashes.add(rHash);
                                 // the merged info is on the server: the deleted
                                 // progress/bookmarks/keys are gone there too, so
@@ -518,46 +574,75 @@ public class WebDavSyncer {
             }
 
             // ---- local books the server has not seen yet (or same-name
-            // different-file variants that live under their own hash)
-            for (Map.Entry<String, LinkedJSONObject> e : localBooks.entrySet()) {
-                String name = e.getKey();
-                try {
-                    if (namesCovered.contains(name)) {
-                        continue;
+            // different-file variants that live under their own hash).
+            // Skipped entirely when the listing was incomplete: with a broken
+            // listing "not on the server" is unproven, and re-uploading every
+            // local info would clobber the (newer, unreadable) server state.
+            if (!booksListFailed[0]) {
+                for (Map.Entry<String, LinkedJSONObject> e : localBooks.entrySet()) {
+                    String name = e.getKey();
+                    try {
+                        if (namesCovered.contains(name)) {
+                            continue;
+                        }
+                        LinkedJSONObject info = e.getValue();
+                        String hash = info.optString("hash");
+                        if (TxtUtils.isEmpty(hash) || uploadedHashes.contains(hash)) {
+                            continue;
+                        }
+                        LinkedJSONObject remote = remoteBooks.get(hash);
+                        if (remote != null && sameIgnoringT(remote, info)) {
+                            continue;
+                        }
+                        putBookInfo(s, booksUrl, hash, info);
+                        putCount[0]++;
+                        SyncChangeLog.add("books", name + " · 书籍信息", "up", null, hash);
+                    } catch (Exception bookError) {
+                        LOG.e(bookError, "WebDavSyncer upload", name);
                     }
-                    LinkedJSONObject info = e.getValue();
-                    String hash = info.optString("hash");
-                    if (TxtUtils.isEmpty(hash) || uploadedHashes.contains(hash)) {
-                        continue;
-                    }
-                    LinkedJSONObject remote = remoteBooks.get(hash);
-                    if (remote != null && remote.toString().equals(info.toString())) {
-                        continue;
-                    }
-                    putBookInfo(s, booksUrl, hash, info);
-                    res.booksSynced++;
-                    SyncChangeLog.add("books", name + " · 书籍信息", "up", null, hash);
-                } catch (Exception bookError) {
-                    LOG.e(bookError, "WebDavSyncer upload", name);
                 }
-            }
 
-            // remove server copies of books whose progress/bookmarks were
-            // deleted locally and have nothing left to keep them alive
-            for (String h : hashesToDelete) {
-                try {
-                    s.delete(booksUrl + "/" + h + ".json");
-                    res.booksDeleted++;
-                    SyncChangeLog.add("books", deletedHashName.get(h) + " · 书籍信息", "up", "(存在)", "(已删除)");
-                    // server copy gone: the tombstone for this book is consumed
-                    String n = deletedHashName.get(h);
-                    if (n != null) {
-                        consumedNames.add(n);
+                // remove server copies of books whose progress/bookmarks were
+                // deleted locally and have nothing left to keep them alive
+                for (String h : hashesToDelete) {
+                    try {
+                        s.delete(booksUrl + "/" + h + ".json");
+                        res.booksDeleted++;
+                        SyncChangeLog.add("books", deletedHashName.get(h) + " · 书籍信息", "up", "(存在)", "(已删除)");
+                        // server copy gone: the tombstone for this book is consumed
+                        String n = deletedHashName.get(h);
+                        if (n != null) {
+                            consumedNames.add(n);
+                        }
+                    } catch (Exception delError) {
+                        LOG.d("WebDavSyncer delete", h, delError.getMessage());
                     }
-                } catch (Exception delError) {
-                    LOG.d("WebDavSyncer delete", h, delError.getMessage());
                 }
+
+                // stale tombstone cleanup: the listing succeeded, so a
+                // tombstone whose book name appears NOWHERE on the server
+                // targets a provably gone file — keep it and it would one day
+                // suppress or delete an unrelated future book with that name
+                try {
+                    final LinkedJSONObject delNow = SharedBooks.DeletedBooks.all();
+                    final Set<String> stale = new HashSet<>();
+                    for (Iterator<String> it = delNow.keys(); it.hasNext();) {
+                        final String n = it.next();
+                        if (!remoteNames.contains(n)) {
+                            stale.add(n);
+                        }
+                    }
+                    if (!stale.isEmpty()) {
+                        SharedBooks.DeletedBooks.clearNames(stale);
+                        LOG.d("WebDavSyncer", "stale tombstones cleared", stale.size());
+                    }
+                } catch (Exception staleError) {
+                    LOG.e(staleError);
+                }
+            } else {
+                LOG.d("WebDavSyncer", "remote listing incomplete: upload/delete phase skipped this round");
             }
+            res.booksSynced = putCount[0];
             // drop only the tombstones whose deletion is confirmed on the
             // server this round (consumedNames holds exactly those names);
             // everything else is kept so the next round retries instead of
@@ -566,8 +651,11 @@ public class WebDavSyncer {
                 SharedBooks.DeletedBooks.clearNames(consumedNames);
             }
 
-            IO.writeObjSync(AppProfile.syncProgress, localP);
-            IO.writeObjSync(AppProfile.syncBookmarks, localB);
+            // writeback with a mid-round merge: the UI thread keeps writing
+            // progress/bookmarks/tombstones while the network phase runs, and
+            // writing the start-of-round snapshots back used to revert all of
+            // it (lost positions, lost bookmarks, undeletable bookmarks)
+            mergeSnapshotsAtEnd(localP, localB);
 
             // in-memory progress cache is now stale
             SharedBooks.cache.clear();
@@ -695,6 +783,14 @@ public class WebDavSyncer {
                         (LinkedJSONObject) rv, keepLocal));
                 continue;
             }
+            if (!bb && lb && rb && lv instanceof LinkedJSONObject && rv instanceof LinkedJSONObject) {
+                // added on both devices independently (no base entry): merge
+                // structurally — the scalar both-changed rule below would
+                // silently drop the entire remote object
+                out.put(k, firstSyncMerge(file + "." + k, (LinkedJSONObject) lv,
+                        (LinkedJSONObject) rv, keepLocal));
+                continue;
+            }
             if (localChanged && remoteChanged) {
                 if (lv instanceof JSONArray || rv instanceof JSONArray) {
                     out.put(k, unionArrays(lv, rv));
@@ -715,19 +811,32 @@ public class WebDavSyncer {
         return out;
     }
 
-    /** Union of two JSON arrays by string value; local order first, remote-only items appended. */
+    /** Union of two JSON arrays preserving the original element types (the
+     * previous optString-based union corrupted object/number elements into
+     * strings); local order first, remote-only items appended. */
     static JSONArray unionArrays(Object lv, Object rv) {
         final JSONArray out = new JSONArray();
         final Set<String> seen = new HashSet<String>();
         for (Object arr : new Object[]{lv, rv}) {
-            if (arr instanceof JSONArray) {
-                final JSONArray a = (JSONArray) arr;
-                for (int i = 0; i < a.length(); i++) {
-                    final String v = a.optString(i);
-                    if (!seen.contains(v)) {
-                        seen.add(v);
-                        out.put(v);
+            if (!(arr instanceof JSONArray)) {
+                // scalar side of a both-changed conflict: keep it as a value
+                // instead of silently dropping it
+                if (arr != null && !isEmptyValue(arr)) {
+                    final String key = String.valueOf(arr);
+                    if (!seen.contains(key)) {
+                        seen.add(key);
+                        out.put(arr);
                     }
+                }
+                continue;
+            }
+            final JSONArray a = (JSONArray) arr;
+            for (int i = 0; i < a.length(); i++) {
+                final Object v = a.opt(i);
+                final String key = String.valueOf(v);
+                if (!seen.contains(key)) {
+                    seen.add(key);
+                    out.put(v);
                 }
             }
         }
@@ -844,6 +953,15 @@ public class WebDavSyncer {
                         keepLocalFields(mergedFull, localObj, SYNC_CONFIG_FIELDS);
                     }
                 }
+            } else if (remoteObj.length() == 0) {
+                // ---- steady state but the server file is gone (404/empty):
+                // this is NOT "every field was deleted remotely" — treating it
+                // that way emptied the local config (minus device-bound
+                // fields) and published the wipe to every other device. Seed
+                // the server back up from the local copy instead, exactly
+                // like the first-sync-without-remote case above.
+                LOG.d("WebDavSyncer three-way", name, "server file gone: seeding from local");
+                mergedFull = localObj;
             } else {
                 // ---- steady state: merge against the stored base
                 final LinkedJSONObject baseCmp = withoutFields(baseObj, deviceFields);
@@ -1406,6 +1524,130 @@ public class WebDavSyncer {
         s.put(booksUrl + "/" + hash + ".json", info.toString().getBytes("UTF-8"));
     }
 
+    /** Deletion records expire after this long; a much later re-share of the
+     * same bookmark key could union back after expiry (accepted trade-off). */
+    static final long DK_MAX_AGE_MS = 30L * 24 * 60 * 60 * 1000;
+
+    /**
+     * Semantic comparison of two book info objects that ignores the display
+     * timestamp "t": the previous equality checks included a freshly stamped
+     * t=now, so a matched book was re-PUT on every round from every device.
+     */
+    static boolean sameIgnoringT(LinkedJSONObject a, LinkedJSONObject b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        try {
+            final LinkedJSONObject x = new LinkedJSONObject(a.toString());
+            x.remove("t");
+            final LinkedJSONObject y = new LinkedJSONObject(b.toString());
+            y.remove("t");
+            return normalize(x.toString()).equals(normalize(y.toString()));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Merge the deletion records (bookmark creation-key → deletion time) this
+     * device and the server know about the book: the newer record per key
+     * wins. Records superseded by a re-creation (deletion time older than the
+     * key itself) and expired records are dropped.
+     */
+    static LinkedJSONObject buildDeletedKeys(String name, LinkedJSONObject remoteDk,
+                                             LinkedJSONObject localMarkers) {
+        try {
+            final LinkedJSONObject out = new LinkedJSONObject();
+            if (remoteDk != null) {
+                for (Iterator<String> it = remoteDk.keys(); it.hasNext();) {
+                    final String k = it.next();
+                    out.put(k, remoteDk.optLong(k, 0));
+                }
+            }
+            if (localMarkers != null) {
+                final LinkedJSONObject marks = localMarkers.optJSONObject(name);
+                final LinkedJSONObject localKeys = marks == null ? null : marks.optJSONObject("keys");
+                if (localKeys != null) {
+                    for (Iterator<String> it = localKeys.keys(); it.hasNext();) {
+                        final String k = it.next();
+                        final long t = localKeys.optLong(k, 0);
+                        if (t > out.optLong(k, 0)) {
+                            out.put(k, t);
+                        }
+                    }
+                }
+            }
+            final long now = System.currentTimeMillis();
+            for (Iterator<String> it = out.keys(); it.hasNext();) {
+                final String k = it.next();
+                final long dkTime = out.optLong(k, 0);
+                boolean recreated = false;
+                try {
+                    recreated = dkTime <= Long.parseLong(k);
+                } catch (NumberFormatException notAKey) {
+                }
+                if (recreated || now - dkTime > DK_MAX_AGE_MS) {
+                    it.remove();
+                }
+            }
+            return out.length() > 0 ? out : null;
+        } catch (Exception e) {
+            LOG.e(e);
+            return null;
+        }
+    }
+
+    /**
+     * End-of-round writeback that cannot revert mid-round user actions: the
+     * UI thread keeps writing progress/bookmarks while the network phase
+     * runs, and writing the start-of-round snapshots back used to lose those
+     * writes. Progress entries converge per key with the newer "t"; bookmarks
+     * union (round additions survive; keys tombstoned — also mid-round — are
+     * removed so a deletion can never be republished through the snapshot).
+     */
+    private static void mergeSnapshotsAtEnd(LinkedJSONObject snapP, LinkedJSONObject snapB) {
+        try {
+            final LinkedJSONObject freshP = IO.readJsonObject(AppProfile.syncProgress);
+            for (Iterator<String> it = snapP.keys(); it.hasNext();) {
+                final String k = it.next();
+                final LinkedJSONObject ours = snapP.optJSONObject(k);
+                if (ours == null) {
+                    continue;
+                }
+                final LinkedJSONObject cur = freshP.optJSONObject(k);
+                if (cur == null || ours.optLong("t", 0) > cur.optLong("t", 0)) {
+                    freshP.put(k, ours);
+                }
+            }
+            IO.writeObjSync(AppProfile.syncProgress, freshP);
+
+            final LinkedJSONObject freshB = IO.readJsonObject(AppProfile.syncBookmarks);
+            for (Iterator<String> it = snapB.keys(); it.hasNext();) {
+                final String k = it.next();
+                if (!freshB.has(k)) {
+                    final Object v = snapB.opt(k);
+                    if (v != null) {
+                        freshB.put(k, v);
+                    }
+                }
+            }
+            try {
+                final LinkedJSONObject freshDel = SharedBooks.DeletedBooks.all();
+                for (Iterator<String> it = freshDel.keys(); it.hasNext();) {
+                    final String name = it.next();
+                    for (String dkKey : SharedBooks.DeletedBooks.keysOf(freshDel, name)) {
+                        freshB.remove(dkKey);
+                    }
+                }
+            } catch (Exception delError) {
+                LOG.e(delError);
+            }
+            IO.writeObjSync(AppProfile.syncBookmarks, freshB);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
     /**
      * Per-book info document: the book file name and content hash (identity),
      * reading progress and the bookmarks/AI-notes map. "t" is the newest
@@ -1413,11 +1655,17 @@ public class WebDavSyncer {
      */
     static LinkedJSONObject buildInfoWithHash(String name, String hash, LinkedJSONObject progress,
                                               LinkedJSONObject bookmarks) {
+        return buildInfoWithHash(name, hash, progress, bookmarks, 0);
+    }
+
+    /** Same as above, but keeps the given timestamp (0 = stamp now). */
+    static LinkedJSONObject buildInfoWithHash(String name, String hash, LinkedJSONObject progress,
+                                              LinkedJSONObject bookmarks, long t) {
         try {
             LinkedJSONObject info = new LinkedJSONObject();
             info.put("name", name);
             info.put("hash", hash == null ? "" : hash);
-            info.put("t", System.currentTimeMillis());
+            info.put("t", t > 0 ? t : System.currentTimeMillis());
             if (progress != null) {
                 info.put("progress", progress);
             }
@@ -1519,16 +1767,20 @@ public class WebDavSyncer {
     /** True when the failure chain reports HTTP 404 / "not found". */
     private static boolean isNotFound(Throwable e) {
         for (Throwable c = e; c != null; c = c.getCause()) {
-            String msg = c.getMessage();
-            if (msg != null && msg.contains("404")) {
-                return true;
-            }
             try {
                 Object status = c.getClass().getMethod("getStatusCode").invoke(c);
                 if (status instanceof Integer && (Integer) status == 404) {
                     return true;
                 }
             } catch (Exception ignored) {
+            }
+            // substring fallback only for short status-like messages: a book
+            // hash containing "404" inside a full URL/message must not make a
+            // server error look like "file doesn't exist" (that read path
+            // seeds an empty copy over the live server file)
+            final String msg = c.getMessage();
+            if (msg != null && msg.contains("404") && !msg.contains("://") && msg.length() < 80) {
+                return true;
             }
         }
         return false;

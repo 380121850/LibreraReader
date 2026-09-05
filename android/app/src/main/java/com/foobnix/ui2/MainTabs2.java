@@ -269,10 +269,22 @@ public class MainTabs2 extends AdsFragmentActivity {
 
         LOG.d("onActivityResult", "requestCode:",requestCode,"resultCode:",resultCode,data);
         if(requestCode==MY_PERMISSIONS_REQUEST_WES){
-            AppSP.get().currentProfile="";
-            AppSP.get().save();
-            AppProfile.init(this);
-            SearchAllBooksWorker.run(this);
+            // only rescan when access was ACTUALLY granted: the user backing
+            // out of the All-Files-Access screen used to trigger a full
+            // deleteAllData()+rescan with no read permission → the library
+            // was rebuilt from the fallback demo books (DB wipe)
+            boolean granted = Build.VERSION.SDK_INT >= 30
+                    ? android.os.Environment.isExternalStorageManager()
+                    : androidx.core.content.ContextCompat.checkSelfPermission(this,
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                AppSP.get().currentProfile="";
+                AppSP.get().save();
+                AppProfile.init(this);
+                SearchAllBooksWorker.run(this);
+            } else {
+                Toast.makeText(this, R.string.you_need_grant_permission5, Toast.LENGTH_LONG).show();
+            }
         }
         if (Android6.isNeedToGrantAccess(this, requestCode)) {
             Toast.makeText(this, R.string.you_need_grant_permission5, Toast.LENGTH_LONG).show();
@@ -962,6 +974,10 @@ public class MainTabs2 extends AdsFragmentActivity {
     }
 
     public void navigateToTab(UITab tab) {
+        // a previously opened overlay page (e.g. 网上书库) sits ON TOP of the
+        // pager: without hiding it first, drawer navigation flipped the pager
+        // behind a still-visible overlay and looked frozen
+        hideTabOverlay();
         boolean found = false;
         for (int i = 0; i < tabFragments.size(); i++) {
             if (tab.getClazz().isInstance(tabFragments.get(i))) {
@@ -1324,7 +1340,11 @@ public class MainTabs2 extends AdsFragmentActivity {
 
     private String findRecentUnfinishedPath() {
         try {
-            List<FileMeta> recent = AppData.get().getAllRecent(true);
+            // false: never backfill titles here — updateProgress=true makes
+            // getAllRecent run a FULL ebook parse per untitled entry on the
+            // UI thread (multi-second freeze right after a DB wipe, exactly
+            // when the FAB is most used)
+            List<FileMeta> recent = AppData.get().getAllRecent(false);
             if (recent != null) {
                 for (FileMeta m : recent) {
                     String p = m.getPath();

@@ -94,9 +94,10 @@ public class AlertDialogs {
 
             @Override
             public void onClick(final DialogInterface dialog, final int id) {
-                if (onDismiss != null) {
-                    onDismiss.run();
-                }
+                // the OnDismissListener below already runs onDismiss (for ANY
+                // close path) 鈥?running it here too executed the callback
+                // twice on cancel
+                dialog.dismiss();
             }
         });
         AlertDialog create = builder.create();
@@ -250,7 +251,7 @@ public class AlertDialogs {
 
             @Override
             public void onClick(View v) {
-                String text = edit.getText().toString().trim();
+                String text = edit.getText().toString();
                 if (onAdd.onResultRecive(text)) {
                     create.dismiss();
                     Keyboards.close(edit);
@@ -322,7 +323,7 @@ public class AlertDialogs {
 
             @Override
             public void onClick(View v) {
-                String text = edit.getText().toString().trim();
+                String text = edit.getText().toString();
                 String title = name.getText().toString().trim();
                 if (!title.endsWith(".txt")) {
                     title += ".txt";

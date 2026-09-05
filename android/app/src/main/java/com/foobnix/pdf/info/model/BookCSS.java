@@ -296,6 +296,14 @@ public class BookCSS {
         migrateLegacyDownloadPaths();
 
         try {
+            // storage not (yet) mounted: every File.exists() is false and the
+            // filter below would permanently drop the user's whole configured
+            // folder list (it is persisted right after filtering). Leave the
+            // stored list untouched this round instead.
+            if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                LOG.d("BookCSS", "load1: storage not mounted, keep searchPaths as stored");
+                return;
+            }
             List<String> filtered = filtered(JsonDB.get(instance.searchPathsJson));
             instance.searchPathsJson = JsonDB.set(filtered);
 

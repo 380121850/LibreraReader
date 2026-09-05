@@ -56,11 +56,21 @@ public class WebDavClient {
      */
     public static volatile boolean lastErrorWasAuth = false;
 
+    /** Reusable clients keyed by credential set: every periodic/debounced
+     * sync used to build a fresh OkHttpSardine (own connection pool +
+     * dispatcher threads) and never shut it down. */
+    private static final Map<String, Sardine> CLIENTS = new ConcurrentHashMap<String, Sardine>();
+
     public static Sardine sardine(String login, String password) {
         return sardine(login, password, false);
     }
 
     public static Sardine sardine(String login, String password, boolean trustAll) {
+        final String key = login + "|" + password + "|" + trustAll;
+        final Sardine cached = CLIENTS.get(key);
+        if (cached != null) {
+            return cached;
+        }
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
@@ -84,7 +94,9 @@ public class WebDavClient {
             builder.addInterceptor(new AuthenticationCacheInterceptor(authCache));
         }
 
-        return new OkHttpSardine(builder.build());
+        final Sardine created = new OkHttpSardine(builder.build());
+        CLIENTS.put(key, created);
+        return created;
     }
 
     /** Accept any certificate / hostname (opt-in per server, LAN self-signed). */
