@@ -5,6 +5,14 @@
 
 ---
 
+## [2026-09-05] 定位并修复：A机「阅读配置→单击」被改回左右翻页——隐藏的"按格式指定阅读模式"开关（isPrefFormatMode）在打开书籍时按扩展名静默覆盖单击设置
+
+**根因**（A机真机定位）：「单击」的值是 `AppSP.readingMode`（1=上下翻页，2=左右翻页）。A机与 MI9 的 `app-State.json` 里 `isPrefFormatMode=true`——这是"按扩展名决定打开模式"的隐藏功能（其唯一入口"更多模式设置"齿轮按钮在布局里 visibility=gone，界面找不到也关不掉）。`ExtUtils.showDocumentWithoutDialog2` 在该开关开启时按扩展名静默改写 readingMode：`prefScrollMode="pdf, djvu"→上下翻页`、`prefBookMode="epub, mobi, fb2, azw, azw3"→左右翻页`。A机主要在读 (官场小说).mobi——每打开一次 mobi/epub，单击就被改回左右翻页；同步日志中 readingMode 1↔2 的多次翻转与 lastBookPath 换书记录完全吻合。readingMode 又随 app-Misc.json 同步，翻转会被广播到所有设备。同步合并逻辑本身无责。
+
+**处理**：①A机（12S）：改 app-State.json 关掉 isPrefFormatMode + 通过应用 UI 把"单击"设为上下翻页（经应用自身写入才能持久，直接改 app-Misc.json 会被每轮同步的 exportMisc 用 SharedPreferences 重新覆盖）；②MI9 同样处理（关开关 + 单击=上下翻页；误关的"平面封面"勾选已恢复）；③华为机关掉 isPrefFormatMode（其单击本就是上下翻页）。④代码加固：PrefFragment2 的"单击"设置回调中显式 `isPrefFormatMode = false`——用户明确选择单击模式时该选择必须生效，杜绝隐藏开关再次静默改写。三渠道 Release 重新编译 `BUILD SUCCESSFUL`。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 修复：「我的文件→书库文件夹」删除条目"没反应"——删除其实生效了，但空列表兜底与启动默认回填立即把存储根目录等标准目录重新显示出来；新增已移除目录的隐藏记忆
 
 **根因**（华为畅享20 Plus 真机复现）：根页书库文件夹列表来自 `BookCSS.searchPathsJson`；当它为空时有两处兜底会**立即重新显示**标准目录（存储根 `/storage/emulated/0` + Download）：①`BrowseFragment2.prepareDataInBackground` 根页兜底（删掉唯一条目后 populate 当场复活）；②`BookCSS.load1` 启动时用全部外部存储回填（重启后复活）。于是"长按→删除→确认"虽然真实移除了条目，用户看到的却是"还在"，即"删除后没有反应"。之前的 deleteRecursive 修复解决的是"磁盘文件夹删不掉"，本条解决"列表条目删不掉"，是两个独立问题。

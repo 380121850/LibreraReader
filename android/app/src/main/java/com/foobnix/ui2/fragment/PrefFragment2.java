@@ -992,6 +992,11 @@ public class PrefFragment2 extends UIFragment {
                 value -> {
                     AppState.get().isRememberMode = value != AppState.READING_MODE_SELECT_MODE;
                     AppSP.get().readingMode = value;
+                    // an explicit single-tap choice must stick: the hidden
+                    // per-format override (isPrefFormatMode, its UI entry was
+                    // removed) otherwise silently rewrites readingMode on
+                    // every book open and the setting "reverts"
+                    AppState.get().isPrefFormatMode = false;
                 },//
                 of(getString(R.string.select_mode), AppState.READING_MODE_SELECT_MODE),//
                 of(AppState.get().nameVerticalMode, AppState.READING_MODE_SCROLL),//
