@@ -50,6 +50,14 @@
         android:text="@string/ai_translate_mode_bilingual"
         android:textSize="15sp" />
 
+    <CheckBox
+        android:id="@+id/aiTranslateSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dip"
+        android:text="@string/save_ai_translation_results"
+        android:textSize="15sp" />
+
     <TextView
         android:id="@+id/aiTranslateOff"
         android:layout_width="wrap_content"

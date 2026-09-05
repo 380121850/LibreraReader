@@ -400,7 +400,10 @@ public class BilingualSession {
         this.book = book;
         this.src = src;
         this.tgt = tgt;
-        this.cache = new TranslationCache(book);
+        // "save AI translation results" off -> session-only cache: same API,
+        // nothing is written to disk (see TranslationCache.inMemory)
+        this.cache = AppState.get().aiSaveTranslation
+                ? new TranslationCache(book) : TranslationCache.inMemory(book);
         for (int i = 0; i < LANES; i++) {
             lanes[i] = new ArrayDeque<String>();
         }

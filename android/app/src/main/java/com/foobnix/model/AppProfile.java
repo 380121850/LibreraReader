@@ -64,6 +64,7 @@ public class AppProfile {
     public static final String APP_AI_JSON = "app-AI.json";
     public static final String APP_MISC_JSON = "app-Misc.json";
     public static final String APP_NETWORK_SOURCES_JSON = "app-NetworkSources.json";
+    public static final String APP_SYNC_LOG_JSON = "app-SyncLog.json";
     public static final String APP_TAGS_JSON = "app-Tags.json";
     public static final String APP_TAGS_JSON2 = "app-Tags2.json";
 
@@ -96,6 +97,8 @@ public class AppProfile {
     public static File syncAI;
     public static File syncMisc;
     public static File syncNetworkSources;
+    /** local-only WebDAV sync change log (never uploaded) */
+    public static File syncLog;
 
     public static File syncFontFolder;
 
@@ -190,6 +193,7 @@ public class AppProfile {
         syncAI = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_AI_JSON);
         syncMisc = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_MISC_JSON);
         syncNetworkSources = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_NETWORK_SOURCES_JSON);
+        syncLog = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_SYNC_LOG_JSON);
         syncProgress = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_PROGRESS_JSON);
         syncBookStates = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_BOOK_STATES_JSON);
         syncRecent = new File(SYNC_FOLDER_DEVICE_PROFILE, APP_RECENT_JSON);
@@ -512,6 +516,7 @@ public class AppProfile {
         syncStats = null;
         syncAI = null;
         syncMisc = null;
+        syncLog = null;
         // Fresh latch so awaitDBReady() waits for the next init()'s count
         // instead of falling through a latch that was already counted down.
         DB_READY = new CountDownLatch(1);

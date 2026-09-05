@@ -18,6 +18,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="110dip"
+            android:text="@string/ai_profile_config"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/aiProfileValue"
+            style="@style/textLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ai_profile_none" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:minWidth="80dip"
             android:text="@string/ai_config_protocol"
             android:textStyle="bold" />

@@ -47,10 +47,94 @@ public class AiConfigDialog {
         final android.view.View chatResultScroll = view.findViewById(R.id.aiChatResultScroll);
         final TextView chatResult = (TextView) view.findViewById(R.id.aiChatResult);
         final MyProgressBar progress = (MyProgressBar) view.findViewById(R.id.aiProgress);
+        final TextView profileValue = (TextView) view.findViewById(R.id.aiProfileValue);
 
         TxtUtils.underlineTextView(protocolValue);
         TxtUtils.underlineTextView(test);
         TxtUtils.underlineTextView(modelList);
+        TxtUtils.underlineTextView(profileValue);
+
+        // the named config chosen in the dialog; persisted on save only.
+        // Falls back to "no profile" when the saved name no longer exists.
+        final String[] selectedName = {TxtUtils.isNotEmpty(AppState.get().aiConfigName)
+                ? AppState.get().aiConfigName : ""};
+        if (TxtUtils.isNotEmpty(selectedName[0])
+                && findProfile(AppState.get().aiConfigs, selectedName[0]) == null) {
+            selectedName[0] = "";
+        }
+        refreshProfileLabel(profileValue, selectedName[0]);
+
+        profileValue.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(a, v);
+                org.json.JSONArray arr = parseProfiles(AppState.get().aiConfigs);
+                for (int i = 0; i < arr.length(); i++) {
+                    final org.json.JSONObject e = arr.optJSONObject(i);
+                    if (e == null || TxtUtils.isEmpty(e.optString("name"))) {
+                        continue;
+                    }
+                    final String name = e.optString("name");
+                    popup.getMenu().add(name).setOnMenuItemClickListener(item -> {
+                        // picking a config loads ALL of its parameters into
+                        // the dialog fields (persisted on save only)
+                        savedLocal = e.optString("protocol", AiClient.PROTOCOL_OPENAI);
+                        url.setText(e.optString("baseUrl", ""));
+                        apiKey.setText(e.optString("apiKey", ""));
+                        model.setText(e.optString("model", ""));
+                        int mt = e.optInt("maxTokens", 4096);
+                        maxTokens.setText(String.valueOf(mt > 0 ? mt : 4096));
+                        thinking.setChecked(e.optBoolean("thinking", false));
+                        selectedName[0] = name;
+                        refreshProtocolLabel(protocolValue);
+                        refreshProfileLabel(profileValue, name);
+                        return true;
+                    });
+                }
+                popup.getMenu().add(R.string.ai_profile_save_as).setOnMenuItemClickListener(item -> {
+                    final EditText nameEdit = new EditText(a);
+                    nameEdit.setHint(R.string.ai_profile_name_hint);
+                    nameEdit.setSingleLine(true);
+                    if (TxtUtils.isNotEmpty(selectedName[0])) {
+                        nameEdit.setText(selectedName[0]);
+                    }
+                    new AlertDialog.Builder(a)
+                            .setTitle(R.string.ai_profile_save_as)
+                            .setView(nameEdit)
+                            .setPositiveButton(R.string.webdav_sync_save,
+                                    (d, w) -> {
+                                        String name = nameEdit.getText().toString().trim();
+                                        if (TxtUtils.isEmpty(name)) {
+                                            Toast.makeText(a, R.string.ai_profile_name_empty,
+                                                    Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+                                        AppState.get().aiConfigs = upsertProfile(
+                                                AppState.get().aiConfigs,
+                                                profileJson(name, savedLocal,
+                                                        url.getText().toString().trim(),
+                                                        apiKey.getText().toString(),
+                                                        model.getText().toString().trim(),
+                                                        parseBudget(maxTokens),
+                                                        thinking.isChecked()));
+                                        selectedName[0] = name;
+                                        refreshProfileLabel(profileValue, name);
+                                    })
+                            .setNegativeButton(R.string.cancel, null)
+                            .show();
+                    return true;
+                });
+                popup.getMenu().add(R.string.ai_profile_delete).setOnMenuItemClickListener(item -> {
+                    if (TxtUtils.isEmpty(selectedName[0])) {
+                        return true;
+                    }
+                    AppState.get().aiConfigs = removeProfile(AppState.get().aiConfigs, selectedName[0]);
+                    selectedName[0] = "";
+                    refreshProfileLabel(profileValue, "");
+                    return true;
+                });
+                popup.show();
+            }
+        });
 
         // protocol chosen inside the dialog; persisted on save only
         savedLocal = TxtUtils.isEmpty(AppState.get().aiProtocol)
@@ -261,6 +345,17 @@ public class AiConfigDialog {
                 }
                 AppState.get().aiMaxTokens = budget;
                 AppState.get().aiThinking = thinking.isChecked();
+                // a named config is selected: store the current field values
+                // back into it (edit-in-place) and mark it active
+                if (TxtUtils.isNotEmpty(selectedName[0])) {
+                    AppState.get().aiConfigs = upsertProfile(AppState.get().aiConfigs,
+                            profileJson(selectedName[0], savedLocal,
+                                    url.getText().toString().trim(),
+                                    apiKey.getText().toString(),
+                                    model.getText().toString().trim(),
+                                    budget, thinking.isChecked()));
+                    AppState.get().aiConfigName = selectedName[0];
+                }
                 AiCredentials.save(a, apiKey.getText().toString());
                 AppProfile.save(a);
                 Keyboards.close(a);
@@ -279,6 +374,106 @@ public class AiConfigDialog {
 
     /** protocol chosen inside the dialog (persisted on save only) */
     private static String savedLocal = AiClient.PROTOCOL_OPENAI;
+
+    // -------------------------------------------------------- saved AI profiles
+
+    private static final int PROFILE_BUDGET_DEFAULT = 4096;
+
+    private static org.json.JSONArray parseProfiles(String json) {
+        try {
+            return new org.json.JSONArray(json);
+        } catch (Exception e) {
+            return new org.json.JSONArray();
+        }
+    }
+
+    private static org.json.JSONObject findProfile(String json, String name) {
+        org.json.JSONArray arr = parseProfiles(json);
+        for (int i = 0; i < arr.length(); i++) {
+            org.json.JSONObject e = arr.optJSONObject(i);
+            if (e != null && name.equals(e.optString("name"))) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    private static org.json.JSONObject profileJson(String name, String protocol, String baseUrl,
+            String apiKey, String model, int maxTokens, boolean thinking) {
+        org.json.JSONObject e = new org.json.JSONObject();
+        try {
+            e.put("name", name);
+            e.put("protocol", protocol);
+            e.put("baseUrl", baseUrl);
+            e.put("apiKey", apiKey == null ? "" : apiKey);
+            e.put("model", model);
+            e.put("maxTokens", maxTokens);
+            e.put("thinking", thinking);
+        } catch (Exception ignored) {
+        }
+        return e;
+    }
+
+    /** Replace the same-name entry or append; keeps list order stable. */
+    private static String upsertProfile(String json, org.json.JSONObject entry) {
+        try {
+            String name = entry.optString("name");
+            org.json.JSONArray arr = parseProfiles(json);
+            org.json.JSONArray out = new org.json.JSONArray();
+            boolean replaced = false;
+            for (int i = 0; i < arr.length(); i++) {
+                org.json.JSONObject e = arr.optJSONObject(i);
+                if (e == null) {
+                    continue;
+                }
+                if (name.equals(e.optString("name"))) {
+                    out.put(entry);
+                    replaced = true;
+                } else {
+                    out.put(e);
+                }
+            }
+            if (!replaced) {
+                out.put(entry);
+            }
+            return out.toString();
+        } catch (Exception e) {
+            return "[]";
+        }
+    }
+
+    private static String removeProfile(String json, String name) {
+        try {
+            org.json.JSONArray arr = parseProfiles(json);
+            org.json.JSONArray out = new org.json.JSONArray();
+            for (int i = 0; i < arr.length(); i++) {
+                org.json.JSONObject e = arr.optJSONObject(i);
+                if (e != null && !name.equals(e.optString("name"))) {
+                    out.put(e);
+                }
+            }
+            return out.toString();
+        } catch (Exception e) {
+            return "[]";
+        }
+    }
+
+    private static int parseBudget(EditText maxTokens) {
+        try {
+            int budget = Integer.parseInt(maxTokens.getText().toString().trim());
+            return budget > 0 ? budget : PROFILE_BUDGET_DEFAULT;
+        } catch (Exception e) {
+            return PROFILE_BUDGET_DEFAULT;
+        }
+    }
+
+    private static void refreshProfileLabel(TextView v, String name) {
+        if (TxtUtils.isEmpty(name)) {
+            v.setText(R.string.ai_profile_none);
+        } else {
+            v.setText(name);
+        }
+    }
 
     /** AI-specific error text (never reuse the WebDAV strings) + raw detail. */
     public static String resultErrorText(Activity a, String error, String detail) {

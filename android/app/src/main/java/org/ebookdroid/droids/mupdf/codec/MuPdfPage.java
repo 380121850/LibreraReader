@@ -388,6 +388,7 @@ public class MuPdfPage extends AbstractCodecPage {
         TempHolder.lock.lock();
         try {
             addMarkupAnnotationInternal(docHandle, pageHandle, quadPoints, type.ordinal(), color);
+            muPdfDocument.markDirty();
         } finally {
             TempHolder.lock.unlock();
         }
@@ -404,6 +405,7 @@ public class MuPdfPage extends AbstractCodecPage {
         TempHolder.lock.lock();
         try {
             addTextNoteInternal(docHandle, pageHandle, quadPoints, text, color);
+            muPdfDocument.markDirty();
         } finally {
             TempHolder.lock.unlock();
         }
@@ -439,6 +441,7 @@ public class MuPdfPage extends AbstractCodecPage {
         TempHolder.lock.lock();
         try {
             addInkAnnotationInternal(docHandle, pageHandle, color, points, (int) width, alpha);
+            muPdfDocument.markDirty();
         } finally {
             TempHolder.lock.unlock();
         }

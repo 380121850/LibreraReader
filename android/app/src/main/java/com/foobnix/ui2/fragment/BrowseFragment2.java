@@ -119,6 +119,8 @@ import java.util.Map;
      */
     public static final String ROOT_PATH = "my-files:";
     LinearLayout netSection;
+    /** 搜索 block of the root view, below the library-folder list */
+    LinearLayout searchSection;
     View quickDirChipsRow;
 
     /**
@@ -192,25 +194,38 @@ import java.util.Map;
     OnClickListener onSelectAction = new OnClickListener() {
 
         @Override public void onClick(View v) {
+            final String typed = editPath.getText().toString().trim();
             if (fragmentType == TYPE_SELECT_FOLDER) {
-
-                if (ExtUtils.isExteralSD(BookCSS.get().dirLastPath) || new File(BookCSS.get().dirLastPath).canRead()) {
-                    onPositiveAction.onResultRecive(BookCSS.get().dirLastPath);
+                // a manually typed path wins over the browsed directory; both
+                // may be unset on a fresh install (dirLastPath == null, which
+                // used to NPE right here) — validate instead of crashing
+                final String dir = TxtUtils.isNotEmpty(typed) ? typed : chooserDir();
+                if (TxtUtils.isNotEmpty(dir) && new File(dir).isDirectory()
+                        && new File(dir).canRead() && !ExtUtils.isExteralSD(dir)) {
+                    onPositiveAction.onResultRecive(dir);
                 } else {
                     Toast.makeText(getContext(), R.string.incorrect_value, Toast.LENGTH_SHORT)
                          .show();
                 }
             } else if (fragmentType == TYPE_SELECT_FILE) {
-                onPositiveAction.onResultRecive(chooserDir() + "/" + editPath.getText());
+                onPositiveAction.onResultRecive(joinChooserPath(typed));
             } else if (fragmentType == TYPE_SELECT_FILE_OR_FOLDER) {
-                onPositiveAction.onResultRecive(editPath.getText()
-                                                        .toString());
+                onPositiveAction.onResultRecive(typed);
             } else if (fragmentType == TYPE_CREATE_FILE) {
-                onPositiveAction.onResultRecive(chooserDir() + "/" + editPath.getText());
+                onPositiveAction.onResultRecive(joinChooserPath(typed));
             }
 
         }
     };
+
+    /** The chooser's directory joined with the typed name, null-safe on both parts. */
+    private String joinChooserPath(String typed) {
+        final String dir = chooserDir();
+        if (TxtUtils.isEmpty(dir)) {
+            return typed;
+        }
+        return dir + "/" + typed;
+    }
     private ResultResponse<String> onCloseAction;
     OnClickListener onCloseButtonActoin = new OnClickListener() {
 
@@ -795,6 +810,7 @@ import java.util.Map;
         });
 
         netSection = view.findViewById(R.id.netSection);
+        searchSection = (LinearLayout) view.findViewById(R.id.searchSection);
         quickDirChipsRow = (View) view.findViewById(R.id.quickDirChips).getParent();
         buildNetSections();
 
@@ -1172,6 +1188,9 @@ import java.util.Map;
             return;
         }
         netSection.removeAllViews();
+        if (searchSection != null) {
+            searchSection.removeAllViews();
+        }
         final Runnable rebuild = new Runnable() {
             @Override public void run() {
                 buildNetSections();
@@ -1253,17 +1272,6 @@ import java.util.Map;
             }));
         }
 
-        // --- search tools: same top section as OPDS / WebDAV / folders ---
-        netSection.addView(netSectionDivider());
-        netSection.addView(netSectionHeader(getString(R.string.search), null));
-        // tools moved here from the preferences "file search" category
-        netSection.addView(netListItem(R.drawable.glyphicons_144_database_search,
-                getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
-                    @Override public void onClick(View v) {
-                        MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
-                    }
-                }, null));
-
         // --- library folders (the list itself lives in the RecyclerView) ---
         netSection.addView(netSectionDivider());
         netSection.addView(netSectionHeader(getString(R.string.moon_section_folders), new OnClickListener() {
@@ -1296,6 +1304,29 @@ import java.util.Map;
                 p.show();
             }
         }));
+
+        // --- search tools: rendered BELOW the library-folder list (see the
+        // searchSection container in the layout), so the folders block
+        // (header + list) stays one visual unit
+        if (searchSection != null) {
+            searchSection.addView(netSectionDivider());
+            searchSection.addView(netSectionHeader(getString(R.string.search), null));
+            // tools moved here from the preferences "file search" category
+            searchSection.addView(netListItem(R.drawable.glyphicons_144_database_search,
+                    getString(R.string.search_for_text_in_multiple_documents), new OnClickListener() {
+                        @Override public void onClick(View v) {
+                            MultyDocSearchDialog.show((androidx.fragment.app.FragmentActivity) a);
+                        }
+                    }, null));
+        }
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        // the network sources may have changed behind this page (WebDAV sync
+        // applies them to AppState/BookCSS in the background): rebuild on
+        // every foreground visit so synced config is visible immediately
+        buildNetSections();
     }
 
     /** "add a library folder" flow, same checks as the preferences page. */
@@ -1600,6 +1631,9 @@ import java.util.Map;
         }
         if (netSection != null) {
             netSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
+        }
+        if (searchSection != null) {
+            searchSection.setVisibility(ROOT_PATH.equals(path) ? View.VISIBLE : View.GONE);
         }
         // the 书库 folder rows are rendered bigger on the root page only
         if (searchAdapter != null) {

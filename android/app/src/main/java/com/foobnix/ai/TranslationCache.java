@@ -34,6 +34,8 @@ public class TranslationCache {
     // key = pid|src|tgt  ->  raw JSON line
     private final Map<String, String> lines = new LinkedHashMap<String, String>();
     private boolean dirty = false;
+    // in-memory mode (see inMemory): lookups work, nothing is ever written
+    private boolean ephemeral = false;
     // md5 of the cleaned original -> translated text, lazily rebuilt per
     // language pair from `lines` (see doneByTextHash). The bilingual in-page
     // pipeline (BilingualBuilder/BilingualSession) identifies paragraphs by
@@ -47,6 +49,18 @@ public class TranslationCache {
         dir.mkdirs();
         file = new File(dir, hash + ".jsonl");
         load();
+    }
+
+    /**
+     * Session-only cache: still reads the existing per-book file so already
+     * saved translations keep hitting within this session, but save()/flush()
+     * never touch the disk. Used when the user turns off "save AI translation
+     * results" — callers need no null handling, the API is identical.
+     */
+    public static TranslationCache inMemory(File book) {
+        TranslationCache c = new TranslationCache(book);
+        c.ephemeral = true;
+        return c;
     }
 
     /** Extract the content-md5 tail from a pid (both conventions). */
@@ -197,9 +211,9 @@ public class TranslationCache {
         }
     }
 
-    /** Write pending changes to disk. */
+    /** Write pending changes to disk (no-op in in-memory mode). */
     public synchronized void flush() {
-        if (!dirty) {
+        if (ephemeral || !dirty) {
             return;
         }
         BufferedWriter out = null;

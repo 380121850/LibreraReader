@@ -88,7 +88,7 @@ public class AiTranslator {
             listener.onFinished(false);
             return;
         }
-        boolean saveEnabled = AppState.get().isSaveAiTranslation;
+        boolean saveEnabled = AppState.get().aiSaveTranslation;
         TranslationCache cache = saveEnabled ? new TranslationCache(book) : null;
 
         int total = dc.getPageCount();

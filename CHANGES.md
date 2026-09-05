@@ -5,6 +5,74 @@
 
 ---
 
+## [2026-09-05] 功能：①"AI翻译结果保存"移入 AI 翻译弹窗（仅双语可用时显示、默认勾选，并首次真正控制双语路径的落盘）②修复 PDF 打开后退出误报"保存更改"③AI 大模型支持多配置方案（下拉切换、选中自动回填全部参数）
+
+**① AI翻译结果保存移位**：原"阅读配置"里的复选框（`isSaveAiTranslation`，默认关且双语路径无视它）整体移到 AI 翻译弹窗——新增 `AppState.aiSaveTranslation`（默认 true）替代旧字段；`ai_translate_dialog.xml` 在"页面内显示译文（双语对照）"正下方新增同款 `aiTranslateSave` 复选框，仅当 `isBilingualFormat()` 为真（EPUB/TXT/azw3）时显示，勾选变化立即持久化；`TranslationCache` 新增 `inMemory()` 会话临时模式（仍可命中已有缓存、save/flush 不落盘），`BilingualSession` 按开关选择真实/临时缓存——关闭后页内双语照常翻译但不写缓存文件，`AiTranslator` 列表路径沿用同一开关。移除 `fragment_preferences.xml` 与 `PrefFragment2` 中的旧复选框。
+
+**② PDF 误报"保存更改"根除**：退出提示取决于原生 `pdf_has_unsaved_changes()`，它对"本次会话发生过任意内存对象写入"即返回 true（与用户是否真编辑注释无关），且 `MuPdfDocument.isHasChanges` 粘滞缓存在保存后从不清零——打开即退也会弹窗。改为 **Java 侧会话脏标记**：`hasChanges()` 直接返回 `isHasChanges`，只在真正改文档的包装方法里置位（`MuPdfDocument.setMeta/deleteAnnotation` + `MuPdfPage.addMarkupAnnotation/addTextNote/addAnnotation(墨迹)`，JNI 全部写入入口无遗漏），`saveAnnotations()` 保存成功后清零。效果：打开→退出不再弹窗；真加注释仍正常提示/自动保存；保存后再退出不再反复提示。
+
+**③ AI 大模型多配置**：`AppState` 新增 `aiConfigs`（JSON 数组：name/protocol/baseUrl/apiKey/model/maxTokens/thinking）与 `aiConfigName`（当前激活方案名），随 app-State 参与字段级三方合并跨设备同步（key 随方案同步，沿用 app-AI.json 明文同步 key 的既有先例；激活方案的 key 继续镜像写入 AiCredentials 加密存储，`AiClient` 及全部现有调用点零改动）。AI 配置对话框顶部新增"配置方案"行：下拉列出已存方案（点选即把协议/URL/Key/模型/输出上限/思考模式全部回填）、"将当前配置保存为新方案…"（命名输入）、"删除当前配置"；保存按钮把当前控件值 upsert 回选中方案并标记激活；未选方案时行为与原单配置完全一致。新增字符串 ai_profile_*（en + zh-rCN）。
+
+**验证**（Ubuntu 构建 assembleProRelease → MI9 真机）：EPUB 弹窗"AI翻译结果保存"默认勾选且开关切换即时生效无崩溃；MOBI 弹窗两个复选框正确隐藏；big25.pdf 打开→退出无"保存更改"提示，加文本笔记退出也无提示（笔记存数据库不改 PDF），文件信息改标题走 setMeta+保存后退出干净（标题落盘且标题已恢复）；AI 配置对话框保存"测试A/测试B"两方案、下拉切换后模型名正确回填（glm-4.5-air↔glm-4.6）、保存激活后偏好行同步刷新、**应用重启后方案与激活名持久保留**。三渠道 Release 重新编译 `BUILD SUCCESSFUL`。鸿蒙零改动，未执行任何 git 命令。
+
+**遗留说明**：测试书 `Download/librera_bench/big25.pdf` 的标题已恢复为 Big25，但验证过程在其上留了一条"test note"（首页书签笔记可见，长按会打开书、本机书签列表为空无法就地删除），属无害测试痕迹，可整本删除或忽略。MI9 已装本次修复包（pro release），AI 当前激活方案为"测试A"。
+
+---
+
+## [2026-09-05] 优化：WebDAV 同步六项——进度冲突策略新增"本地优先/服务器优先"、同步后配置即时生效（防抖3s+页面重建刷新）、同步日志按"合入/更新到服务器"分组、同步日志与立即同步按钮互换、定时同步默认每5分钟、"我的文件"书库文件夹整体移到搜索之前、修复书库文件夹手动输入路径闪退
+
+**需求与修复**：
+- **进度冲突策略**：新增"本地优先"（本机进度永不覆盖）与"服务器优先"两档，默认仍为"较新优先"（`mergeProgressEntry` 按 `newer/farther/local/server` 四策略判定；对话框菜单与中英文案同步补充）。
+- **同步后配置生效慢**：①配置变更触发的自动同步防抖 10s→3s；②doSync 结束后若本轮有变更，主线程发 `UpdateAllFragments` 立即重建各标签页（"我的文件"列表、偏好行等无需重进页面）；③同步对话框 `onFinish` 即时刷新自身行与偏好页 WebDAV 行。
+- **同步日志分组**：每轮记录按"【本地合入了服务器的配置】/【本地更新了服务器的配置】"两组顺序展示，方向一目了然。
+- **按钮互换**：同步对话框底部一行改为"测试连接 · 同步日志 · 立即同步"（原"立即同步"与"同步日志"位置互换）。
+- **定时同步默认 5 分钟**：`webdavSyncIntervalMin` 默认 15→5，选项菜单新增"每 5 分钟"。
+- **"我的文件"分区**：书库文件夹（标题+文件夹列表）整体前移到"搜索"之前——搜索块移入列表下方新增的 `searchSection` 容器（`fragment_browse2.xml`），随根视图一并显隐；并新增 `onResume` 重建网络分区，同步下发的列表切换页面即可见。
+- **修复书库文件夹手动输入路径闪退**：真机复现 `BrowseFragment2.java:197` NPE——目录选择器"选择"按钮在 `TYPE_SELECT_FOLDER` 分支直接 `new File(BookCSS.get().dirLastPath)`，重装后 `dirLastPath` 为 null 必崩，且手动输入的路径完全未被使用。修复：手动输入的路径优先、为空回退当前浏览目录，空值/不可读/非目录一律 Toast 提示不再崩溃；`TYPE_SELECT_FILE/CREATE_FILE` 拼路径同样判空。
+
+**验证**（Ubuntu 构建，MI9 真机）：策略菜单四项齐全（较新/更靠前/本地/服务器优先）；定时菜单含"每 5 分钟"且本机切换后 `webdavSyncIntervalMin: 15 → 5` 即时发布（同步日志可见）；按钮顺序为"测试连接·同步日志·立即同步"；同步日志按两组方向展示（含统计合并与进度下行条目）；"我的文件"顺序为 OPDS→WebDAV→书库文件夹（标题+列表一体）→搜索；书库文件夹"+添加→添加文件夹→手动输入路径→选择"不再闪退（崩溃缓冲无新记录）。三渠道 Release 重编译 `BUILD SUCCESSFUL`。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
+## [2026-09-05] 修复：双机实测暴露"重装机首同步把陈旧本地值发布上服务器，冲掉其他设备的 AI 配置/WebDAV 列表/书库文件夹"——首同步规则改为"非空胜、同有则服务器优先、列表并集"，并用同步日志完成数据恢复
+
+**现象**（A 机重装配置同步正常后，MI9 重装配置同步）：MI9 的 AI 大模型显示未配置、「我的文件」的 WebDAV 服务器列表与书库文件夹为空；随后 A 机的这些配置也被同步冲掉。
+
+**根因**：三方合并改造中"首次同步无 base 时以服务器副本为祖先、冲突本地胜"的策略，遇到**带着陈旧个性化配置文件重装的设备**时失效——本地文件的每个字段都被判定为"本地修改"，全部本地胜并发布，把 A 机上传到服务器的 `aiBaseUrl/aiModel`（置空）、`allWebDavLinks`、书库文件夹等逐字段覆盖（MI9 的 `app-SyncLog.json` 逐条记录了这次覆盖，含被冲掉的旧值）。
+
+**改动**：新增 `firstSyncMerge()` 替换首同步合并分支——逐字段"**有一方有值就以它为准，双方都有则服务器副本优先**（服务器是其他设备收敛后的真相），列表（数组）并集保留两侧条目"，嵌套对象递归同规则；设备绑定字段、本机刚填写的同步配置（SYNC_CONFIG_FIELDS）、AppSP 身份字段仍保留本机。效果：重装/新设备首同步只会**拉取**服务器配置（本地为空的字段全部采纳；本地非空而服务器为空的字段保留并发布，可为空服务器补种），永远不会再把陈旧值覆盖上服务器；真冲突（双方都非空且不同）收敛到服务器值。
+
+**恢复**：借 `app-SyncLog.json` 记录的被覆盖旧值，回写 MI9 本地并删除 `.base` 触发首同步重新发布：`aiBaseUrl=https://open.bigmodel.cn/api/paas/v4/`、`aiModel=glm-4.5-air`、`aiMaxTokens=8192`、`allWebDavLinks=…LeeStation;`、"我的文件"WebDAV 服务器 LeeStation 与书库文件夹（并集）均已重新发布到服务器（同步日志 `[up] (空) -> …` 逐条可见）。AI key（app-AI.json 受 mergeAi 保护）全程未丢失。
+
+**验证**：MI9 装修复版后「偏好」页 AI 大模型行显示 glm-4.5-air、「我的文件」显示 LeeStation 服务器与 Books 书库文件夹；三个渠道 Release 已用修复后代码重新编译（`BUILD SUCCESSFUL`）。**A 机（旧包）只需再同步一次即可自动拉回全部配置**（其 base 也是被冲后的值，服务器恢复值按"远端变更"采纳）；建议 A 机也更新为本次新包。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
+## [2026-09-05] 重构：WebDAV 同步改字段级三方合并（base 快照，根除整文件覆盖）、修复"我的文件"WebDAV 服务器/书库文件夹同步不生效、移除 legacy 迁移、books/<hash>.json 只为打开过的书创建、新增同步变更日志
+
+**需求**：单用户多设备场景下同步配置经常异常（此前修的字号+7、单击模式被改均源于此）；「我的文件」页的 WebDAV 服务器列表与书库文件夹每次都同步不下来；要求能看到同步到底合并/修改了哪些配置项。
+
+**根因**：
+1. app-State / app-CSS / app-Misc / app-NetworkSources / Recent / Favorite 均为**整文件 mtime 新者胜**——两台设备各改不同字段时后同步方覆盖整份；且 mtime 受导出重写、设备/服务器时钟偏差影响，本机文件 mtime 偏新时服务器新列表（WebDAV 服务器、书库文件夹）每轮都被本机旧内容覆盖（已核实 UI 与同步同源：`WebDavStore.load()` 读 `AppState.allWebDavLinks`、书库文件夹读 `BookCSS.searchPathsJson`，问题出在同步通道本身）。
+2. mtime 无法表达"哪些字段被谁改过"，任何字段级冲突只能整文件二选一。
+
+**改动**（`com/foobnix/webdav/WebDavSyncer.java` 为主）：- **字段级三方合并**：新增 `syncThreeWayFile()`——本地为每个同步的全局配置文件维护 base 快照 `app-*.json.base`（仅本机、永不上传，内容=上次合并结果）；同步时对 base/本地/服务器逐字段合并：单侧修改即采纳（含字段删除）、双侧修改同字段本地胜（数组并集）、嵌套对象（app-Misc 各节、AppSP）递归合并；变化检测全部比内容、完全不依赖时钟。首次同步无 base 以服务器副本为祖先（服务器变更采纳、本地变更保留、冲突本地胜），出厂默认态仍整体采纳服务器且保护刚填写的同步配置；设备绑定字段剥离/回贴逻辑不变；网络错误本轮不动、404 种子上传语义不变。应用到 app-State（SYNC_CONFIG_FIELDS 不再仅本机，WebDAV 同步设置随三方合并跨设备同步）、app-CSS、app-Misc、app-NetworkSources（条目级）。
+- **Recent/Favorite 改条目级并集** `syncMetaUnion()`：按 path 为键、每条取新 time 胜，双向收敛，不再整文件覆盖；阅读统计 app-Stats.json 改 `mergeStats` 按键取最大值收敛。
+- **移除 legacy 迁移**：删除 `importLegacyRemoteDir()`（旧 /Librera→/HowRead 首次拷贝）与 `copyRemoteTree()`、`migrateLegacy()`（服务器旧 progress.json/bookmarks.json 导入）及 `REMOTE_LEGACY_*` 常量、仅供它们调用的 `mergeProgress()/mergeBookmarks()` 死代码；`remoteDir()` 的陈旧 "Librera"→"HowRead" 兜底保留。
+- **books/<hash>.json 只为打开过的书创建**：`buildLocalBooks()` 删除"本地无文件时按文件名兜底哈希"的上传路径（无真实本地文件的书不再上传）；远端书籍信息的发布改为仅 hash 确认本机确有该书时才执行（未打开的书由打开它的设备维护其服务器副本），进度/书签下行合并不受影响。
+- **同步变更日志**：新增 `com/foobnix/webdav/SyncChangeLog.java`——doSync 期间收集每条配置变更（文件、字段/条目、方向 合入/发布、旧值→新值，API key/口令类值掩码，循环保留最近 30 轮）；出口①logcat `BENCH` 逐条 `syncChange` 行；②本地 `app-SyncLog.json`（`AppProfile.syncLog`，仅本机）；③WebDAV 同步设置对话框新增"同步日志"入口（`dialog_webdav_sync.xml` + `webdav_sync_log`/`webdav_sync_log_empty` 字符串，中英文），弹出最近 10 轮明细。
+- **补充修复 `ProfileStateIO.importCss()`**（真机验证中发现）：CSS 与 app-State 不同，此前同步合并写入 app-CSS.json 后，`AppProfile.save()` 会把**陈旧的内存 BookCSS** 写回文件、并被同轮二次 CSS 同步发布到服务器（实测 `fontSizeSp 合入 20→24` 后紧跟 `发布 24→20` 回灌）。新增 `importCss()` 在网络源导入前把合并后的文件回读到活动 BookCSS（与 `importAppState()` 对称），回灌消除（复测仅 `合入 20→26`、无回灌）。
+
+**验证**（Ubuntu 构建 `:app:assembleProDebug`，MI9 真机；本地 wsgidav 测试服务端 + 脚本模拟"另一台设备"改服务器文件，全程不碰生产同步服务器）：
+- 种子上传：首轮同步 9 个 global 文件 + 52 本打开过的书；4 个三方文件 `.base` 生成；第二轮同步**服务器零写入**（内容比对生效，不依赖时钟）。
+- **WebDAV 服务器列表/书库文件夹下行生效（本次主诉）**：服务器端 `app-NetworkSources.json` 加入"局域网NAS"服务器与 DCIM 文件夹 → 同步后「我的文件」页 WebDAV 区显示"局域网NAS"、书库文件夹显示"DCIM"，**重启应用后仍在**；`AppState.allWebDavLinks` 同步更新。
+- 字段级合并：服务器改 `fontSizeSp 20→26` 本机不动 → 合入；同字段冲突（服务器 `appFontScale=1.4` vs 本机 `1.2`）→ **本地胜**并发布收敛；未冲突字段各自保留。
+- books/<hash>.json：设备 62 条进度记录，仅 52 本有真实本地文件的书上传（10 本文件已丢失的书不再用兜底哈希创建服务器条目），未打开的书零文件。
+- 同步日志：logcat `syncChange` 逐条 + 对话框"同步日志"显示每轮汇总（↑52本·关联52·2672ms）与逐字段"合入/发布：旧值→新值"明细。
+- 测完恢复：设备 `webdavSyncEnabled=false`、服务器/路径/间隔恢复原生产配置（leestation.ddns.net:55005 / Temp/Xiaomi / 15分钟）、测试注入的 NAS 服务器与 DCIM 文件夹移除、冲突测试改动的 appFontScale 恢复 1、`.base` 快照清除、测试 WebDAV 服务端与临时文件清理；恢复后启动无同步、无崩溃。鸿蒙零改动，未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 修复：双语"提示悬挂不消失/当前页永不翻译"（精确页内匹配+窗口漂移校准+队列确定性重建）、夜间亮度不再全黑（加下限）、主题切换字体不再跳"增大(+7)"、"单击"翻页模式保持上下翻页（设备侧关闭 WebDAV 同步并修正配置）
 
 **需求**：①当前页已翻译仍显示"本页剩 X 段"提示且页面刷新跳闪；②当前页±(后5前2)缓冲全部译完就停止翻译，不要翻整本书；③手动切日夜模式主题配置里字体大小跳回"增大(+7)"，WebDAV 同步一直异常、暂时关闭且测试期间不同步；④夜间模式亮度到 -100% 全黑要限制；⑤阅读配置"单击"默认上下翻页经常被改成左右翻页。

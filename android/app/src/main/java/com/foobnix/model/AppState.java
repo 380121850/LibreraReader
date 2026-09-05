@@ -315,12 +315,13 @@ public class AppState {
     // progress.json / bookmarks.json; picked with the folder browser
     public String webdavSyncRemoteDir = "HowRead";
     public long webdavLastSyncTime = 0;
-    // progress conflict policy: "newer" (latest edit wins) or "farther" (the
-    // position closer to the end of the book wins)
+    // progress conflict policy: "newer" (latest edit wins), "farther" (the
+    // position closer to the end of the book wins), "local" (this device
+    // wins) or "server" (the server copy wins)
     public String webdavSyncPolicy = "newer";
     // periodic background sync interval in minutes while the app is alive;
-    // on by default (15 min), 0 = off
-    public int webdavSyncIntervalMin = 15;
+    // on by default (5 min), 0 = off
+    public int webdavSyncIntervalMin = 5;
     public String webdavLastSyncInfo = "";
 
     // AI LLM provider config (see AiClient): protocol routing key plus the
@@ -334,8 +335,17 @@ public class AppState {
     // come straight without a long reasoning section
     public boolean aiThinking = false;
     // persist AI translation results to a per-book JSONL cache (keyed by the
-    // book content SHA-256) so re-translating hits the cache instead of the API
-    public boolean isSaveAiTranslation = false;
+    // book content SHA-256) so re-translating hits the cache instead of the
+    // API; toggled by the "save AI translation results" checkbox in the AI
+    // translate dialog (only shown for books that support in-page bilingual)
+    public boolean aiSaveTranslation = true;
+    // saved AI provider profiles for the AI config dialog dropdown: a JSON
+    // array of {name, protocol, baseUrl, apiKey, model, maxTokens, thinking}.
+    // The active profile's fields are mirrored into aiProtocol/aiBaseUrl/...
+    // and its key into AiCredentials (which stays the runtime key store), so
+    // existing call sites keep working unchanged.
+    public String aiConfigs = "[]";
+    public String aiConfigName = "";
     // AI bilingual in-page mode: while aiBilingual is on and aiBilingualBook
     // matches the book being opened, the text-book open chain (see
     // BilingualBuilder) appends a translated block under every source

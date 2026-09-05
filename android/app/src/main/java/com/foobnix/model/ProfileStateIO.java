@@ -419,6 +419,31 @@ public class ProfileStateIO {
         }
     }
 
+    /**
+     * Re-read the synced app-CSS.json into the live BookCSS (in place), so the
+     * styling merged from the server applies to the running app — and is not
+     * clobbered by the stale in-memory copy when AppProfile.save() persists
+     * the profile right after the sync (which would then publish the stale
+     * values to the server on the second CSS sync of the same round). The
+     * merged file keeps the local device-bound path fields, so loading it
+     * wholesale is safe. Must run BEFORE importNetworkSources(): the dedicated
+     * network-source file wins for searchPathsJson (书库文件夹).
+     */
+    public static void importCss() {
+        try {
+            if (AppProfile.syncCSS == null || !AppProfile.syncCSS.isFile()) {
+                return;
+            }
+            LinkedJSONObject o = IO.readJsonObject(AppProfile.syncCSS);
+            if (o.length() == 0) {
+                return;
+            }
+            com.foobnix.android.utils.Objects.loadFromJson(BookCSS.get(), o);
+        } catch (Exception e) {
+            LOG.e(e);
+        }
+    }
+
     // ------------------------------------------------- network sources (OPDS / WebDAV / 书库文件夹)
 
     private static final String SEC_NET_OPDS = "opds";

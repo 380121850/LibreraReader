@@ -191,6 +191,7 @@ public class MuPdfDocument extends AbstractCodecDocument {
         try {
             LOG.d(this.getClass(), "setMetaData", key, value);
             setMetaData(documentHandle, key, value);
+            markDirty();
         } finally {
             TempHolder.lock.unlock();
         }
@@ -375,24 +376,22 @@ public class MuPdfDocument extends AbstractCodecDocument {
 
     private native void saveInternal(long handle, String path);
 
-    private native boolean hasChangesInternal(long handle);
-
+    /**
+     * Session-dirty flag for the exit "save changes?" decision. Deliberately
+     * Java-side only: the native pdf_has_unsaved_changes() also reports true
+     * whenever any in-session object write happened (not tied to a user edit),
+     * which made a freshly opened PDF prompt for unsaved changes on exit.
+     * Set by the mutating wrappers (setMeta, deleteAnnotation and the page
+     * annotation additions), cleared after a successful save.
+     */
     boolean isHasChanges = false;
 
-    @Override public boolean hasChanges() {
+    public void markDirty() {
+        isHasChanges = true;
+    }
 
-        if (isHasChanges) {
-            LOG.d("hasChanges cache");
-            return true;
-        }
-        TempHolder.lock.lock();
-        try {
-            LOG.d("hasChanges internal");
-            isHasChanges = hasChangesInternal(documentHandle);
-            return isHasChanges;
-        } finally {
-            TempHolder.lock.unlock();
-        }
+    @Override public boolean hasChanges() {
+        return isHasChanges;
     }
 
     @Override public void saveAnnotations(String path) {
@@ -400,6 +399,7 @@ public class MuPdfDocument extends AbstractCodecDocument {
         TempHolder.lock.lock();
         try {
             saveInternal(documentHandle, path);
+            isHasChanges = false;
             LOG.d("Save Annotations saveInternal 2");
         } finally {
             TempHolder.lock.unlock();
@@ -414,6 +414,7 @@ public class MuPdfDocument extends AbstractCodecDocument {
         TempHolder.lock.lock();
         try {
             deleteAnnotationInternal(documentHandle, pageHandle, index);
+            markDirty();
         } finally {
             TempHolder.lock.unlock();
         }

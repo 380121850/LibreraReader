@@ -72,6 +72,7 @@ public class AiTranslateDialog {
         final TextView start = (TextView) view.findViewById(R.id.aiTranslateStart);
         final TextView cancel = (TextView) view.findViewById(R.id.aiTranslateCancel);
         final CheckBox modeBox = (CheckBox) view.findViewById(R.id.aiTranslateMode);
+        final CheckBox saveBox = (CheckBox) view.findViewById(R.id.aiTranslateSave);
         final TextView offView = (TextView) view.findViewById(R.id.aiTranslateOff);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(a,
@@ -137,6 +138,25 @@ public class AiTranslateDialog {
                     dc.restartActivity();
                 }
             });
+        }
+        if (saveBox != null) {
+            if (!bilingualPossible) {
+                // saving results belongs to the bilingual flow; the legacy list
+                // panel keeps whatever value was last set
+                saveBox.setVisibility(View.GONE);
+            } else {
+                saveBox.setChecked(AppState.get().aiSaveTranslation);
+                // persist immediately: "start" may be disabled (bilingual
+                // already active) and the list-panel path reads the value too
+                saveBox.setOnCheckedChangeListener(
+                        new android.widget.CompoundButton.OnCheckedChangeListener() {
+                            @Override public void onCheckedChanged(
+                                    android.widget.CompoundButton buttonView, boolean isChecked) {
+                                AppState.get().aiSaveTranslation = isChecked;
+                                AppProfile.save(a);
+                            }
+                        });
+            }
         }
 
         // detect the source language in the background (metadata, then sampling);

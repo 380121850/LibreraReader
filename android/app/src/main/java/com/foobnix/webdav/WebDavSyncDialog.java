@@ -48,11 +48,13 @@ public class WebDavSyncDialog {
         final TextView intervalValue = (TextView) view.findViewById(R.id.webdavSyncIntervalValue);
         final TextView test = (TextView) view.findViewById(R.id.webdavSyncTest);
         final TextView syncNow = (TextView) view.findViewById(R.id.webdavSyncNow);
+        final TextView logLink = (TextView) view.findViewById(R.id.webdavSyncLog);
         final TextView status = (TextView) view.findViewById(R.id.webdavSyncStatus);
         final MyProgressBar progress = (MyProgressBar) view.findViewById(R.id.webdavSyncProgress);
 
         TxtUtils.underlineTextView(test);
         TxtUtils.underlineTextView(syncNow);
+        TxtUtils.underlineTextView(logLink);
         TxtUtils.underlineTextView(policyValue);
         TxtUtils.underlineTextView(remoteValue);
         TxtUtils.underlineTextView(intervalValue);
@@ -102,10 +104,16 @@ public class WebDavSyncDialog {
                 PopupMenu popup = new PopupMenu(a, v);
                 popup.getMenu().add(R.string.webdav_sync_policy_newer);
                 popup.getMenu().add(R.string.webdav_sync_policy_farther);
+                popup.getMenu().add(R.string.webdav_sync_policy_local);
+                popup.getMenu().add(R.string.webdav_sync_policy_server);
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override public boolean onMenuItemClick(android.view.MenuItem item) {
                         if (item.getTitle().equals(a.getString(R.string.webdav_sync_policy_farther))) {
                             AppState.get().webdavSyncPolicy = "farther";
+                        } else if (item.getTitle().equals(a.getString(R.string.webdav_sync_policy_local))) {
+                            AppState.get().webdavSyncPolicy = "local";
+                        } else if (item.getTitle().equals(a.getString(R.string.webdav_sync_policy_server))) {
+                            AppState.get().webdavSyncPolicy = "server";
                         } else {
                             AppState.get().webdavSyncPolicy = "newer";
                         }
@@ -119,10 +127,11 @@ public class WebDavSyncDialog {
         });
 
         intervalValue.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(final View v) {
+            @Override public void onClick(View v) {
                 PopupMenu popup = new PopupMenu(a, v);
                 popup.getMenu().add(0, 0, 0, R.string.webdav_sync_interval_off);
-                popup.getMenu().add(0, 15, 1, R.string.webdav_sync_interval_15);
+                popup.getMenu().add(0, 5, 1, R.string.webdav_sync_interval_5);
+                popup.getMenu().add(0, 15, 2, R.string.webdav_sync_interval_15);
                 popup.getMenu().add(0, 30, 2, R.string.webdav_sync_interval_30);
                 popup.getMenu().add(0, 60, 3, R.string.webdav_sync_interval_60);
                 popup.getMenu().add(0, 180, 4, R.string.webdav_sync_interval_180);
@@ -238,6 +247,12 @@ public class WebDavSyncDialog {
                     @Override public void onFinish(WebDavSyncer.SyncResult r) {
                         progress.setVisibility(View.GONE);
                         syncNow.setEnabled(true);
+                        // the sync applied imported config to the singletons:
+                        // refresh this dialog's rows and the settings row
+                        // behind it immediately instead of on the next visit
+                        if (onRefresh != null) {
+                            onRefresh.run();
+                        }
                         if (r.ok) {
                             status.setText(a.getString(R.string.webdav_sync_ok,
                                     r.progressUp, r.progressDown, r.bookmarksUp, r.bookmarksDown));
@@ -254,6 +269,27 @@ public class WebDavSyncDialog {
                         }
                     }
                 });
+            }
+        });
+
+        // sync change log: which config fields the recent syncs merged down
+        // from the server or published to it (old → new per item)
+        logLink.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                final String text = SyncChangeLog.recentText(10);
+                final TextView content = new TextView(a);
+                content.setText(TxtUtils.isEmpty(text)
+                        ? a.getString(R.string.webdav_sync_log_empty) : text);
+                content.setTextSize(12);
+                content.setPadding(24, 16, 24, 16);
+                content.setTextIsSelectable(true);
+                final android.widget.ScrollView scroll = new android.widget.ScrollView(a);
+                scroll.addView(content);
+                new AlertDialog.Builder(a)
+                        .setTitle(R.string.webdav_sync_log)
+                        .setView(scroll)
+                        .setPositiveButton(R.string.close, null)
+                        .show();
             }
         });
 
@@ -281,6 +317,10 @@ public class WebDavSyncDialog {
     private static void refreshPolicyLabel(TextView policyValue) {
         if ("farther".equals(AppState.get().webdavSyncPolicy)) {
             policyValue.setText(R.string.webdav_sync_policy_farther);
+        } else if ("local".equals(AppState.get().webdavSyncPolicy)) {
+            policyValue.setText(R.string.webdav_sync_policy_local);
+        } else if ("server".equals(AppState.get().webdavSyncPolicy)) {
+            policyValue.setText(R.string.webdav_sync_policy_server);
         } else {
             policyValue.setText(R.string.webdav_sync_policy_newer);
         }
@@ -289,6 +329,9 @@ public class WebDavSyncDialog {
     /** The periodic-sync interval as a human label ("Off", "Every hour"…). */
     private static void refreshIntervalLabel(TextView intervalValue) {
         switch (AppState.get().webdavSyncIntervalMin) {
+        case 5:
+            intervalValue.setText(R.string.webdav_sync_interval_5);
+            break;
         case 15:
             intervalValue.setText(R.string.webdav_sync_interval_15);
             break;
