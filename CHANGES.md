@@ -21,6 +21,20 @@
 
 ---
 
+## [2026-09-05] 官网首批反馈修复：①在线阅读器加载 PDF 报 TypeError（GitHub Pages 掐断 emscripten 同步 XHR，worker 永不 READY）②中文界面点"关于App"变英文（根页 URL 判定失配）③FAQ/更新日志区分当前版与旧版存档 ④侧栏阅读器入口中文化
+
+**① 在线阅读器**（浏览器实测定位）：`mupdf-view-worker.js` 里 emscripten 胶水用**同步 XMLHttpRequest** 加载 14.4MB 的 `mupdf-wasm.wasm`，在 GitHub Pages CDN 上约 25 秒后抛 `NetworkError: Failed to execute 'send' on 'XMLHttpRequest'`（curl 直取同一文件 200 正常，问题仅出在同步 XHR 路径）；worker 因此永远发不出 READY，主线程 `mupdfView` 只有 3 个硬编码方法，`openDocumentFromBuffer` 等全部缺失，打开 PDF 即报 `TypeError: this.mupdfWorker.openDocumentFromBuffer is not a function`。修复：worker 先 importScripts 胶水（仅定义工厂），再 `fetch("lib/mupdf-wasm.wasm")` 异步预载二进制，包装工厂注入标准 `wasmBinary` 参数后 importScripts 绑定库完成实例化，全部 workerMethods/onmessage/READY 逻辑移入 start()，结构不变；fetch 失败时向页面 postMessage ERROR（页面 UI 显示真实错误而非永久 Loading）。无需重新编译 wasm。
+
+**② 中文界面**：GitHub Pages 构建下根页 `page.url` 不是 `/index.html`（实测英文侧栏、语言选择器显示 English），`codes.md` 根页判定失配 → 根页被当英文页渲染界面（正文仍是中文），从 /zh 点"关于App"跳根页即"变成英文"。修复：根页判定兼容 `/`、`/index.html`、`''` 等形式（`bare_url` 归一化），根页侧栏恢复中文。
+
+**③ FAQ/更新日志分区**：仿隐私政策页结构——`faq/index.md`、`faq/zh.md` 页首新增「HowRead 好好读（当前版本）」小节（在线阅读器/下载/隐私/GitHub 反馈入口），45 篇旧文章整体归入「旧版 Librera FAQ（存档）」并注明"功能概念仍适用、界面可能不同"；`what-is-new/index.md`、`zh.md` 新增「HowRead 更新日志（当前版本）」（当前版本 0.9.x，指向 GitHub Releases），7.10–8.9.x 旧日志归入存档小节。
+
+**④ 侧栏入口**：`_layouts/main.html` 侧栏阅读器链接在中文界面显示「HowRead在线阅读」，其他语言保持 "Online Book Reader"。
+
+**验证**：worker 文件过 node --check 语法检查；推送后 Run #3 由 GitHub Actions 验证，线上用浏览器实测阅读器打开 PDF、根页中文界面、FAQ/日志分区与侧栏中文入口。未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 定位并修复：A机「阅读配置→单击」被改回左右翻页——隐藏的"按格式指定阅读模式"开关（isPrefFormatMode）在打开书籍时按扩展名静默覆盖单击设置
 
 **根因**（A机真机定位）：「单击」的值是 `AppSP.readingMode`（1=上下翻页，2=左右翻页）。A机与 MI9 的 `app-State.json` 里 `isPrefFormatMode=true`——这是"按扩展名决定打开模式"的隐藏功能（其唯一入口"更多模式设置"齿轮按钮在布局里 visibility=gone，界面找不到也关不掉）。`ExtUtils.showDocumentWithoutDialog2` 在该开关开启时按扩展名静默改写 readingMode：`prefScrollMode="pdf, djvu"→上下翻页`、`prefBookMode="epub, mobi, fb2, azw, azw3"→左右翻页`。A机主要在读 (官场小说).mobi——每打开一次 mobi/epub，单击就被改回左右翻页；同步日志中 readingMode 1↔2 的多次翻转与 lastBookPath 换书记录完全吻合。readingMode 又随 app-Misc.json 同步，翻转会被广播到所有设备。同步合并逻辑本身无责。

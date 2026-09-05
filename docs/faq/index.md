@@ -5,6 +5,17 @@ info: this file is generated automatically, please do not modify it
 
 # Frequently Asked Questions
 
+## HowRead 好好读 (current version)
+
+* [HowRead在线阅读 — read PDF / EPUB / FB2 / CBZ in your browser, no install needed]({{ site.baseurl }}/online-book-reader/)
+* [Download HowRead (Google Play / F-Droid / GitHub Releases)]({{ site.baseurl }}/download)
+* [Privacy Policy]({{ site.baseurl }}/PrivacyPolicy)
+* [Questions & feedback on GitHub](https://github.com/380121850/howread/issues)
+
+## Legacy Librera FAQ (archive)
+
+> The articles below were written for the legacy Librera Reader app. Most concepts still apply to HowRead, but menus and icons may differ.
+
 * [Configure tab zones size  left/right/top/bottom]({{ site.baseurl }}/faq/tap-zones-configuration)
 * [Working with _Librera_'s Profiles]({{ site.baseurl }}/faq/working-with-profiles)
 * [Working with OPDS Catalogs]({{ site.baseurl }}/faq/working-with-opds-online-catalogs)

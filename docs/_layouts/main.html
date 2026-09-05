@@ -23,7 +23,11 @@
 
 
         <h1 class="site-title"><a href="{{ site.baseurl }}/{{lang}}">HowRead · 好好读</a>  </h1>
+        {% if full == '中文' %}
+        <h2><a href="{{ site.baseurl }}/online-book-reader/" target="_blank">HowRead在线阅读</a></h2>
+        {% else %}
         <h2><a href="{{ site.baseurl }}/online-book-reader/" target="_blank">Online Book Reader</a></h2>
+        {% endif %}
 
      {% capture my_include %}{% include menu.md %}{% endcapture %}
    {{ my_include | markdownify }}

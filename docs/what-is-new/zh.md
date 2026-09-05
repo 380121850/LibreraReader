@@ -4,6 +4,15 @@ layout: main
 
 # 新功能
 
+## HowRead 好好读（当前版本）
+
+* [GitHub Releases 与版本说明](https://github.com/380121850/howread/releases)
+* 当前版本：**0.9.x** — APK 下载见[下载页]({{ site.baseurl }}/download/zh)。
+
+## 旧版 Librera 更新日志（存档）
+
+> 以下日志覆盖旧版 Librera Reader 版本（7.10 – 8.9.x）。
+
 ### [8.9.54] 强调色
 
 ||||
