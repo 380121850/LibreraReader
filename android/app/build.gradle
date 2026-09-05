@@ -13,7 +13,7 @@ ext {
     // All flavors share ONE version, read from app/gradle.properties
     // (appCodeNumber / appVersionNumberBase / appVersionNumberIndex).
     // The fdroid-fixed 9.4.21/7174 override was removed 2026-09-02: version
-    // numbers are unified (currently 0.9.0/7198) across google/pro/fdroid.
+    // numbers are unified (currently 1.0.0/7200) across google/pro/fdroid.
     codeNumber = Integer.parseInt(appCodeNumber)
     versionNumber = appVersionNumberBase + "." + appVersionNumberIndex
 
@@ -22,7 +22,7 @@ ext {
 }
 
 // Generates com.foobnix.pdf.info.BuildTime with the compilation timestamp on
-// every build (shown on the 软件说明 page). A generated source file instead of
+// every build (shown on the 杞欢璇存槑 page). A generated source file instead of
 // buildConfigField: the configuration cache would freeze a buildConfigField
 // value, so incremental builds would show a stale time.
 def genBuildTime = tasks.register("generateBuildTimeSource") {
@@ -262,7 +262,7 @@ android {
     // GMS-free flavors (fdroid, pro) compile the no-op provider from src/noAds
     // so their APKs contain no ad-SDK code at all (F-Droid requirement). Both
     // groups provide the same AdsProviderFactory class name, like the
-    // LibreraBuildConfig pattern — never compiled into the same variant.
+    // LibreraBuildConfig pattern 鈥?never compiled into the same variant.
     ['google'].each { fl ->
         sourceSets[fl].java.srcDirs += ['src/admobAds/java']
         sourceSets[fl].manifest.srcFile('src/admobAds/AndroidManifest.xml')

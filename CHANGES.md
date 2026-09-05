@@ -5,6 +5,50 @@
 
 ---
 
+## [2026-09-06] 官网带宽优化：删除 pdf.js 源码映射与 Librera 历史版本截图（保留最新 8.9 系列），全站 399 张图片转 WebP，站点体积 105MB→33MB（-69%）
+
+**改动**：①删除 `docs/online-book-reader/pdf/` 下 3 个 `.map` 源码映射（8.6MB，线上永不加载）；②`docs/what-is-new/` 删除 8.9 以前的历史版本发布截图（根目录 48 张 + 7.10~8.3 版本子目录 65 张），保留最新 8.9 系列 12 张，并清理 60 个中英文 md 里对已删截图的引用（含空表格残留）；③其余全部站点图片（399 张：首页截图/图标页/css 配图/369 张 FAQ 截图/手册图）批量转 WebP（质量 80，58.4MB→14.4MB，-75%），原 PNG/JPG 删除，477 个 md/css/布局文件内的引用同步改写；favicon（`web/256.png`）与 og:image 保持 PNG，页面内 `<img>` 图标改用新增的 `web/256.webp`（94KB→7KB）；④顺手清理 what-is-new 页内 60 处指向不存在目录 `manual/` 的死图片引用（上游遗留）；⑤首页图片转 WebP 后 109/116/315KB→约 47/44/50KB。
+
+**修复过程**（批量改写引发的三处回归，均已修复并验证）：引用改写映射曾误带目录前缀导致 427 个文件引用损坏（反向替换修复）；空表格清理误删 front matter `---` 分隔线（120 处恢复）；跨主题图片引用丢失 `../` 前缀（1448 处按站点根相对解析修复）。
+
+**验证**：jekyll 重建后 chrome 链接审计 8509 条全过、构建产物 webp 引用零缺失、md 内损坏图片引用零残留；浏览器实测首页（webp 图标+三张截图）、FAQ 页（9 张跨主题 webp 全载）、更新日志页（仅剩 8.9.54/8.9.50 最新系列 3 张）。docs 目录 105MB→33MB。未执行任何 git 命令。
+
+## [2026-09-06] 用户手册同步刷新 v1.0.0:定位语对齐官网、版本号 1.0.0、WebDAV 截图匿名化
+
+**改动**:①手册定位语与官网首页统一——封面副标题与 1.1 首句由「高度可定制的电子书阅读器」改为「一个专注于个人阅读体验的开源电子书阅读软件」;②版本号随 v1.0.0 升级刷新——封面「适用版本」与 1.3「当前版本」改为 HowRead 1.0.0(versionCode 7200);手册文件名不带版本号,定名 `store/manual/HowRead用户手册.docx`,旧 `-0.9.docx` 删除;③真机截图 WebDAV 信息匿名化——`img/hr09.png`(WebDAV 同步配置)服务器地址 leestation.ddns.net:55005→dav.example.com:5005、账号 Lee→demo、同步路径 /home/Drive/Books/howread→/dav/Books,`img/hr05.png` 服务器名 LeeStation→MyNAS(PIL 擦除原文字后按原图字色/字号重绘,输入框下划线完整重绘,尺寸保持 1080x2221,原图备份于 bench/hr_backup/)。
+
+**验证**:重新生成 DOCX+TOC 占位(36 条)+页脚域修补,postcheck 0 错误;Word 导出 PDF(27 页)渲染后 judge 验收受影响 5 页(封面/1.1/1.3/图11 同步配置/图13 我的文件)全部通过——新定位语与 1.0.0 版本号生效、截图中无真实域名/账号残留、下划线与版式无回归。未执行任何 git 命令。
+
+## [2026-09-06] 版本升级 v1.0.0 + 软件说明措辞微调
+
+**改动**:①版本号由 0.9.0 升级为 1.0.0(`android/app/gradle.properties` 的 appVersionNumberBase 0.9→1.0,appCodeNumber 7198→7200 保持单调递增,三渠道 google/pro/fdroid 统一生效,`app/build.gradle` 注释同步);②软件说明页描述"一个专注于个人阅读体验的开源电子书阅读器"改为"一个专注于个人阅读体验的开源电子书阅读软件"(values-zh-rCN/strings.xml 的 app_description)。
+
+**验证**:Ubuntu 服务器构建三渠道 Release APK 全部 BUILD SUCCESSFUL,产物 HowRead-1.0.0-arm64.apk / HowRead-Pro-1.0.0-arm64.apk / HowRead-Fdroid-1.0.0-arm64.apk。未执行任何 git 命令。
+
+## [2026-09-06] 官网素材升级：应用图标与首页截图替换为 HowRead 真实素材
+
+**改动**：①`docs/web/256.png` 由旧 Librera 绿色图标替换为 HowRead 新图标（书+「书」字金色设计，取自 `bench/howread_cleaned.png` 1536px 原图缩至 256px，站点导航栏/Hero/页脚/favicon/og:image 全部同步生效）；②首页三张截图 `docs/1.png/2.png/3.png` 由旧 Librera 英文占位图替换为 HowRead 真机截图（`store/manual/img/` 的 hr01 首页书架+阅读统计、hr04 书库网格、hr12 阅读器划词菜单），统一缩放至 720px 宽并做 256 色量化压缩（453/325/160KB→109/116/315KB，照顾国内带宽）；③旧素材备份于 `bench/tmp/backup_site_assets/`。
+
+**验证**：本地 jekyll 重建 + 浏览器实测，新图标（导航栏/Hero）与三张真机截图渲染清晰、点击放大正常；中英首页与旧版 zh.md 页面引用同一组文件，全部自动更新。未执行任何 git 命令。
+
+## [2026-09-06] 用户使用手册刷新:基于 CHANGES.md 全量梳理,附录重写为「与原版 Librera Reader 对比」(A.1 功能表 / A.2 界面优化 / A.3 懒加载性能优化+提速数据 / A.4 渠道工程),正文补书架视图与性能条目
+
+**改动**:①通读 CHANGES.md 全部条目(2026-08-12~09-06)汇总 HowRead 相对原版的全部差异;②附录由 4 条要点扩为四节——A.1 全新功能一览(表7:AI 交互/页内双语翻译/笔记/WebDAV 同步/阅读统计/首页仪表盘/书架视图/在线阅读器)、A.2 界面与交互优化(图标与 MIUI 绿边修复、阅读底栏四行精简两行、触控区 25→40dp、软件说明改版、OPDS 源精简、书库滚动位置记忆)、A.3 性能优化(引擎懒加载、标签页懒创建、按章惰性排版、首屏门闩、同步零冗余,附表8 提速实测:TXT 热 27~30s→0.09s、EPUB 冷首屏 17.2→7.1s、TXT 直转 28.5→12s、MOBI 二开页数坍缩修复)、A.4 渠道工程与多平台(三渠道统一版本、广告 SDK 抽象、去 GMS、官网+在线阅读器、HarmonyOS);③第 3 章补书架视图描述(木纹搁板/进度角标/收藏星标/四视图)、1.1 增加性能懒加载条目;④1.2 节段前分页修复表 1 跨页孤行。
+
+**验证**:postcheck 0 错误;Word 导出 PDF(27 页)渲染后 judge 逐页验收,首轮仅表 1 跨页孤行一处 fail,分页修复后复验 27/27 通过。未执行任何 git 命令。
+
+## [2026-09-06] 新增用户使用手册:store/manual/HowRead用户手册-0.9.docx(中文 DOCX,封面/目录/10 章+附录/16 张 MI9 真机截图/6 张表格)
+
+**内容**:按"软件概述→安装配置→书库→阅读→AI 大模型交互→笔记→WebDAV 同步→阅读统计→备份迁移→常见问题→基于 Librera 的修改说明"大纲撰写,重点突出 HowRead 新增的 AI(问答/翻译双语对照/书籍简介)、笔记(按书分组/TXT·Markdown·JSON 导出)、WebDAV 同步(冲突策略/定时同步/同步日志/文件浏览)与阅读统计(5 卡片+周月柱状图)四大特色功能;所有界面入口、菜单文案、默认值均从源码(strings.xml/AiConfigDialog/WebDavSyncDialog/DashboardFragment2 等)核实。**配图**:MI9 真机(adb + uiautomator2)逐屏截取 19 张——首页仪表盘、统计柱状图、书架、我的文件、添加 WebDAV、偏好、AI 配置(密钥为掩码未泄露)、WebDAV 同步、同步日志、阅读界面、选中文本浮层、AI 问答(真实 glm-4.5-air 回答)、笔记编辑器、书签笔记列表、AI 笔记全文、AI 翻译、书籍操作菜单等,截图统一裁去系统状态栏/手势条(bench/crop_img.py)。
+
+**验证**:docx-js 生成(封面 R1/三节页码 罗马+阿拉伯/TOC 域)+ add_toc_placeholders 注入 32 条目录 + fix_footer_fields 修补页脚域;postcheck 0 错误;Word 导出 PDF(26 页)渲染 PNG 后逐页视觉验收 26/26 通过(封面铺满、目录页码、表格无跨页断裂、图注同页、无乱码)。生成脚本与中间产物在 bench/docxgen(不入库)。未执行任何 git 命令。
+
+## [2026-09-06] 官网全站改版：套用 App-Showcase-Template 展示模板（GPL-3.0），首页改为 Hero+功能卡片+更新日志手风琴+下载区，全站 606 页换新导航栏/页脚
+
+**改动**：①新增 `docs/showcase/style.css` + `script.js`（基于 yxs2003/App-Showcase-Template 改编，GPL-3.0 署名保留于文件头与页脚；顺手补上模板缺失的 ripple 关键帧动画；去掉模板的 SyncPro 下载弹窗，改为真实链接）；②新增 `_layouts/home.html`（首页展示布局：导航/Hero/6 功能卡/真机截图/关于+数字/更新日志手风琴/4 下载卡/页脚）与 `_layouts/page.html`（子页通用布局，保留旧版的返回链接与 versions 引用逻辑、图片点击放大 modal）；③新增 `_includes/navbar.md`（全站导航 + 中英切换）与 `_data/changelog.yml`（首页手风琴最近 3 条中英数据）；④`index.md`/`en.md` 改为数据化 front matter 驱动的 home 布局；⑤其余 606 个 md（download/faq/what-is-new/PrivacyPolicy/wiki 等全部语言）由 `layout: main` 批量换为 `layout: page`，正文零改动；⑥旧 `main.html`/`wiki.css` 保留不再引用；在线阅读器页面为独立应用界面，不套官网外壳；⑦语言切换规则：优先当前目录的语言变体（Liquid 存在性校验），目录无对应语言文件时回落到目标语言首页；导航/页脚链接全部使用显式 `.html` 后缀，不依赖 GH Pages 的无扩展名解析。
+
+**验证**：Ubuntu 服务器 apt 安装 ruby3.0 + gem 安装 jekyll4.4.1（清华镜像），按 GH Pages 同构方式构建（baseurl /howread）并 :8767 起本地服务；browser-use 黑盒遍历截图——中/英首页（Hero、6 功能卡、截图区、手风琴展开、下载 4 卡、页脚 GPL 署名）、FAQ 图片点击放大、窄屏 390px 汉堡菜单、导航锚点滚动偏移、语言切换 6 个场景（含深层 FAQ 子页与 wiki 页）全部正确；navbar/footer 链接审计 8509 条全部命中磁盘文件；旧内容里历史遗留的无扩展名链接（GH Pages 可解析）未改动。未执行任何 git 命令。
+
 ## [2026-09-05] 全量 BUG 修复：两轮独立代码审查合并清单（除两处存疑项外全修），约 40 项，覆盖同步引擎/持久化/AI/阅读引擎/UI 五个板块
 
 **同步/持久化（数据安全主线）**：①WebDAV 列目录失败时跳过书籍上传与服务器删除阶段（此前网络抖动会把本地全部书籍信息以旧进度全量重传覆盖服务器）；②`syncThreeWayFile` 稳态下远端 404/空文件不再被当作"远端全字段删除"——原逻辑会清空本地配置并广播到所有设备（历史配置丢失事故的完整根源），现按首同步处理为"本地上传播种"；③`buildInfoWithHash` 的 `t=now` 不再混入变更比较（新增 `sameIgnoringT`）：修掉了每台设备每轮同步对每本书无条件 PUT 的风暴，`booksSynced` 统计改为真实上传数；④doSync 回写改为 `mergeSnapshotsAtEnd` 增量合并（进度按键比较 t 新者胜、书签并集、写回前按最新墓碑删除已删键）——同步期间翻页/加删书签不再被陈旧快照吞掉；⑤墓碑生命周期三重修复：新增 `DeletedBooks.expireOlderThan`（30 天过期）、列目录成功后清除服务器上已不存在的陈旧墓碑（防止日后误删同名新书的服务器信息）、发布信息携带 `dk`(键→删除时间) 供其它设备应用/越过删除（多设备删除不再复活）；⑥`IO.java` 加固：`getLock` 改 ConcurrentHashMap（修复多线程 HashMap 竞态导致锁失效）、`writeString` 临时文件+rename 原子替换+显式 UTF-8（进程死亡不再产生截断 JSON）、`readJsonObject` 解析失败先把损坏内容备份为 `*.corrupt`（不再静默清空）、`readString` 缓存键加入分隔符标志（修 .txt 编辑器换行丢失）、`copyFile` 后失效缓存；⑦`merge3` 双端新增嵌套对象改 firstSyncMerge 结构合并（不再丢远端整对象）、`unionArrays` 保留元素类型与标量侧（不再把对象压成字符串）；⑧404 判定去掉消息子串匹配（URL 含 404 的哈希不再被误判）；⑨`SyncChangeLog` 加 begun 守卫（异常路径不再重复提交上一轮日志）；⑩Sardine/OkHttp 客户端按凭据缓存复用（不再每轮新建连接池）；⑪备份恢复/异机配置采纳：`unZipFolder` 解压后删除外来 `.base/.tmp/.corrupt`、`adoptForeignDeviceConfigs` 采纳后同步写 base=采纳内容（不再把恢复配置误判为本地改动强推服务器）；⑫`JsonDB.get` 不再每次排序（保持用户顺序）、解析失败返回可变列表（修 add/remove 崩溃）；⑬书签键同毫秒碰撞时 t+1ms 挪位（不再互相覆盖）。
