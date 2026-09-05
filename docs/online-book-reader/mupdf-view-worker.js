@@ -36,22 +36,47 @@ importScripts("lib/mupdf-wasm.js")
 // Prefer the pre-gzipped copy (7.7 MB) decompressed natively in the browser —
 // GitHub Pages does not compress .wasm on the wire, and raw downloads stall on
 // slow/limited links (e.g. github.io access from China).
-function loadWasmBinary() {
-	const loadPlain = () =>
-		fetch("lib/mupdf-wasm.wasm").then((response) => {
-			if (!response.ok)
-				throw new Error("Failed to load mupdf-wasm.wasm: HTTP " + response.status)
+function concatChunks(chunks, totalLength) {
+	const out = new Uint8Array(totalLength || chunks.reduce((n, c) => n + c.length, 0))
+	let offset = 0
+	for (const chunk of chunks) {
+		out.set(chunk, offset)
+		offset += chunk.length
+	}
+	return out.buffer
+}
+
+function fetchWithProgress(url) {
+	return fetch(url).then((response) => {
+		if (!response.ok)
+			throw new Error("Failed to load " + url + ": HTTP " + response.status)
+		const totalHeader = response.headers.get("Content-Length")
+		const total = totalHeader ? parseInt(totalHeader, 10) : 0
+		if (!response.body || !total) {
+			// No streaming support or unknown size — fall back to a single buffer.
 			return response.arrayBuffer()
-		})
+		}
+		const reader = response.body.getReader()
+		const chunks = []
+		let received = 0
+		function pump(chunk) {
+			if (chunk.done)
+				return concatChunks(chunks, total)
+			chunks.push(chunk.value)
+			received += chunk.value.length
+			postMessage([ "PROGRESS", { received, total } ])
+			return reader.read().then(pump)
+		}
+		return reader.read().then(pump)
+	})
+}
+
+function loadWasmBinary() {
+	const loadPlain = () => fetchWithProgress("lib/mupdf-wasm.wasm")
 	if (typeof DecompressionStream !== "function") {
 		return loadPlain()
 	}
-	return fetch("lib/mupdf-wasm.wasm.gz")
-		.then((response) => {
-			if (!response.ok)
-				throw new Error("Failed to load mupdf-wasm.wasm.gz: HTTP " + response.status)
-			return response.arrayBuffer()
-		})
+	return fetchWithProgress("lib/mupdf-wasm.wasm.gz")
 		.then((gzBuffer) =>
 			new Response(new Blob([ gzBuffer ]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()
 		)

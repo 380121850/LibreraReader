@@ -5,6 +5,14 @@
 
 ---
 
+## [2026-09-05] 官网在线阅读器增加 wasm 下载进度显示：worker 流式读取统计已接收字节并 postMessage PROGRESS，页面 Loading 区显示百分比+进度条+已下载/总量
+
+**实现**：`mupdf-view-worker.js` 新增 `fetchWithProgress()`——用 `response.body.getReader()` 流式读取 wasm（.gz 优先，回退 .wasm），按 Content-Length 统计进度，每收到一个分块向页面 `postMessage(["PROGRESS", {received, total}])`，读取完拼接为 ArrayBuffer（替代直接 arrayBuffer()）。`mupdf-view.js` 初始消息处理（READY 之前）放行 PROGRESS 类型并转发给 `mupdfView.onwasmprogress` 回调（原先非 READY/ERROR 首消息会直接 reject）。`index.html` 注册回调：在 #placeholder 渲染「正在加载阅读器组件 Loading reader components… xx%」+ 进度条 + 已下载/总量 MB + "首次加载需下载渲染引擎，10 分钟内缓存" 提示；READY 后 openEmpty()/openURL() 自动替换该区域。
+
+**验证**：双 JS 文件过 node --check；局域网端到端回归（python3 http.server + 浏览器）：READY 正常、`?file=` 打开 PDF 渲染 5 页 canvas、无错误。线上效果（进度条动态）推送后在 github.io 慢网络下实测可见。未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 优化：软件说明页面改版——①官网改为 https://380121850.github.io/howread/ 并显示为"HowRead 好好读" ②更新日志指向 https://github.com/380121850/howread/blob/master/CHANGES.md ③删除"带图标的 HowRead Pro：无广告的应用程序"行，替换为"一个专注于个人阅读体验的开源电子书阅读器" ④整页统一左对齐并在末尾新增"This is a fork of Librera Reader"
 
 **改动**：①`config.xml` 的 `my_site` 换为新官网（官网行为空时隐藏的逻辑不变），`about_section.xml` 官网行显示文本由硬编码 "howread.git" 改为 "HowRead 好好读"；②`AndroidWhatsNew.WHATSNEW_URL` 换为 CHANGES.md 地址，`getLangUrl` 不再追加语言后缀（单一 markdown 文件无语言变体）；③删除图标+Pro 推广行（`downloadPRO`），原位替换为引用新资源 `app_description` 的左对齐 TextView，`AboutSectionBinder` 同步移除该行的点击绑定（Pro 跳转方法 `Urls.openPdfPro` 保留未删）；④各可见行统一左对齐（唯一居中的就是被删除的 Pro 行），布局末尾新增 `fork_of_librera`（"This is a fork of Librera Reader"，仅英文）左对齐一行。

@@ -37,6 +37,10 @@ mupdfView.ready = new Promise((resolve, reject) => {
 				mupdfView[method] = wrap(method)
 			worker.onmessage = onWorkerMessage
 			resolve()
+		} else if (type === "PROGRESS") {
+			// wasm download progress, only sent before READY
+			if (typeof mupdfView.onwasmprogress === "function")
+				mupdfView.onwasmprogress(event.data[1])
 		} else if (type === "ERROR") {
 			let error = event.data[1]
 			reject(new Error(error))

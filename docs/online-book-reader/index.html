@@ -757,6 +757,21 @@ function show (elements) {
 
     let documentViewer = new MupdfDocumentViewer(mupdfView)
 
+    // wasm download progress (reported by the worker until READY)
+    mupdfView.onwasmprogress = function (p) {
+        const el = document.getElementById("placeholder")
+        if (!el) return
+        const pct = p.total ? Math.min(100, Math.round((p.received / p.total) * 100)) : 0
+        const received = (p.received / 1048576).toFixed(1)
+        const total = p.total ? " / " + (p.total / 1048576).toFixed(1) + " MB" : " MB"
+        el.innerHTML = "<div style=\"font-family:'Segoe UI',Arial,sans-serif;color:#eee;text-align:center;padding-top:40px\">" +
+            "<div style=\"font-size:15px;margin-bottom:12px\">正在加载阅读器组件 Loading reader components… " + pct + "%</div>" +
+            "<div style=\"width:min(420px,70vw);height:10px;margin:0 auto;background:#777;border-radius:5px;overflow:hidden\">" +
+            "<div style=\"width:" + pct + "%;height:100%;background:#3f51b5;transition:width .2s\"></div></div>" +
+            "<div style=\"margin-top:8px;font-size:12px;color:#ccc\">" + received + total + "</div>" +
+            "<div style=\"margin-top:14px;font-size:12px;color:#aaa\">首次加载需要下载渲染引擎，之后 10 分钟内无需重复下载<br>First load downloads the rendering engine; reloads within 10 minutes are cached</div></div>"
+    }
+
     mupdfView.ready
         .then(function () {
             if (params.has("file")) {
