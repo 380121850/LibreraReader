@@ -12,7 +12,7 @@
 **重构 `docs/online-book-reader/`**：
 - `index.html` 全新入口页：打开文件/拖放/URL 输入，按扩展名路由——PDF 全屏 iframe 嵌入 `pdf/viewer.html`，其余格式动态挂载 foliate 阅读组件；保留 `?file=` 直连参数；错误显示在加载横幅上（修复了此前错误提示被隐藏的问题）。
 - `pdf/viewer.html`（新写）：基于 pdfjs-dist 6.3.289 legacy 构建的 `pdf_viewer.mjs` 组件组装——工具栏（翻页/页码跳转/缩放档位/自适应）、目录侧栏（goToDestination）、搜索栏（PDFFindController 高亮+计数）、下载；`cMapUrl`/`standardFontDataUrl`/`wasmUrl` 指向本地目录保证非内嵌 CJK PDF 正常；加载进度百分比显示。
-- `reader/reader-page.js`（新写）：`<foliate-view>` 组件挂载 + 工具栏（返回/目录/翻页/进度滑条/A± 字号/relocate 百分比），`book.toc` + ui/tree.js 生成目录。**关键坑：foliate `view.open()` 不会渲染首屏，需显式 `goToFraction(0)` 触发**。
+- `reader/reader-page.js`（新写）：`<foliate-view>` 组件挂载 + 工具栏（返回/目录/翻页/进度滑条/A± 字号/relocate 百分比），`book.toc` + ui/tree.js 生成目录。**关键坑：foliate `view.open()` 不会渲染首屏，需显式 `goToFraction(0)` 触发**。默认亮色书页（白底黑字，修复此前 iframe 透明叠加暗色底"像蒙了一层"的观感），工具栏 🌙/☀️ 一键昼夜切换（注入 `color-scheme` 与背景/前景色，localStorage 记忆选择）。
 - `reader/txt-to-epub.js`（新写）：foliate 1.0.1 不支持 TXT，内存中将 TXT 转为最小 EPUB 再挂载——按"第N章/节/回/序章/楔子"等标题智能分章，zip 写入使用与 foliate 读取端同源的 zip.js ZipWriter。**两个关键坑**：①章节 zip 条目必须带 `OEBPS/` 前缀（否则 foliate 按 OPF 目录解析 404→size 0→空白页）；②add 必须用 `TextReader` 而非流式输入（否则 zip.js 不记录 `uncompressedSize`→section size 0→空白页）。
 - 删除：`lib/`（mupdf wasm 14.4MB + gz 7.7MB + 绑定层）、`mupdf-view*.js`、`mupdf.c`、`build.sh`、`.gitignore`（mupdf-* 规则已无用）。
 - 库来源均走 npmmirror 国内镜像（pdfjs-dist 8.5MB tgz、foliate-js 104KB tgz、@zip.js/zip.js dist/zip-core.js 320KB）。

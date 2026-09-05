@@ -21,7 +21,7 @@ export async function mountReader(target, host, { title = '', onBack = () => {} 
     .hr-progress { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 60px; }
     .hr-progress input[type=range] { flex: 1; max-width: 320px; }
     .hr-percent { color: #aaa; font-size: 12px; min-width: 40px; text-align: center; }
-    .hr-main { position: relative; flex: 1; overflow: hidden; background: #525659; }
+    .hr-main { position: relative; flex: 1; overflow: hidden; background: #ffffff; }
     foliate-view { position: absolute; inset: 0; }
     .hr-side { position: absolute; top: 0; bottom: 0; left: 0; width: min(300px, 80vw);
       background: #262626; color: #ddd; z-index: 20; overflow: auto; padding: 10px 6px;
@@ -51,6 +51,7 @@ export async function mountReader(target, host, { title = '', onBack = () => {} 
     <span class="sep"></span>
     <button class="hr-font-dec" title="减小字号">A−</button>
     <button class="hr-font-inc" title="增大字号">A＋</button>
+    <button class="hr-theme" title="日间/夜间切换"></button>
     <span class="sep"></span>
     <span class="hr-title"></span>
     <span class="hr-progress"><input type="range" min="0" max="1000" value="0"><span class="hr-percent">0%</span></span>
@@ -71,11 +72,30 @@ export async function mountReader(target, host, { title = '', onBack = () => {} 
   root.querySelector('.hr-next').addEventListener('click', () => view.goRight())
   root.querySelector('.hr-toc').addEventListener('click', () => side.classList.toggle('open'))
 
+  // day / night theme (persisted)
+  let theme = localStorage.getItem('hr-theme') === 'dark' ? 'dark' : 'light'
+  const themeBtn = root.querySelector('.hr-theme')
+  const applyThemeBtn = () => { themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙' }
+  themeBtn.addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('hr-theme', theme)
+    applyThemeBtn()
+    applyFont()
+  })
+  applyThemeBtn()
+
   let fontSize = 17
-  const applyFont = () => view.renderer.setStyles(`
-    html { font-size: ${fontSize}px !important; }
-    p, li, blockquote, dd, td, th, figcaption { line-height: 1.6; }
-  `)
+  const applyFont = () => {
+    const dark = theme === 'dark'
+    view.renderer.setStyles(`
+      html { font-size: ${fontSize}px !important; color-scheme: ${theme}; }
+      ${dark
+        ? 'html, body { background: #1b1b1b !important; color: #c9c9c9 !important; } a:link { color: #9fb4ff !important; }'
+        : 'html, body { background: #ffffff !important; color: #1a1a1a !important; }'}
+      p, li, blockquote, dd, td, th, figcaption { line-height: 1.6; }
+    `)
+    main.style.background = dark ? '#1b1b1b' : '#ffffff'
+  }
   root.querySelector('.hr-font-dec').addEventListener('click', () => { fontSize = Math.max(12, fontSize - 1); applyFont() })
   root.querySelector('.hr-font-inc').addEventListener('click', () => { fontSize = Math.min(30, fontSize + 1); applyFont() })
 
