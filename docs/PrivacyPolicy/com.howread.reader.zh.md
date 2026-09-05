@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 # 隐私政策 — HowRead 好好读（com.howread.reader）
 

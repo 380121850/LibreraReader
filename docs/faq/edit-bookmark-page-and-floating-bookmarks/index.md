@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Editing _Normal_ and _Floating_ Bookmarks
@@ -20,6 +20,6 @@ If you need to change the page number for a **normal** bookmark:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

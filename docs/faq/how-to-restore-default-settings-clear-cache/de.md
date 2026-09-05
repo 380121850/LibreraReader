@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Wiederherstellen der Standardeinstellungen/Cache leeren
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Wiederherstellen der Standardwerte nach Einstellungen
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Umbenennen von Lesemodi und Löschen von Änderungen
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Wenn Sie aus irgendeinem Grund an etwas feststecken, das nicht richtig funktioniert, und eine &quot;saubere Tafel&quot; benötigen, können Sie _Librera Reader_ vom System deinstallieren und den _Librera_-Ordner manuell aus dem internen Speicher löschen Ihr Gerät.**

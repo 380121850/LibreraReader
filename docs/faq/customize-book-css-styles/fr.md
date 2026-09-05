@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Codage CSS personnalisé
@@ -17,7 +17,7 @@ Trois modes **Styles** sont pris en charge:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Le mode Document + défini par l'utilisateur est activé par défaut
 

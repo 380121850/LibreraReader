@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Exemples de synchronisation
 * Pour synchroniser un livre, appelez son menu et choisissez _Sync_
 * Tous vos livres de l'onglet Favoris seront synchronisés.
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # Profils
@@ -46,10 +43,6 @@ Les profils sont stockés dans la mémoire interne de l'appareil sous /sdcard/Li
 
 Un **appui long sur** sur un nom de profil ouvrira une fenêtre d'alerte vous permettant de restaurer ses paramètres (initiaux) par défaut (vos signets et votre progression de lecture resteront intacts).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # Remplacements et dictionnaires TTS
 
 * Appuyez sur &quot;Remplacements&quot; dans **Paramètres TTS** et ajoutez une nouvelle règle de lecture.
@@ -59,10 +52,6 @@ Un **appui long sur** sur un nom de profil ouvrira une fenêtre d'alerte vous pe
 * Appuyez sur &quot;Afficher&quot; pour afficher les résultats des remplacements.
 * Ajouter un dictionnaire externe: Librera prend en charge les fichiers de remplacement @Voice Aloud et .txt RegEx.
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Paramètres supplémentaires en mode Musicien
 
 * Afficher \ masquer les zones de frappe (délimitées par des lignes en pointillés)
@@ -71,19 +60,11 @@ Un **appui long sur** sur un nom de profil ouvrira une fenêtre d'alerte vous pe
 * Naviguez de la première à la dernière page en appuyant sur la zone Page précédente
 * Naviguez de la dernière à la première page en touchant la zone Page suivante
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Fonctions supplémentaires et améliorations de l'interface utilisateur
 
 * Partager \ copier des pages en tant qu'images \ texte (appuyez longuement sur une vignette de page dans la fenêtre _Allez à parcourir)
 * Prise en charge des écrans cochés
 * Nouveaux paramètres de tri: trier par **éditeur** et **date de publication**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Divers
 
@@ -92,5 +73,4 @@ Un **appui long sur** sur un nom de profil ouvrira une fenêtre d'alerte vous pe
 * Signet mobile, avec indicateur flottant (marque automatiquement votre position de lecture actuelle et vous permet d'y revenir, via un flotteur situé dans le coin inférieur droit, après des visites temporaires dans d'autres parties et sections du livre). Pour créer (ajouter) un signet mobile, cochez la case **Flottante**.
 * Autoriser l'utilisation des empreintes digitales à la place du mot de passe (Android 9+)
 * Autoriser l'utilisation du délai de mise en veille du système pour éteindre l'écran
-
 

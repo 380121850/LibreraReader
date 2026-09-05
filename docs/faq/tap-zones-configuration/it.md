@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configura le dimensioni delle aree delle schede a sinistra/destra/in alto/in basso
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 Per configurare le azioni quando si fa clic su un'area della scheda (area di testo), è necessario aprire **Impostazioni**,
 quindi vai a **Funzioni avanzate**, trova la sezione **Zone schede (aree di testo)** e fai clic su **imposta**.
@@ -19,7 +19,7 @@ Dopo l'installazione, non dimenticare di premere **Applica**
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 Per configurare il router delle zone di tabulazione (zone di testo), devi aprire **Impostazioni**.
 
@@ -27,4 +27,4 @@ Poi vai a **Funzioni avanzate**, trova la sezione **Zone scheda (zone SMS)** e s
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

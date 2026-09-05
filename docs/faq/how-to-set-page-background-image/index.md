@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Customizing Page Background
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Changing a Solid-Color Background
 * Tap **Color** to open a color palette with a cross and drag the cross around the palette (follow changes in the real-time page preview at the top)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Adding Texture or Picture to the Background
 * Tap **Image** in the _Background_ panel
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > You can always use the background and font presets shown in Fig. 2. They can be edited pretty easily in the **Configure** window (tap on the edit icon indicated by the purple arrow).

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Використання віджета _Librera_
@@ -10,7 +10,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](9.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](9.webp)|![](10.webp)|
 
 ## Налаштування віджета
 
@@ -18,7 +18,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](22.jpg)|
+|![](20.webp)|![](21.webp)|![](22.webp)|
 
 * Ви можете вказати віджету, що відображати, вибираючи між документами _Favorites_ та _Recent_
 * Виберіть макет для книг у віджеті * * Librera* * 
@@ -26,4 +26,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](2.jpg)|![](3.jpg)|![](4.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|

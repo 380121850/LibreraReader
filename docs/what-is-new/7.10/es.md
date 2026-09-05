@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.10
@@ -23,20 +23,12 @@ La lectura TTS admite pausas ajustables (interrupciones) en los signos de puntua
 * Cambio de velocidad fácil
 * Comportamiento de notificación mejorado
 
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
 Busca varias palabras en cualquier formato de libro.
 La opción &quot;Normalizar tamaño de fuente&quot; hace que todas las fuentes tengan el mismo tamaño (altura) y contrae los espacios sin interrupción en espacios individuales.
 
 * consultas de búsqueda de varias palabras en un libro
 * Desactivar normalizar tamaño de fuente
 * Habilitar normalizar tamaño de fuente
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
 
 Abra un archivo de audio externo desde el cuadro de diálogo Configuración de TTS y escúchelo mientras lee.
 Esta característica debería ser útil para quienes aprenden idiomas extranjeros o para músicos.
@@ -47,19 +39,11 @@ El formato de la leyenda de la barra de estado se puede cambiar de completo a co
 * Reproducir archivos multimedia en libros EPUB3
 * Tres formatos de leyenda de barra de estado para elegir
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 Las iniciales iniciales de los capítulos de los libros **FB2** se pueden configurar en el cuadro de diálogo Configurar fuentes.
 
 * Abre la ventana Configurar fuentes después de abrir un libro FB2
 * Habilitar y configurar iniciales iniciales
 * Puede cambiar su fuente, color, tamaño, etc.
-
-||||
-|-|-|-|
-|![](6.png)|![](4.png)|![](5.png)|
 
 * Soporte para teléfonos con pantallas con muescas
 * Tabla de contenido para libros EPUB 3.0

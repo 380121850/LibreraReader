@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Codifica CSS personalizzata
@@ -17,7 +17,7 @@ Sono supportate tre modalità **stili**:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Document + La modalità definita dall'utente è abilitata per impostazione predefinita
 

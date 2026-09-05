@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilizzo di un motore di sintesi vocale con _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Esempio: configurazione del motore di sintesi vocale di Google
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Nota: la configurazione vocale in altri motori TTS viene eseguita in modo simile. Ricorda che i file di dati vocali potrebbero essere piuttosto grandi. Per risparmiare i tuoi piani dati cellulari limitati, assicurati che vengano scaricati solo tramite connessione WiFi.

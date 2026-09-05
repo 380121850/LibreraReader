@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #使用OPDS目录
@@ -21,11 +21,11 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ##从OPDS目录下载书籍
 * 浏览您要下载的书
@@ -36,7 +36,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ##将OPDS目录中的目录添加到收藏夹
 * 导航到OPDS目录中您喜欢的目录
@@ -47,7 +47,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ##更改设置
 * 点击设置图标
@@ -57,4 +57,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](17.jpg)|![](18.jpg)|![](19.jpg)|
+|![](17.webp)|![](18.webp)|![](19.webp)|

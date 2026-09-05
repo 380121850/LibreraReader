@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Налаштування фону сторінки
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Зміна суцільного фону
 * Торкніться * * Колір* * , щоб відкрити палітру кольорів з хрестиком, і перетягніть хрестик навколо палітри (стежте за змінами в попередньому перегляді сторінки в режимі реального часу вгорі)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Додавання текстури або зображення до фону
 * Торкніться * * Зображення* *  на панелі _Background_
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > Ви завжди можете використовувати попередні налаштування фону та шрифту, показані на рис. 2. Їх можна досить легко редагувати у вікні **Налаштувати** (торкніться значка редагування, позначеного фіолетовою стрілкою).

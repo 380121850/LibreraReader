@@ -1,44 +1,78 @@
 ---
-layout: main
+layout: home
+lang_key: zh
+lang_key_link: zh
+seo_title: "HowRead 好好读 — 专注于个人阅读体验的开源电子书阅读软件"
+seo_description: "HowRead（好好读）是一个专注于个人阅读体验的开源电子书阅读软件，支持 Android / HarmonyOS 阅读 PDF、EPUB、MOBI、DjVu、TXT 等格式，WebDAV 多设备同步，并提供免安装的在线阅读器。"
+hero_title: "HowRead 好好读"
+hero_subtitle: "一个专注于个人阅读体验的开源电子书阅读软件"
+hero_description: "在 Android / HarmonyOS 设备上畅读 PDF、EPUB、MOBI、DjVu、FB2、TXT、CBZ 等格式。界面直观、功能强大，还带有独特的免提自动滚动「音乐家模式」，更有免安装的在线阅读器。"
+hero_btn_primary: "立即下载"
+hero_btn_secondary: "在线阅读"
+hero_tooltip: "开源、无锁定：本地文档永不上传，同步直连你自己的 WebDAV 服务器。"
+features_title: "核心功能"
+features:
+  - title: "WebDAV 多设备同步"
+    description: "阅读进度、书签、批注在多台设备间同步，直连你自己的服务器，无需第三方账号。"
+    tooltip: "原 Google Drive 同步已移除，同步链路完全由你掌控。"
+  - title: "全格式支持"
+    description: "PDF、EPUB、MOBI、AZW3、DjVu、FB2、TXT、RTF、HTML、CBZ、CBR，甚至直接读 zip 压缩包内的文档。"
+    tooltip: "12+ 种格式，一本书库全部搞定。"
+  - title: "TTS 朗读与音乐家模式"
+    description: "可自定义的 TTS 朗读、内置媒体播放器，以及免提自动滚动的音乐家模式。"
+    tooltip: "练琴、做饭、通勤时解放双手。"
+  - title: "词典与划词翻译"
+    description: "支持多种在线（含翻译）与离线词典，选中文本即可翻译、分享、复制、搜索。"
+    tooltip: "外语阅读的得力助手。"
+  - title: "高度可定制"
+    description: "日间/夜间模式、自定义 CSS、字体与背景、链接颜色、垂直滚动锁定、双页单页视图……一切皆可调。"
+    tooltip: "设置可导入导出，并自动备份当前会话。"
+  - title: "在线阅读器"
+    description: "无需安装，浏览器直接打开 PDF / EPUB / FB2 / CBZ，支持滚轮/点击翻页与进度记忆。"
+    tooltip: "点击顶部「在线阅读」立即体验。"
+screenshots: ["1.webp", "2.webp", "3.webp"]
+about_title: "关于 HowRead"
+about_paragraphs:
+  - "HowRead（好好读）是一款专注于个人阅读体验的开源电子书阅读器，由 Librera Reader fork 而来。你可以指定要收录的格式与要扫描的文件夹，轻松建立自维护的书库：列表或网格视图、可调大小的缩略图封面、按路径/名称/大小/日期排序与筛选。"
+  - "阅读时可将文档锁定为仅垂直滚动模式，按页或按屏翻页；文本可重排、可批注；音量键功能可配置，背景与字体可在直观的设置窗口中自定义；摘录可在文档内或互联网上翻译、共享、复制和搜索。"
+stats:
+  - number: "12+"
+    label: "支持格式"
+  - number: "2"
+    label: "平台（Android · 鸿蒙）"
+  - number: "100%"
+    label: "开源"
+changelog_title: "更新日志"
+changelog_more: "查看完整更新日志 →"
+download_title: "立即下载"
+download_subtitle: "选择适合你的渠道 · 当前版本 0.9.0"
+downloads:
+  - title: "Google Play"
+    version: "版本 0.9.0"
+    size: "Android · 官方商店"
+    url: "https://play.google.com/store/apps/details?id=com.howread.reader"
+    button: "前往 Google Play"
+  - title: "F-Droid"
+    version: "版本 0.9.0"
+    size: "无广告 · 无 Google 依赖"
+    url: "https://f-droid.org/packages/com.howread.reader/"
+    button: "前往 F-Droid"
+  - title: "GitHub Releases"
+    version: "版本 0.9.0"
+    size: "APK 直接下载"
+    url: "https://github.com/380121850/howread/releases/latest"
+    blank: true
+    button: "下载 APK"
+  - title: "在线阅读器"
+    version: "无需安装"
+    size: "浏览器直接打开"
+    url: "online-book-reader/"
+    blank: true
+    button: "立即体验"
+footer_nav_title: "快速导航"
+footer_nav_features: "功能特点"
+footer_nav_changelog: "更新日志"
+footer_nav_faq: "常见问题"
+footer_nav_download: "下载"
+footer_social_title: "关注我们"
 ---
-
-# HowRead 好好读 — 高度可定制的电子书阅读器
-
-> **HowRead（好好读）** 是一款高度可定制、功能丰富的阅读应用，支持在 **Android / HarmonyOS（鸿蒙）** 设备上阅读 **PDF、EPUB、MOBI、DjVu、FB2、TXT、RTF、AZW、AZW3、HTML、CBZ、CBR** 等格式的图书与文档。界面直观、功能强大，还带有独特的免提自动滚动**音乐家模式**。
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
-# 主要功能
-
-* 轻松找到文档：自动扫描（用户预设文件夹）、内置文件浏览器浏览、最近阅读（带阅读进度指示）
-* 支持书签、批注和 EPUB3 目录
-* 通过 **WebDAV** 在多台设备间同步（阅读进度、书签等），直连你自己的服务器
-* 可配置的日间 / 夜间模式
-* 可配置的链接颜色（脚注、尾注颜色）
-* 支持多种在线（含翻译）与离线词典，划词翻译、分享、复制
-* 垂直滚动锁定
-* 文档自动 / 手动居中
-* 自定义 CSS
-* 双页文档的单页视图
-* 音乐家模式：可配置的自动滚动速度
-* 可自定义的 TTS 朗读与内置媒体播放器
-* 多关键词搜索
-* 在线文档转换
-* 直接阅读 .zip 压缩包中的文档
-* 支持 RTL 语言（泰语、希伯来语、阿拉伯语等）
-* 设置导入导出、当前会话自动备份
-* **在线阅读器**：无需安装，浏览器直接打开 PDF / EPUB / FB2 / CBZ — [立即体验]({{ site.baseurl }}/online-book-reader/)
-
-# 下载
-
-* [Google Play · HowRead 好好读](https://play.google.com/store/apps/details?id=com.howread.reader)
-* [F-Droid（无广告、无 Google 依赖）](https://f-droid.org/packages/com.howread.reader/)
-* [GitHub Releases（APK 直接下载）](https://github.com/380121850/howread/releases/latest)
-
-更多下载方式见[下载页]({{ site.baseurl }}/download/zh)，隐私说明见[隐私政策]({{ site.baseurl }}/PrivacyPolicy/zh)。
-
-通过 **HowRead 好好读**，你可以指定要收录的格式与要扫描的文件夹，轻松建立自维护的书库。所有文档集合可以列表或网格方式查看，通过可调大小、可调样式的缩略图封面和详细信息快速识别；书库可按路径、名称、大小、日期等排序，并配有筛选器帮助你定位特定文档。
-
-阅读时可将文档锁定为仅垂直滚动模式，并按页或按屏翻页；文本可重排、可批注；音量键功能可配置，背景与字体可在直观的设置窗口中自定义；摘录可在文档内或互联网上翻译、共享、复制和搜索。

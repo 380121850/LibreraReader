@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Musikermodus: Bildschirmmarkierungen umschalten
@@ -20,4 +20,4 @@ Um sie ein-/auszuschalten:
 * Aktivieren/deaktivieren Sie die entsprechenden Kästchen
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

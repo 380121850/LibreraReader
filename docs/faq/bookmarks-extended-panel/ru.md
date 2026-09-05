@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Работа с закладками в расширенном режиме (лента закладок)
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Операции с лентой _Bookmarks_ показаны в режиме _Book_. Все работает одинаково для всех трех режимов.
 
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Добавление закладок**
@@ -37,7 +37,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Ваша новая закладка появится в окне _Bookmarks_, и в то же время вы увидите ее на ленте _Bookmarks_ сверху. Теперь, чтобы вернуться к этой закладке, вам просто нужно нажать на нее на ленте.
 
@@ -49,7 +49,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Добавление быстрых закладок**
 
@@ -60,7 +60,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > Вы можете обойти некоторые операции при добавлении или удалении закладок с помощью _Bookmarks Ribbon_:
 

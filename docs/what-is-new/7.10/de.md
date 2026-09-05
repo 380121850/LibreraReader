@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.10
@@ -23,20 +23,12 @@ Das TTS-Lesen unterstützt einstellbare Pausen an Satzzeichen.
 * Einfache Geschwindigkeitsänderung
 * Verbessertes Benachrichtigungsverhalten
 
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
 Suchen Sie nach mehreren Wörtern in einem beliebigen Buchformat.
 Die Option &quot;Schriftgröße normalisieren&quot; bewirkt, dass alle Schriftarten dieselbe Größe (Höhe) haben und Leerzeichen ohne Unterbrechungen in einzelne Leerzeichen reduziert werden.
 
 * Suchanfragen mit mehreren Wörtern in einem Buch
 * Deaktivieren Sie die Normalisierung der Schriftgröße
 * Aktivieren Sie die Option zum Normalisieren der Schriftgröße
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
 
 Öffnen Sie eine externe Audiodatei im Dialogfeld &quot;TTS-Einstellungen&quot; und hören Sie sie sich beim Lesen an.
 Diese Funktion sollte für diejenigen, die Fremdsprachen lernen, oder für Musiker nützlich sein.
@@ -47,19 +39,11 @@ Das Format der Statusleistenlegende kann von vollständig über kompakt zu kapit
 * Mediendateien in EPUB3-Büchern abspielen
 * Drei Statusleisten-Legendenformate zur Auswahl
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 Führende Initialen in Kapiteln von **FB2** -Büchern können im Dialogfeld &quot;Schriftarten konfigurieren&quot; konfiguriert werden.
 
 * Öffnen Sie das Fenster &quot;Schriftarten konfigurieren&quot;, nachdem Sie ein FB2-Buch geöffnet haben
 * Aktivieren und konfigurieren Sie führende Initialen
 * Sie können Schriftart, Farbe, Größe usw. ändern.
-
-||||
-|-|-|-|
-|![](6.png)|![](4.png)|![](5.png)|
 
 * Unterstützung für Telefone mit gekerbten Displays
 * Inhaltsverzeichnis für EPUB 3.0-Bücher

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Using a Text-to-Speech Engine with _Librera_ 
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Example: Setting Up Google Text-to-Speech Engine
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Note: Voice setup in other TTS engines is conducted in a similar fashion. Remember that voice data files could be quite large. To spare your limited cellular data plans, make sure they are downloaded via WiFi connection only.

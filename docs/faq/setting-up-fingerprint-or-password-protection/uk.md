@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Налаштування захисту відбитків пальців або пароля
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Захист відбитків пальців
 
@@ -28,7 +28,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Захист паролем
 
@@ -42,6 +42,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > Щоб видалити захист паролем/відбитком пальців, запустіть **Librera**, автентифікуйте себе в програмі, перейдіть у поле _Запросити пароль_ та зніміть прапорець.

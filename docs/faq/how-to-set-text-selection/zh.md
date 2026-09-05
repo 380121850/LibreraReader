@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #如何在_Librera_中选择文本
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##文本选择选项
 * 不耐烦的用户可以选中_单击以选中_框。 (此选项与* * “首选项”* * 窗口的主标签中的“在字典中选择_Open选项”非常有用)
@@ -28,4 +28,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

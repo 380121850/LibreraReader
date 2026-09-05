@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilisation d'un moteur de synthèse vocale avec _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Exemple: configuration du moteur de synthèse vocale de Google
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Remarque: la configuration de la voix dans les autres moteurs TTS est similaire. Rappelez-vous que les fichiers de données vocales peuvent être très volumineux. Pour économiser vos forfaits de données cellulaires limités, assurez-vous qu'ils sont téléchargés via une connexion WiFi uniquement.

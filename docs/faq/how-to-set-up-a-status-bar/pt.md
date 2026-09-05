@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurando a barra de status
@@ -13,7 +13,7 @@ Você pode fazer todas as alterações na barra de status na guia _Status Bar_:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Por padrão, a barra de status está localizada na parte inferior da tela. Use a lista suspensa _Position_ para alterar sua localização.
 > Nota! Se a configuração _Top_ for selecionada, o _Sempre exibir o título do livro na parte superior_ acinzentará.
@@ -21,7 +21,7 @@ Por padrão, a barra de status está localizada na parte inferior da tela. Use a
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Marque/desmarque as caixas de acordo com suas preferências. Você também pode:
 * Altere a escala do controle deslizante que aparece na parte inferior em um toque na tela central
@@ -31,7 +31,7 @@ Marque/desmarque as caixas de acordo com suas preferências. Você também pode:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * Se a posição da barra de status for _Bottom_, você poderá optar pela exibição permanente de um título de livro na parte superior da tela (mesmo que a barra de status não esteja sendo exibida)
 * Além disso, você pode selecionar a hora atual e o tempo restante da bateria para exibir o status do livro
@@ -39,7 +39,7 @@ Marque/desmarque as caixas de acordo com suas preferências. Você também pode:
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Ative ou desative a barra de progresso da leitura
 * Selecione quais marcas de seleção na barra de progresso você prefere (se houver)
@@ -47,11 +47,11 @@ Marque/desmarque as caixas de acordo com suas preferências. Você também pode:
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Altere o tamanho e a cor da fonte da barra de status
 * Altere a altura da barra de progresso
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

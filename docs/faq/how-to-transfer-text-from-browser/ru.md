@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Использование возможности TTS для чтения общих ресурсов из других приложений
@@ -14,13 +14,13 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Теперь, когда веб-статья из браузера открыта в **Librera**, вы можете настроить ее читабельность: включить переносы, для начала.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 Теперь вы можете заставить **Librera** прочитать вам вслух веб-страницу:
 * Нажмите на значок **TTS** в левом нижнем углу.
@@ -33,4 +33,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

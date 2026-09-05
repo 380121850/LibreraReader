@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Ejemplos de sincronización
 * Para sincronizar un libro, invoque su menú y elija _Sync_
 * Todos tus libros en la pestaña Favoritos se sincronizarán
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # Perfiles
@@ -46,10 +43,6 @@ Los perfiles se almacenan en la memoria interna del dispositivo en /sdcard/Libre
 
 Una **pulsación larga** sobre el nombre de un perfil abrirá una ventana de alerta para que pueda restaurar su configuración predeterminada (inicial) (sus marcadores y progreso de lectura permanecerán intactos).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # Reemplazos y diccionarios de TTS
 
 * Toque &quot;Reemplazos&quot; en **Configuración de TTS** y agregue una nueva regla de lectura.
@@ -59,10 +52,6 @@ Una **pulsación larga** sobre el nombre de un perfil abrirá una ventana de ale
 * Toque &quot;Mostrar&quot; para ver los resultados de los reemplazos
 * Agregue un diccionario externo: Librera admite archivos de reemplazo @Voice Aloud y .txt RegEx
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Configuraciones adicionales en el modo Músico
 
 * Mostrar \ ocultar zonas de toque (delineado con líneas de puntos)
@@ -71,19 +60,11 @@ Una **pulsación larga** sobre el nombre de un perfil abrirá una ventana de ale
 * Navegue desde la primera a la última página tocando Zona de página anterior
 * Navegue desde la última a la primera página tocando Zona de la página siguiente
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Funciones y mejoras adicionales a la interfaz de usuario
 
 * Compartir \ copiar páginas como imágenes \ texto (mantenga presionada una miniatura de la página en la ventana _Ir a la página_)
 * Soporte para pantallas con muescas
 * Nuevos parámetros de clasificación: ordenar por **Editor** y **Fecha de publicación**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Misceláneo
 
@@ -92,5 +73,4 @@ Una **pulsación larga** sobre el nombre de un perfil abrirá una ventana de ale
 * Marcador móvil, con un indicador flotante (marca automáticamente su posición de lectura actual y le permite volver a él, a través del flotador en la esquina inferior derecha, después de visitas temporales a otras partes y secciones del libro). Para iniciar (agregar) un marcador móvil, marque la casilla **Flotante**
 * Permitir el uso de huellas digitales en lugar de contraseña (Android 9+)
 * Permita que el tiempo de espera del sistema se use para apagar la pantalla
-
 

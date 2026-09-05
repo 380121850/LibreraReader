@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 使用 *Librera* 学习外语
@@ -12,7 +12,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * 启用单键(长按)字典查找(选中此框)
 * 如果您的“字典选择”是Google Translate(请确保您的Internet连接已建立并且正在运行)，这也适用于段落翻译
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 如果未选中Dictionary_中的_Open选择，则_Text_窗口中将为您提供多个选择：
 * 让* * Librera* * 为您念出这个单词或大声朗读您的选择
@@ -30,7 +30,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 >您可以使用**Librera**播放外部音频文件。它支持所有常用的音频格式，例如.mp3，.mp4，.wav，.ogg，.m4a和.flac。
 * 将有声读物与电子书副本一起播放(带有语音的阅读)
@@ -39,6 +39,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 > **长按“播放/暂停”按钮会将曲目倒带到开头。**

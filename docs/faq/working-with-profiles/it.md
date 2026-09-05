@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Lavorare con i profili di _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Cambio di profili
 * Nel pannello _Profilo_ della scheda **Preferenze**, tocca il nome del profilo corrente
@@ -25,7 +25,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ## Reimpostazione di un profilo
 > Se è necessario ripristinare le impostazioni del profilo corrente ai valori originali (predefiniti), è necessario seguire questi semplici passaggi:
@@ -36,7 +36,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Eliminazione di un profilo
 > Nota: è necessario passare a un altro profilo prima di eliminare quello corrente.
@@ -47,4 +47,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

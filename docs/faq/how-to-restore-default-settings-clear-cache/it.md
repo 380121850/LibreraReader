@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Come ripristinare le impostazioni predefinite/Cancella cache
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Ripristino dei valori predefiniti in base all'impostazione
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Rinominare le modalità di lettura e cancellare le modifiche
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Se, per qualsiasi motivo, sei bloccato con qualcosa che non funziona correttamente e hai bisogno di una &quot;lavagna pulita&quot;, puoi disinstallare _Librera Reader_ dal sistema ed eliminare manualmente la cartella _Librera_ dalla memoria interna su il tuo dispositivo.**

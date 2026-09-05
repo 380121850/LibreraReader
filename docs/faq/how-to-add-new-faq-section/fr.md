@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Comment ajouter un nouveau sujet de FAQ
@@ -12,7 +12,7 @@ Format d'en-tête de fichier pour **index.md**:
 
 ```
 ---
-layout: main
+layout: page
 ---
 
 # Topic Name from Here Goes to the FAQ Page
@@ -27,5 +27,5 @@ Vous pouvez illustrer votre discussion avec des images (JPEG). Tous les fichiers
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 ```

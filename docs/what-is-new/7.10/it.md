@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.10
@@ -23,20 +23,12 @@ La lettura TTS supporta pause regolabili (interruzioni) in corrispondenza dei se
 * Facile cambio di velocità
 * Miglioramento del comportamento delle notifiche
 
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
 Cerca più parole in qualsiasi formato di libro.
 L'opzione &quot;Normalizza dimensione carattere&quot; rende tutti i caratteri della stessa dimensione (altezza) e comprime gli spazi senza interruzioni in spazi singoli.
 
 * Query di ricerca di più parole in un libro
 * Disabilita normalizza la dimensione del carattere
 * Abilita normalizza dimensione carattere
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
 
 Apri un file audio esterno dalla finestra di dialogo Impostazioni TTS e ascoltalo durante la lettura.
 Questa funzione dovrebbe tornare utile per coloro che imparano le lingue straniere o per i musicisti.
@@ -47,19 +39,11 @@ Il formato della legenda della barra di stato può essere modificato da pieno a 
 * Riproduci file multimediali nei libri EPUB3
 * Tre formati legenda barra di stato tra cui scegliere
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 Le iniziali iniziali nei capitoli di **libri FB2** possono essere configurate nella finestra di dialogo Configura caratteri.
 
 * Apri la finestra Configura font dopo aver aperto un libro FB2
 * Abilita e configura le iniziali iniziali
 * Puoi cambiare il loro carattere, colore, dimensione, ecc.
-
-||||
-|-|-|-|
-|![](6.png)|![](4.png)|![](5.png)|
 
 * Supporto per telefoni con display dentellati
 * Indice per i libri di EPUB 3.0

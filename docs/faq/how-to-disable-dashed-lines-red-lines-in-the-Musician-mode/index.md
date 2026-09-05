@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Musician's Mode: Toggling On-Screen Markings
@@ -20,4 +20,4 @@ To toggle them on/off:
 * Check/uncheck the corresponding boxes
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contraste e brilho em PDF (efeito preto/branco)
@@ -21,7 +21,7 @@ Você pode ajustar as seguintes configurações:
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## brilho
 * Toque no ícone _Contraste/Brilho_ no menu central do toque.
@@ -30,7 +30,7 @@ Você pode ajustar as seguintes configurações:
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Enfatize tudo (efeito negrito)
 * Toque no ícone _Contraste/Brilho_ no &quot;menu do toque central&quot;
@@ -39,6 +39,6 @@ Você pode ajustar as seguintes configurações:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > Para descartar suas configurações manuais, use o link _Restore default_ na parte inferior da janela **Contraste e brilho**.

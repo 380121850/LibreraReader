@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Benutzerdefinierte CSS-Codierung
@@ -17,7 +17,7 @@ Es werden drei **Styles** -Modi unterstützt:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Dokument + Benutzerdefinierter Modus ist standardmäßig aktiviert
 

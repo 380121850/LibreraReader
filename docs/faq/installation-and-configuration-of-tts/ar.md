@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # استخدام مشغل تحويل النص إلى كلام مع _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## مثال: إعداد Google Text-to-Speech Engine
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > ملاحظة: يتم إعداد الصوت في محركات TTS الأخرى بطريقة مماثلة. تذكر أن ملفات البيانات الصوتية قد تكون كبيرة جدًا. لتجنيب خطط البيانات الخلوية المحدودة ، تأكد من تنزيلها عبر اتصال WiFi فقط.

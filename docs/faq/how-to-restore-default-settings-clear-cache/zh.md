@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #如何恢复默认设置/清除缓存
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ##恢复默认设置
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##重命名阅读模式并清除更改
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **如果由于某种原因而陷入无法正常工作的状态，并且需要“干净的状态”，则可以从系统上卸载_Librera Reader_并从内部存储中手动删除_Librera_文件夹您的设备。**

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # How to Restore Default Settings/Clear Cache
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Restoring Default Values Setting-wise
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Renaming Reading Modes and Clearing Changes
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **If, for whatever reason, you're stuck with something that won't work properly, and need a "clean slate," you can uninstall _Librera Reader_ from the system and manually delete the _Librera_ folder from the internal storage on your device.**

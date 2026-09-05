@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Comment sélectionner du texte dans Librera
@@ -14,7 +14,7 @@ Pour activer la sélection de texte:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Options de sélection de texte
 * Les utilisateurs impatients peuvent cocher la case &quot;Une seule fois pour sélectionner&quot;. (Cette option fonctionne très bien avec l'option _Open selection in dictionary_ de l'onglet_ de l'onglet principal de la fenêtre **Préférences**.)
@@ -28,4 +28,4 @@ Pour activer la sélection de texte:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Einrichten des Fingerabdruck- oder Passwortschutzes
@@ -16,7 +16,7 @@ Die Dokumente können entweder fingerabdruck- oder passwortgeschützt sein.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Fingerabdruckschutz
 
@@ -28,7 +28,7 @@ Die Dokumente können entweder fingerabdruck- oder passwortgeschützt sein.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Passwortschutz
 
@@ -42,6 +42,6 @@ Passwort Login einrichten:
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > Um den Kennwort-/Fingerabdruckschutz zu entfernen, führen Sie **Librera** aus, authentifizieren Sie sich bei der Anwendung, rufen Sie das Kontrollkästchen _Prompt for password_ auf und deaktivieren Sie es.

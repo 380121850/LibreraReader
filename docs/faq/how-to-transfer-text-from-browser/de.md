@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Verwenden der TTS-Funktion zum Lesen von Freigaben aus anderen Apps
@@ -14,13 +14,13 @@ So lesen Sie eine Webseite in **Librera** vor:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Sobald der Webartikel aus dem Browser in **Librera** geöffnet ist, können Sie die Lesbarkeit optimieren: Aktivieren Sie zunächst die Silbentrennung.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 Jetzt können Sie **Librera** die Webseite laut vorlesen lassen:
 * Tippen Sie unten links auf das **TTS** -Symbol
@@ -33,4 +33,4 @@ Jetzt können Sie **Librera** die Webseite laut vorlesen lassen:
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

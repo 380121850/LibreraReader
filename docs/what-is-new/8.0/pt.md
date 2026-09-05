@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.0
@@ -25,24 +25,12 @@ Ao usar este aplicativo, você concorda com os termos da [Política de Privacida
 
 **Escolha a posição das guias: superior ou inferior**
 
-||||
-|-|-|-|
-|![](2.png)|![](3.png)|![](1.png)|
-
 **Predefinições no modo de leitura**
 
 * Diga ao **Librera** qual modo de leitura padrão você prefere para um formato de livro específico
 * Adicione manualmente qualquer formato desejado
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Temas OLED escuros e escuros**
 
 * Escolha o tema OLED escuro com cor preto escuro
-
-||||
-|-|-|-|
-|![](9.png)|![](8.png)|![](7.png)|
 

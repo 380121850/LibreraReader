@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Konfigurieren Sie die Größe der Tab-Zonen links/rechts/oben/unten
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 Um Aktionen beim Klicken auf eine Tab-Zone (SMS-Zone) zu konfigurieren, müssen Sie **Einstellungen**öffnen.
 Gehen Sie dann zu **Erweiterte Funktionen**, suchen Sie den Abschnitt **Tab-Zonen (SMS-Zonen)** und klicken Sie auf **Einrichten**.
@@ -19,7 +19,7 @@ Vergessen Sie nach der Installation nicht, auf **Übernehmen**zu klicken.
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 Um den Tab-Zonen-Router (SMS-Zonen) zu konfigurieren, müssen Sie **Einstellungen**öffnen.
 
@@ -27,4 +27,4 @@ Gehen Sie dann zu **Erweiterte Funktionen**, suchen Sie den Abschnitt **Tab Zone
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

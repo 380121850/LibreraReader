@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Trabajar con marcadores en modo extendido (cinta de marcadores)
@@ -15,7 +15,7 @@ Para habilitarlo en los otros modos:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Las operaciones con la _Cinta de Marcadores_ se ilustran en el modo _Book_. Todo funciona igual para los tres modos.
 
@@ -23,7 +23,7 @@ Las operaciones con la _Cinta de Marcadores_ se ilustran en el modo _Book_. Todo
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Agregar marcadores**
@@ -37,7 +37,7 @@ Las operaciones con la _Cinta de Marcadores_ se ilustran en el modo _Book_. Todo
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Su nuevo marcador aparecerá en la ventana _Marcadores_ y, al mismo tiempo, lo verá en la cinta _Marcadores_ en la parte superior. Ahora, para volver a este marcador, solo necesita tocarlo en la cinta de opciones.
 
@@ -49,7 +49,7 @@ La cinta se convertirá en una cinta en toda su pantalla cuando tenga muchos mar
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Agregar marcadores rápidos**
 
@@ -60,7 +60,7 @@ La cinta se convertirá en una cinta en toda su pantalla cuando tenga muchos mar
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > Puede omitir algunas operaciones al agregar o eliminar marcadores utilizando la _Cinta de Marcadores_:
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personalizzazione dell'aspetto e della sensibilità della tua libreria
@@ -17,7 +17,7 @@ I tuoi libri vengono mostrati nella scheda _Library_, dove puoi apportare modifi
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * Di seguito sono riportati esempi delle viste di alcune scelte di layout:
  
@@ -25,7 +25,7 @@ I tuoi libri vengono mostrati nella scheda _Library_, dove puoi apportare modifi
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## Il pannello _Book Covers_
 
@@ -34,14 +34,14 @@ I tuoi libri vengono mostrati nella scheda _Library_, dove puoi apportare modifi
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * Le tue manipolazioni con le dimensioni delle copertine dei libri dipenderanno dal layout che hai scelto (elenco o griglia)
 * Per &quot;elenco&quot;, utilizza il rispettivo dispositivo di scorrimento per modificare le dimensioni delle copertine dei libri (dimensioni dello scaffale)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 Avrai più opzioni per &quot;griglia&quot;.
 
@@ -54,4 +54,4 @@ Avrai più opzioni per &quot;griglia&quot;.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

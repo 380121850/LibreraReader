@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Verwenden von Wörterbüchern und Übersetzern
@@ -55,7 +55,7 @@ Um eine sofortige Wörterbuchsuche nach einem ausgewählten Wort zu aktivieren, 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Einrichten eines Standardwörterbuchs
 Sie können auch Ihr Standardwörterbuch konfigurieren (das direkt nach einer Wortauswahl angezeigt wird):
@@ -64,7 +64,7 @@ Sie können auch Ihr Standardwörterbuch konfigurieren (das direkt nach einer Wo
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](55.jpg)|![](66.jpg)|
+|![](4.webp)|![](55.webp)|![](66.webp)|
 
 ## Lassen Sie das Auswahlfeld deaktiviert
 Wenn Sie das Kontrollkästchen &quot;Auswahl öffnen&quot; nicht aktivieren, wird beim Auswählen eines Wortes oder einer Wortfolge das Fenster &quot;**Text**&quot; angezeigt. Hier können Sie:
@@ -72,17 +72,17 @@ Wenn Sie das Kontrollkästchen &quot;Auswahl öffnen&quot; nicht aktivieren, wir
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Suchen Sie (indem Sie ggf. auf das * * +* * -Zeichen tippen) Ihr bevorzugtes installiertes Wörterbuch oder Ihren bevorzugten Übersetzer
 * Tippen Sie auf das entsprechende Symbol, um das Popup-Fenster mit der Wortübersetzung (Definition) aufzurufen.
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 > Eine kurze Erinnerung: Vergessen Sie nicht, Ihr Standardwörterbuch auszuwählen, BEVOR Sie das Kontrollkästchen &quot;Auswahl im Wörterbuch öffnen&quot; aktivieren.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](55.jpg)|![](66.jpg)|
+|![](13.webp)|![](55.webp)|![](66.webp)|

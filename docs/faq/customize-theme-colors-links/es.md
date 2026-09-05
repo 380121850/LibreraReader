@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Tematizando la interfaz de usuario de Librera
@@ -15,7 +15,7 @@ En el panel _Configuración general_ de la pestaña **Preferencias** puede elegi
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Configuración del tamaño de fuente**
 
@@ -24,7 +24,7 @@ En el panel _Configuración general_ de la pestaña **Preferencias** puede elegi
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **Configuración del tema general**
 
@@ -35,7 +35,7 @@ En el panel _Configuración general_ de la pestaña **Preferencias** puede elegi
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Configuración de color de encabezado y título (recorte)**
 
@@ -45,7 +45,7 @@ En el panel _Configuración general_ de la pestaña **Preferencias** puede elegi
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Configuración de color de enlace**
 
@@ -56,6 +56,6 @@ En el panel _Configuración general_ de la pestaña **Preferencias** puede elegi
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **Lo mejor que ofrece * Librera * es la capacidad de crear un tema para cada perfil que cree en él individualmente. Puede crear un tema para sus perfiles creados para sus cambios de humor, lectura diurna y nocturna, géneros de libros, etc.**

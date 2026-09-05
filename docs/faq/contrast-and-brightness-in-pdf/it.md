@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contrasto e luminosità in PDF (effetto bianco/nero)
@@ -21,7 +21,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## Luminosità
 * Tocca l'icona _Contrasto/Luminosità_ nel menu di scelta centrale
@@ -30,7 +30,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Enfatizza tutto (effetto in grassetto)
 * Tocca l'icona _Contrast/Brightness_ nel &quot;menu-tap-center&quot;
@@ -39,6 +39,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > Per annullare le impostazioni manuali, utilizzare il collegamento _ Ripristina predefinito_ nella parte inferiore della finestra **Contrasto e luminosità**.

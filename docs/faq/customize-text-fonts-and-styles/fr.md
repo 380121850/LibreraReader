@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuration des polices et des styles
@@ -13,7 +13,7 @@ Vous ferez tout ce qui précède dans l'onglet principal de la fenêtre **Préf�
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ajustements de police
 
@@ -34,11 +34,11 @@ Pour configurer des polices spécifiques à l'utilisateur pour différents style
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Initiales principales dans les livres FB2
 
@@ -54,7 +54,7 @@ Vous pouvez faire commencer chaque chapitre de votre livre avec une belle initia
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## L'onglet **Paramètres de lecture**
@@ -68,7 +68,7 @@ Vous pouvez faire commencer chaque chapitre de votre livre avec une belle initia
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Choisissez judicieusement _Styles_ pour votre livre**
 
@@ -86,8 +86,8 @@ Les personnes familiarisées avec le codage CSS peuvent procéder à une personn
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

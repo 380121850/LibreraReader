@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuración de la barra de estado
@@ -13,7 +13,7 @@ Puede realizar todos los cambios en la barra de estado en la pestaña _Status Ba
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Por defecto, la barra de estado se encuentra en la parte inferior de la pantalla. Use la lista desplegable _Posición_ para cambiar su ubicación.
 > Nota! Si se selecciona la configuración _Top_, el _Siempre muestra el título del libro en la parte superior_ se atenuará.
@@ -21,7 +21,7 @@ Por defecto, la barra de estado se encuentra en la parte inferior de la pantalla
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Marque/desmarque las casillas según sus preferencias. Tú también puedes:
 * Cambie la escala del control deslizante que aparece en la parte inferior al tocar la pantalla central
@@ -31,7 +31,7 @@ Marque/desmarque las casillas según sus preferencias. Tú también puedes:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * Si la posición de la barra de estado es _Bottom_, puede optar por la visualización permanente del título de un libro en la parte superior de la pantalla (incluso si la barra de estado no se muestra)
 * Además, puede seleccionar la hora actual y el consumo de batería restante para mostrar con el estado del libro
@@ -39,7 +39,7 @@ Marque/desmarque las casillas según sus preferencias. Tú también puedes:
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Habilita o deshabilita la barra de progreso de lectura
 * Seleccione las marcas de verificación en la barra de progreso que prefiera (si corresponde)
@@ -47,11 +47,11 @@ Marque/desmarque las casillas según sus preferencias. Tú también puedes:
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Cambiar el tamaño y color de fuente de la barra de estado
 * Cambiar la altura de la barra de progreso
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

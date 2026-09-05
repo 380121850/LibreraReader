@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Abrir una carpeta con imágenes como libro (Encuadernar en un libro)
@@ -12,5 +12,5 @@ En **Librera**, es muy fácil hacer un libro encuadernado con archivos de imagen
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

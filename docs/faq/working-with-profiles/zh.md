@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #使用_Librera_的个人资料
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##切换配置文件
 * 在“ * * 首选项* * ”标签的_Profile_面板中，点击当前配置文件名称
@@ -25,7 +25,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ##重置个人资料
 >如果需要将当前配置文件的设置恢复为其原始(默认)值，则应遵循以下简单步骤：
@@ -36,7 +36,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ##删除个人资料
 >注意：在删除当前配置文件之前，您必须切换到另一个配置文件。
@@ -47,4 +47,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

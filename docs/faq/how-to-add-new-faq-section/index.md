@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # How to Add a New FAQ Topic
@@ -12,7 +12,7 @@ File header format for **index.md**:
 
 ```
 ---
-layout: main
+layout: page
 ---
 
 # Topic Name from Here Goes to the FAQ Page
@@ -27,5 +27,5 @@ You can illustrate your discussion with pictures (JPEG). All image files related
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 ```

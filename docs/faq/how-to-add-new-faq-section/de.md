@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # So fügen Sie ein neues FAQ-Thema hinzu
@@ -12,7 +12,7 @@ Dateikopfzeilenformat für **index.md**:
 
 ```
 ---
-layout: main
+layout: page
 ---
 
 # Topic Name from Here Goes to the FAQ Page
@@ -27,5 +27,5 @@ Sie können Ihre Diskussion mit Bildern (JPEG) veranschaulichen. Alle zu diesem 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 ```

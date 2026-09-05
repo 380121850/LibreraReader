@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Offenes Buch mit &quot;Tag Manager&quot;
@@ -16,7 +16,7 @@ Es ist nicht möglich, ein Tag für mehrere Bücher festzulegen, aber es ist mö
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 
 # Öffnen Sie den Tag-Manager
@@ -29,4 +29,4 @@ Es gibt viele Möglichkeiten, Tags für die Bücher zu setzen oder zu entfernen
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|

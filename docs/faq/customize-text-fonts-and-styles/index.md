@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuring Fonts and Styles
@@ -13,7 +13,7 @@ You will do all of the above  in the main tab of the **Preference** window and, 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Font Adjustments
 
@@ -34,11 +34,11 @@ To set up user-specific fonts for different font-styles, tap the icon next to th
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Leading Initials in FB2 Books
 
@@ -54,7 +54,7 @@ You can make each and every chapter in your book start with a nice-looking initi
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## The **Reading Settings** Tab
@@ -68,7 +68,7 @@ You can make each and every chapter in your book start with a nice-looking initi
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Choose _Styles_ for your book wisely**
 
@@ -86,8 +86,8 @@ Those familiar with CSS coding can make some ad-hoc customization to the way you
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

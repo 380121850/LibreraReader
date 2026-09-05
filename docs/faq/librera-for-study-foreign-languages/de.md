@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Verwenden von *Librera*zum Erlernen von Fremdsprachen
@@ -12,7 +12,7 @@ Verwenden Sie einfach Ihren Finger (einen beliebigen Finger), um Text hervorzuhe
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Aktivieren Sie die Single-Touch-Suche (langes Drücken) (aktivieren Sie das Kontrollkästchen).
 * Dies gilt auch für Durchgangsübersetzungen, wenn es sich bei Ihrem &quot;Wörterbuch der Wahl&quot; beispielsweise um Google Translate handelt (stellen Sie sicher, dass Ihre Internetverbindung funktioniert).
@@ -20,7 +20,7 @@ Verwenden Sie einfach Ihren Finger (einen beliebigen Finger), um Text hervorzuhe
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 Wenn das Kontrollkästchen &quot;Auswahl im Wörterbuch öffnen&quot; deaktiviert ist, werden Ihnen im _Text_-Fenster mehrere Auswahlmöglichkeiten angezeigt:
 * Lassen Sie **Librera** das Wort für Sie aussprechen oder lesen Sie Ihre Auswahl laut vor
@@ -30,7 +30,7 @@ Wenn das Kontrollkästchen &quot;Auswahl im Wörterbuch öffnen&quot; deaktivier
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 > Sie können externe Audiodateien mit **Librera** abspielen. Es werden alle häufig verwendeten Audioformate unterstützt, z. B. MP3, MP4, WAV, OGG, M4A und FLAC.
 * Hörbücher neben den E-Book-Kopien abspielen (stimmbegleitetes Lesen)
@@ -39,6 +39,6 @@ Wenn das Kontrollkästchen &quot;Auswahl im Wörterbuch öffnen&quot; deaktivier
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 > **Durch langes Drücken der Play/Pause-Taste wird der Titel an den Anfang zurückgespult.**

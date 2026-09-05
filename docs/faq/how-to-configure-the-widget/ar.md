@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # باستخدام أداة _Librera_'s
@@ -10,7 +10,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](9.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](9.webp)|![](10.webp)|
 
 ## تخصيص القطعة
 
@@ -18,7 +18,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](22.jpg)|
+|![](20.webp)|![](21.webp)|![](22.webp)|
 
 * يمكنك إخبار التطبيق المصغّر بعرضه عن طريق الاختيار بين مستنداتك _FaAdvisor_ و _Recent_
 * حدد نسق الكتب في عنصر واجهة مستخدم **Librera**
@@ -26,4 +26,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](2.jpg)|![](3.jpg)|![](4.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|

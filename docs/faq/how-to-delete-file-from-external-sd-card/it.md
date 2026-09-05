@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Come eliminare un libro da una scheda SD esterna
@@ -15,7 +15,7 @@ In **Librera**, devi aggiungere la tua scheda SD come risorsa (_bookshelf_) e qu
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Scegli la tua scheda SD dall'elenco delle risorse a discesa
 * Apri il menu dei file del libro che intendi eliminare toccando la sua icona a tre punti
@@ -23,4 +23,4 @@ In **Librera**, devi aggiungere la tua scheda SD come risorsa (_bookshelf_) e qu
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

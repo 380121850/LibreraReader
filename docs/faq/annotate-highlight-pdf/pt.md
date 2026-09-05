@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Anotando e desenhando em arquivos PDF
@@ -20,7 +20,7 @@ Isso revelará o ícone _Edit_ no menu inferior.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Arquivos PDF com uma camada de texto
 Além das marcações acima:
@@ -31,7 +31,7 @@ Além das marcações acima:
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Marcação com ferramentas predefinidas
 O sinal **+** permite ao usuário adicionar à lista de ferramentas apenas uma das três na cor escolhida no momento.
@@ -39,7 +39,7 @@ Isso cria uma predefinição de ferramenta com a qual você pode indicar prontam
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Salvando arquivos editados
 * Um gesto _Fechar_ abrirá a janela _Salvar alterações? _
@@ -49,7 +49,7 @@ Isso cria uma predefinição de ferramenta com a qual você pode indicar prontam
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Nota: A borracha na paleta _Anotações e desenhos_ pode ser usada para detonar desenhos deixados por outros aplicativos.
 
@@ -61,4 +61,4 @@ Isso cria uma predefinição de ferramenta com a qual você pode indicar prontam
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

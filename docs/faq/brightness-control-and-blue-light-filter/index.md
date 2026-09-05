@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Brightness Control and Bluelight Filter
@@ -16,7 +16,7 @@ Negative brightness enables the bluelight filter and color Black by default.
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Bluelight Filter**
 > Bluelight filter depends on your brightness setting, it turns on automatically when the brightness setting has a negative value.
@@ -27,4 +27,4 @@ Negative brightness enables the bluelight filter and color Black by default.
 
 ||||
 |-|-|-|
-|![](7.png)|![](6.png)|![](8.png)|
+|![](../main-app/7.webp)|![](6.webp)|![](../main-app/8.webp)|

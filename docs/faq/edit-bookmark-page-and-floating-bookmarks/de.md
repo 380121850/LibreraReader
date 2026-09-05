@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Bearbeiten von _Normalen_ und _Floating_ Lesezeichen
@@ -20,6 +20,6 @@ Wenn Sie die Seitenzahl für ein **normales** Lesezeichen ändern müssen:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

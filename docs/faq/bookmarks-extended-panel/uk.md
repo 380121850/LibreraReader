@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Робота із закладками в розширеному режимі (стрічка закладок)
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Операції зі стрічкою _Bookmarks_ показано у режимі _Book_. Все працює однаково для всіх трьох режимів.
 
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Додавання закладок**
@@ -37,7 +37,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Ваша нова закладка з’явиться у вікні _Bookmarks_, і в той же час ви побачите її на стрічці _Bookmarks_ угорі. Тепер, щоб повернутися до цієї закладки, вам потрібно просто натиснути на неї на стрічці.
 
@@ -49,7 +49,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Додавання швидких закладок**
 
@@ -60,7 +60,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > Ви можете обійти деякі операції під час додавання або видалення закладок за допомогою стрічки _Bookmarks_:
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Abrindo uma pasta com imagens como livro (Vincular a um livro)
@@ -12,5 +12,5 @@ No **Librera**, é muito fácil vincular um livro a arquivos de imagem colocados
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

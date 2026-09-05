@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Annotation et dessin dans des fichiers PDF
@@ -20,7 +20,7 @@ Cela révélera l'icône _Modifier_ dans le menu du bas.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Fichiers PDF avec un calque de texte
 En plus des marquages ci-dessus :
@@ -31,7 +31,7 @@ En plus des marquages ci-dessus :
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Marquage avec des outils prédéfinis
 Le signe **+** permet à l'utilisateur d'ajouter à la liste des outils un seul des trois dans la couleur actuellement choisie.
@@ -39,7 +39,7 @@ Cela crée un outil prédéfini avec lequel vous pouvez rapidement indiquer les 
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Enregistrement des fichiers modifiés
 * Un geste _Fermer_ ouvrira la fenêtre _Enregistrer les modifications ?_
@@ -49,7 +49,7 @@ Cela crée un outil prédéfini avec lequel vous pouvez rapidement indiquer les 
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Remarque : la gomme de la palette _Annotations et dessins_ peut être utilisée pour supprimer les dessins laissés par d'autres applications.
 
@@ -61,4 +61,4 @@ Cela crée un outil prédéfini avec lequel vous pouvez rapidement indiquer les 
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

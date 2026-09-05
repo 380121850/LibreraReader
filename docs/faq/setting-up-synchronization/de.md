@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Synchronisieren des Lese-Setups auf mehreren Geräten
@@ -16,7 +16,7 @@ Für die Bequemlichkeit der meisten unserer Benutzer haben wir Google Drive als 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Synchronisierungsoptionen
 
@@ -27,7 +27,7 @@ Für die Bequemlichkeit der meisten unserer Benutzer haben wir Google Drive als 
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > Hinweis: Google Drive wurde aus praktischen Gründen ausgewählt. Google-Konten sind kostenlos und für jeden verfügbar. Wenn Sie aus irgendeinem Grund eine andere Cloud-Lösung bevorzugen, fahren Sie fort und verwenden Sie sie.
 
@@ -51,7 +51,7 @@ Wenn beide Voraussetzungen erfüllt sind:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **Um eine reibungslose Synchronisierung zu gewährleisten, ist es selbstverständlich, dass Sie auf allen Ihren Android-Geräten dieselbe Einrichtung haben sollten.**
 

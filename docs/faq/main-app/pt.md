@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Navegando na guia _Library_
@@ -12,7 +12,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Visualização condensada (duas colunas)
 * Visualização em grade
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 * Encontre livros em sua biblioteca
 * Toque no ícone de estrela para adicionar um livro aos **Favoritos**
@@ -31,7 +31,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Encontre um livro por extensão (FB2, no nosso exemplo abaixo)
 * Toque no nome do autor para encontrar todos os livros desse autor na Biblioteca.
@@ -41,4 +41,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](10.webp)|![](11.webp)|![](12.webp)|

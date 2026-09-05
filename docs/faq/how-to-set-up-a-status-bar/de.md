@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Einrichten der Statusleiste
@@ -13,7 +13,7 @@ Sie können alle Änderungen an der Statusleiste auf der Registerkarte _Statusle
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Standardmäßig befindet sich die Statusleiste am unteren Bildschirmrand. Verwenden Sie die Dropdown-Liste _Position_, um den Speicherort zu ändern.
 > Hinweis! Wenn die Einstellung _Top_ ausgewählt ist, wird der Titel des _Immer oben _ abgeblendet.
@@ -21,7 +21,7 @@ Standardmäßig befindet sich die Statusleiste am unteren Bildschirmrand. Verwen
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Aktivieren/Deaktivieren Sie die Kontrollkästchen nach Ihren Wünschen. Du kannst auch:
 * Ändern Sie die Skalierung des Schiebereglers, der bei einem Tippen auf den mittleren Bildschirm unten eingeblendet wird
@@ -31,7 +31,7 @@ Aktivieren/Deaktivieren Sie die Kontrollkästchen nach Ihren Wünschen. Du kanns
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * Wenn die Position der Statusleiste &quot;Unten&quot; ist, können Sie die permanente Anzeige eines Buchtitels oben auf dem Bildschirm aktivieren (auch wenn die Statusleiste nicht angezeigt wird).
 * Außerdem können Sie die aktuelle Uhrzeit und den verbleibenden Batteriesaft auswählen, der mit dem Buchstatus angezeigt werden soll
@@ -39,7 +39,7 @@ Aktivieren/Deaktivieren Sie die Kontrollkästchen nach Ihren Wünschen. Du kanns
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Aktivieren oder deaktivieren Sie die Statusanzeige für das Lesen
 * Wählen Sie die gewünschten Häkchen in der Fortschrittsanzeige aus.
@@ -47,11 +47,11 @@ Aktivieren/Deaktivieren Sie die Kontrollkästchen nach Ihren Wünschen. Du kanns
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Ändern Sie die Schriftgröße und -farbe der Statusleiste
 * Ändern Sie die Höhe des Fortschrittsbalkens
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

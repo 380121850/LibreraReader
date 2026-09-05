@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Note nel testo e note a piè di pagina
@@ -13,4 +13,4 @@ Per optare per la presentazione di note nel testo:
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

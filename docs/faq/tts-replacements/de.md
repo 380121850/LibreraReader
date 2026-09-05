@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # TTS-Ersatz
@@ -12,7 +12,7 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Klassische Ersetzungen werden unterstützt (einfaches Ändern einer Zeichenfolge durch eine andere) oder Sie können reguläre Ausdrücke (RegExp) verwenden.
 
@@ -84,7 +84,7 @@ In **Librera** haben wir spezielle Ersetzungen (Befehle) eingeführt, mit denen 
 
 |4|5|
 |-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|
 
 > **Testen Sie Ihre Änderungen einige Male, um sicherzustellen, dass alles ordnungsgemäß funktioniert.**
 

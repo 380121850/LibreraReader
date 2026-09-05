@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilizzo dei segnalibri in modalità estesa (barra dei segnalibri)
@@ -15,7 +15,7 @@ Per abilitarlo nelle altre modalità:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Le operazioni con la barra multifunzione _Bookmarks sono illustrate in modalità _Book_. Funziona tutto allo stesso modo per tutte e tre le modalità.
 
@@ -23,7 +23,7 @@ Le operazioni con la barra multifunzione _Bookmarks sono illustrate in modalità
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Aggiunta di segnalibri**
@@ -37,7 +37,7 @@ Le operazioni con la barra multifunzione _Bookmarks sono illustrate in modalità
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Il tuo nuovo segnalibro apparirà nella finestra _Bookmarks_ e allo stesso tempo lo vedrai nella barra multifunzione _Bookmarks_ in alto. Ora, per tornare a questo segnalibro, devi solo toccarlo nella barra multifunzione.
 
@@ -49,7 +49,7 @@ Il nastro diventerà un nastro in piena regola sullo schermo quando hai molti se
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Aggiunta di segnalibri rapidi**
 
@@ -60,7 +60,7 @@ Il nastro diventerà un nastro in piena regola sullo schermo quando hai molti se
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > È possibile ignorare alcune operazioni quando si aggiungono o si eliminano i segnalibri utilizzando la barra multifunzione _Bookmarks:
 

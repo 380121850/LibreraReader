@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personnalisation de l'arrière-plan de la page
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Modification d'un arrière-plan uni
 * Appuyez sur **Couleur** pour ouvrir une palette de couleurs avec une croix et faites glisser la croix autour de la palette (suivez les modifications dans l'aperçu de la page en temps réel en haut)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Ajout d'une texture ou d'une image à l'arrière-plan
 * Appuyez sur **Image** dans le panneau _Background_
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > Vous pouvez toujours utiliser les préréglages d'arrière-plan et de police illustrés à la Fig. 2. Ils peuvent être modifiés assez facilement dans la fenêtre **Configurer** (appuyez sur l'icône d'édition indiquée par la flèche violette).

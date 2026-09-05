@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modalità di lettura: scorrimento, libro e musicista
@@ -21,7 +21,7 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Puoi anche specificare le modalità di lettura predefinite per ogni formato di ebook.**
 
@@ -32,7 +32,7 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * Per modificare la modalità di lettura di un libro corrente, tocca al centro lo schermo e quindi tocca l'icona a tre punti in basso
 * Tocca la modalità preferita nella finestra di dialogo
@@ -40,7 +40,7 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Modalità scorrimento
 * Scegli il calibro dei tuoi scroll-scroll: per Pagina, Schermo, preselezioni percentuale dello schermo o un valore personalizzato
@@ -49,7 +49,7 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Modalità libro
 * Scorri in orizzontale per la pagina successiva/precedente
@@ -61,7 +61,7 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Modalità musicista
 * Tocca una volta per avviare/interrompere lo scorrimento automatico
@@ -72,4 +72,4 @@ In **Modalità libro**, le pagine vengono capovolte orizzontalmente con moviment
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

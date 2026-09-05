@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilizzo di *Librera*per l'apprendimento delle lingue straniere
@@ -12,7 +12,7 @@ Basta usare il dito (qualsiasi dito) per evidenziare/selezionare il testo
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Abilita la ricerca del dizionario a tocco singolo (pressione prolungata) (selezionare la casella)
 * Questo vale anche per le traduzioni di passaggio se il tuo &quot;dizionario preferito&quot; è, diciamo, Google Translate (assicurati che la tua connessione Internet sia attiva e funzionante)
@@ -20,7 +20,7 @@ Basta usare il dito (qualsiasi dito) per evidenziare/selezionare il testo
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 Se l'opzione _Apri selezione nel dizionario_ non è selezionata, nella finestra _Testo_ verranno visualizzate più opzioni:
 * Fai **Librera** pronunciare la parola per te o rileggi la tua selezione a voce alta
@@ -30,7 +30,7 @@ Se l'opzione _Apri selezione nel dizionario_ non è selezionata, nella finestra 
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 > È possibile riprodurre file audio esterni con **Librera**. Supporta tutti i formati audio utilizzati di frequente, ad esempio .mp3, .mp4, .wav, .ogg, .m4a e .flac.
 * Riproduci audiolibri insieme alle loro copie di ebook (lettura con accompagnamento vocale)
@@ -39,6 +39,6 @@ Se l'opzione _Apri selezione nel dizionario_ non è selezionata, nella finestra 
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 > **Una pressione prolungata del pulsante Riproduci/Pausa riavvolgerà la traccia all'inizio.**

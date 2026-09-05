@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # How to Delete a Book from an External SD Card
@@ -15,7 +15,7 @@ In **Librera**, you need to add your SD card as a resource (_bookshelf_) and the
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Choose your SD card from the dropdown resources list
 * Open the file menu of the book you intend to delete by tapping its triple-dot icon
@@ -23,4 +23,4 @@ In **Librera**, you need to add your SD card as a resource (_bookshelf_) and the
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

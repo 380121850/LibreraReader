@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Esempi di sincronizzazione
 * Per sincronizzare un libro, invoca il suo menu e scegli _Sincronizza_
 * Tutti i tuoi libri nella scheda Preferiti verranno sincronizzati
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # Profili
@@ -46,10 +43,6 @@ I profili sono memorizzati nella memoria interna del dispositivo in /sdcard/Libr
 
 Una pressione prolungata di **** sul nome di un profilo farà apparire una finestra di avviso per ripristinare le impostazioni predefinite (iniziali) (i segnalibri e i progressi di lettura rimarranno intatti).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # Sostituzioni e dizionari TTS
 
 * Tocca &quot;Sostituzioni&quot; in **Impostazioni TTS** e aggiungi una nuova regola di lettura.
@@ -59,10 +52,6 @@ Una pressione prolungata di **** sul nome di un profilo farà apparire una fines
 * Tocca &quot;Mostra&quot; per vedere i risultati delle sostituzioni
 * Aggiungi un dizionario esterno: Librera supporta i file di sostituzione di @Voice Aloud e .txt RegEx
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Impostazioni aggiuntive nella modalità Musicista
 
 * Mostra \ nascondi zone di tocco (delineato con linee tratteggiate)
@@ -71,19 +60,11 @@ Una pressione prolungata di **** sul nome di un profilo farà apparire una fines
 * Passa dalla prima all'ultima pagina toccando la zona Pagina precedente
 * Passa dall'ultima alla prima pagina toccando l'area Pagina successiva
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Funzioni aggiuntive e miglioramenti all'interfaccia utente
 
 * Condividi \ copia pagine come immagini \ testo (premi a lungo sulla miniatura di una pagina nella finestra _Vai alla pagina_)
 * Supporto per schermate dentellate
 * Nuovi parametri di ordinamento: ordina per **Publisher** e **Data di pubblicazione**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Varie
 
@@ -92,5 +73,4 @@ Una pressione prolungata di **** sul nome di un profilo farà apparire una fines
 * Segnalibro mobile, con un indicatore mobile (salva automaticamente la posizione di lettura corrente e ti consente di tornare indietro, tramite il galleggiante nell'angolo in basso a destra, dopo visite temporanee ad altre parti e sezioni del libro). Per avviare (aggiungere) un segnalibro mobile, selezionare la casella **Floating**
 * Consenti l'impronta digitale da utilizzare al posto della password (Android 9+)
 * Consenti al timeout di sospensione del sistema di essere usato per spegnere lo schermo
-
 

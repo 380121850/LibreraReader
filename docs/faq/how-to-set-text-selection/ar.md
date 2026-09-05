@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # كيفية اختيار النص في _Librera_
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## خيارات اختيار النص
 * يمكن للمستخدمين الصبر تحديد مربع _Single-select لتحديد_المربع. (يعمل هذا الخيار بشكل رائع مع تحديد _Open في القاموس_ الخيار في علامة التبويب الرئيسية لإطار **التفضيلات**)
@@ -28,4 +28,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

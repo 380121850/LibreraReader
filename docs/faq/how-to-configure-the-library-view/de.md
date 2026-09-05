@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Anpassen des Erscheinungsbilds Ihrer Bibliothek
@@ -17,7 +17,7 @@ Ihre Bücher werden auf der Registerkarte _Bibliothek_ angezeigt, auf der Sie Ä
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * Nachfolgend finden Sie Beispiele für die Ansichten einiger weniger Layoutoptionen:
  
@@ -25,7 +25,7 @@ Ihre Bücher werden auf der Registerkarte _Bibliothek_ angezeigt, auf der Sie Ä
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## Das _Bucheinband_-Bedienfeld
 
@@ -34,14 +34,14 @@ Ihre Bücher werden auf der Registerkarte _Bibliothek_ angezeigt, auf der Sie Ä
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * Ihre Manipulationen mit der Größe der Buchumschläge hängen vom ausgewählten Layout ab (Liste oder Raster).
 * Verwenden Sie für &quot;Liste&quot; den entsprechenden Schieberegler, um die Größe der Buchdeckel (Regalgröße) zu ändern.
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 Sie haben mehr Optionen für &quot;Gitter&quot;.
 
@@ -54,4 +54,4 @@ Sie haben mehr Optionen für &quot;Gitter&quot;.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

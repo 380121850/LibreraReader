@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Comment supprimer un livre d'une carte SD externe
@@ -15,7 +15,7 @@ Dans **Librera**, vous devez ajouter votre carte SD en tant que ressource (_book
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Choisissez votre carte SD dans la liste des ressources déroulantes.
 * Ouvrez le menu Fichier du livre que vous souhaitez supprimer en appuyant sur son icône à trois points.
@@ -23,4 +23,4 @@ Dans **Librera**, vous devez ajouter votre carte SD en tant que ressource (_book
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

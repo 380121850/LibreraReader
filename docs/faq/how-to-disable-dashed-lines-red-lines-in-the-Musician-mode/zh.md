@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 音乐家模式：切换屏幕标记
@@ -20,4 +20,4 @@ layout: main
 * 选中/取消选中相应的框
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

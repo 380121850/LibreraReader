@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Examples of Syncing
 * To sync a book, invoke its menu and choose _Sync_
 * All your books in the Favorites tab will be synced
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # Profiles
@@ -46,10 +43,6 @@ Profiles are stored in the device's internal  memory  at /sdcard/Librera/profile
 
 A **long press** on a profile name will pop up an alert window for you to restore its default (initial) settings (your bookmarks and reading progresses will remain intact).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # TTS Replacements and Dictionaries
 
 * Tap "Replacements" in **TTS Settings** and add a new reading rule.
@@ -59,10 +52,6 @@ A **long press** on a profile name will pop up an alert window for you to restor
 * Tap "Show" to see the replacements results
 * Add an external dictionary: Librera supports @Voice Aloud and .txt RegEx replacements files
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Additional Settings in Musician's Mode
 
 * Show\hide tap zones (delineated w/ dotted lines)
@@ -71,19 +60,11 @@ A **long press** on a profile name will pop up an alert window for you to restor
 * Navigate from first to last page by tapping Previous Page zone
 * Navigate from last to first page by tapping Next Page zone
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Additional Functions and Improvements to UI
 
 * Share\copy pages as images\text (long-press on a page thumbnail in the _Go to Page_ window)
 * Support for notched screens
 * New sorting parameters: sort by **Publisher** and **Publication date**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Miscellaneous
 
@@ -92,5 +73,4 @@ A **long press** on a profile name will pop up an alert window for you to restor
 * Movable bookmark, with a floating indicator (automatically bookmarks your current reading position and allows you to jump back to it, via floater in the bottom-right corner, after temporary visits to other parts and sections of the book). To initiate (add) a movable bookmark, check the **Floating** box
 * Allow fingerprint to be used instead of password (Android 9+)
 * Allow the system sleep timeout to be used for turning screen off 
-
 

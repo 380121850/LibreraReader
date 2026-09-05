@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #设置状态栏
@@ -13,7 +13,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 默认情况下，状态栏位于屏幕底部。使用_Position_下拉列表更改其位置。
 >注意！如果选择了_Top_设置，则_总是在top_上显示书名将变灰。
@@ -21,7 +21,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 根据您的喜好选中/取消选中复选框。你也可以：
 * 更改在中心屏幕点击时弹出在底部的滑块的比例
@@ -31,7 +31,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * 如果状态栏的位置为_Bottom_，则可以选择在屏幕顶部永久显示书名(即使状态栏未显示)
 * 此外，您还可以选择当前时间和剩余电池电量以图书状态显示
@@ -39,7 +39,7 @@ layout: main
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * 启用或禁用阅读进度条
 * 选择您喜欢的进度条上的刻度线(如果有)
@@ -47,11 +47,11 @@ layout: main
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * 更改状态栏的字体大小和颜色
 * 更改进度条的高度
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #页面查看/布局选项
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##调整PDF/DjVu中的页面布局
 
@@ -31,10 +31,10 @@ PDF/DjVu中的页面“刚度”和屏幕大小将决定您的页面布局选择
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * _Half-Page_模式在两列页面布局中派上用场。只需选择此选项，即可将页面一分为二
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

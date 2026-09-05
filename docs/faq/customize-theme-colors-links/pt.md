@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Theming Librera UI
@@ -15,7 +15,7 @@ No painel _General Settings_ da guia **Preferences**, você pode escolher o seu:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Configuração do tamanho da fonte**
 
@@ -24,7 +24,7 @@ No painel _General Settings_ da guia **Preferences**, você pode escolher o seu:
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **Configuração geral de temas**
 
@@ -35,7 +35,7 @@ No painel _General Settings_ da guia **Preferences**, você pode escolher o seu:
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Configuração da cor do cabeçalho e do título (aparar)**
 
@@ -45,7 +45,7 @@ No painel _General Settings_ da guia **Preferences**, você pode escolher o seu:
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Configuração da cor do link**
 
@@ -56,6 +56,6 @@ No painel _General Settings_ da guia **Preferences**, você pode escolher o seu:
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **A melhor coisa oferecida por * Librera * é a capacidade de tema de cada perfil que você criar nele individualmente. Você pode criar um tema para seus perfis criados para mudanças de humor, leitura diurna e noturna, gêneros de livros etc.**

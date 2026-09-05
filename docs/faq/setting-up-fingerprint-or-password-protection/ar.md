@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # إعداد بصمة أو حماية كلمة المرور
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## حماية بصمات الأصابع
 
@@ -28,7 +28,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## حماية كلمة المرور
 
@@ -42,6 +42,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > لإزالة حماية كلمة المرور/بصمة الإصبع ، قم بتشغيل **Librera** ، وصادق نفسك على التطبيق ، وانتقل إلى _Prompt for password_ box وقم بإلغاء تحديده.

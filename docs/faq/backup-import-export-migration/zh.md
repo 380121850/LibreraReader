@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 数据备份和迁移
@@ -51,4 +51,4 @@ _迁移_：/storage/AAAA-AAAA/书籍到/storage/BBBB-BBBB/书籍：
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

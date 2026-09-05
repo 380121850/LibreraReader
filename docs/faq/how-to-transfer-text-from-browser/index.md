@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Using TTS Capability for Reading Shares from Other Apps
@@ -14,13 +14,13 @@ To read a web page out loud in **Librera**:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Now, once the web article from the browser is opened in **Librera**, you can fine-tune its readability: enable hyphenation, for starters.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 Now you can make **Librera** read the web page for you out loud:
 * Tap on the **TTS** icon in the bottom left corner
@@ -33,4 +33,4 @@ Now you can make **Librera** read the web page for you out loud:
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

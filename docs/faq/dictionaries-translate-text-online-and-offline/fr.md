@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilisation de dictionnaires et de traducteurs
@@ -55,7 +55,7 @@ Pour activer une recherche immédiate dans le dictionnaire d'un mot sélectionn�
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Configuration d'un dictionnaire par défaut
 Vous pouvez également configurer votre dictionnaire par défaut (qui apparaîtra directement après une sélection de mots) :
@@ -64,7 +64,7 @@ Vous pouvez également configurer votre dictionnaire par défaut (qui apparaîtr
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](55.jpg)|![](66.jpg)|
+|![](4.webp)|![](55.webp)|![](66.webp)|
 
 ## Laisser la case de sélection décochée
 Si vous laissez la case _Open selection_ non cochée, la fenêtre **Texte** vous sera présentée lors de la sélection d'un mot ou d'une séquence de mots. Ici vous pourrez:
@@ -72,17 +72,17 @@ Si vous laissez la case _Open selection_ non cochée, la fenêtre **Texte** vous
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Recherchez (en appuyant sur le signe * * +* *  si nécessaire) votre dictionnaire ou traducteur préféré installé
 * Appuyez sur son icône pour afficher sa fenêtre contextuelle contenant le mot traduction (définition).
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 > Rappel rapide: N'oubliez pas de choisir votre dictionnaire par défaut AVANT de cocher la case _Open selection in dictionary_.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](55.jpg)|![](66.jpg)|
+|![](13.webp)|![](55.webp)|![](66.webp)|

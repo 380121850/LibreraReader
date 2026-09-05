@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Text selection in multiple columns in PDFs

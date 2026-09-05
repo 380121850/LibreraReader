@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilisation de la fonctionnalité TTS pour la lecture de partages à partir d'autres applications
@@ -14,13 +14,13 @@ Pour lire une page Web à haute voix dans **Librera**:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 À présent, une fois que l'article Web du navigateur est ouvert dans **Librera**, vous pouvez affiner sa lisibilité: activez la césure, pour commencer.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 À présent, vous pouvez faire **Librera** lire la page Web:
 * Appuyez sur l'icône **TTS** dans le coin inférieur gauche.
@@ -33,4 +33,4 @@ Pour lire une page Web à haute voix dans **Librera**:
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

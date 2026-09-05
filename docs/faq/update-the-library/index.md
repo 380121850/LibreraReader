@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Updating Your Library
@@ -11,6 +11,6 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 > Note: **Librera** can scan the folders created for the books downloaded from online book resources. You can sync those folders across multiple devices using third-party apps.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Seitenanzeige-/Layoutoptionen
@@ -20,7 +20,7 @@ So greifen Sie auf die Anzeigeoptionen zu:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Anpassen des Seitenlayouts in PDF/DjVu
 
@@ -31,10 +31,10 @@ Die &quot;Steifheit&quot; der Seite in PDF/DjVu und die Größe Ihres Bildschirm
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * _Halb-Seiten-Modus ist in zweispaltigen Seitenlayouts nützlich. Teilen Sie einfach Ihre Seite in zwei Teile, indem Sie diese Option auswählen
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

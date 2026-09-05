@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personalizzazione dello sfondo della pagina
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Modifica di uno sfondo a tinta unita
 * Tocca **Colore** per aprire una tavolozza di colori con una croce e trascina la croce intorno alla tavolozza (segui le modifiche nell'anteprima della pagina in tempo reale in alto)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Aggiunta di trama o immagine allo sfondo
 * Tocca **Immagine** nel pannello _Background_
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > Puoi sempre usare i predefiniti di sfondo e dei caratteri mostrati in Fig. 2. Possono essere modificati abbastanza facilmente nella finestra **Configura** (tocca l'icona di modifica indicata dalla freccia viola).

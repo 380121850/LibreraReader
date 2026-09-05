@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Анотування та малювання у файлах PDF
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## PDF-файли з текстовим шаром
 На додаток до вищевказаних позначок:
@@ -31,7 +31,7 @@ layout: main
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Розмітка за допомогою попередньо встановлених інструментів
 Знак **+** дозволяє користувачеві додати до списку інструментів лише один із трьох у поточному вибраному кольорі.
@@ -39,7 +39,7 @@ layout: main
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Збереження відредагованих файлів
 * Жест _Закрити_ відкриє вікно _Зберегти зміни?_
@@ -49,7 +49,7 @@ layout: main
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Примітка. Гумка в палітрі _Анотації та малюнки_ може використовуватися, щоб загострити малюнки, залишені іншими програмами.
 
@@ -61,4 +61,4 @@ layout: main
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

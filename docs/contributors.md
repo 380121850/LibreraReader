@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Люди які допомогають розвивати проект Librera

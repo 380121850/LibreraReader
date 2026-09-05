@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # التعليقات التوضيحية والرسم في ملفات PDF
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## ملفات PDF بطبقة نصية
 بالإضافة إلى العلامات أعلاه:
@@ -31,7 +31,7 @@ layout: main
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## الترميز باستخدام أدوات معدة مسبقًا
 تتيح العلامة **+** للمستخدم إضافة واحدة فقط من الأدوات الثلاثة باللون المختار حاليًا إلى قائمة الأدوات.
@@ -39,7 +39,7 @@ layout: main
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## حفظ الملفات المحررة
 * ستؤدي إيماءة _Close_ إلى فتح نافذة _Save Changes؟ _
@@ -49,7 +49,7 @@ layout: main
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > ملاحظة: يمكن استخدام الممحاة في لوحة _ التعليقات التوضيحية والرسومات_للمحاة للرسومات التي تركتها تطبيقات أخرى.
 
@@ -61,4 +61,4 @@ layout: main
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

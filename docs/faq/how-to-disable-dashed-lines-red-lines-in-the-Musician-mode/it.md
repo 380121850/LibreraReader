@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modalità musicista: attivazione e disattivazione dei contrassegni sullo schermo
@@ -20,4 +20,4 @@ Per attivarli/disattivarli:
 * Seleziona/deseleziona le caselle corrispondenti
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

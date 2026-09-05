@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Selección de texto en varias columnas en archivos PDF

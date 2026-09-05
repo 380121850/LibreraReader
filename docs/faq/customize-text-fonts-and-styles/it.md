@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurazione di caratteri e stili
@@ -13,7 +13,7 @@ Farai tutto quanto sopra nella scheda principale della finestra **Preference** e
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Aggiustamenti dei caratteri
 
@@ -34,11 +34,11 @@ Per impostare caratteri specifici dell'utente per diversi stili di carattere, to
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Iniziali principali nei libri di FB2
 
@@ -54,7 +54,7 @@ Puoi far iniziare ogni capitolo del tuo libro con un'iniziale gradevole.
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## La scheda **Impostazioni di lettura**
@@ -68,7 +68,7 @@ Puoi far iniziare ogni capitolo del tuo libro con un'iniziale gradevole.
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Scegli saggiamente _Styles_ per il tuo libro**
 
@@ -86,8 +86,8 @@ Chi ha familiarità con la codifica CSS può personalizzare un po 'ad hoc il mod
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

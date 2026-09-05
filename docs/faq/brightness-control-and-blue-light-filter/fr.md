@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contrôle de la luminosité et filtre Bluelight
@@ -16,7 +16,7 @@ La luminosité négative active le filtre bleu et la couleur noire par défaut.
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Filtre Bluelight**
 > Le filtre Bluelight dépend de votre réglage de luminosité. Il s’active automatiquement lorsque le réglage de luminosité a une valeur négative.
@@ -27,4 +27,4 @@ La luminosité négative active le filtre bleu et la couleur noire par défaut.
 
 ||||
 |-|-|-|
-|![](7.png)|![](6.png)|![](8.png)|
+|![](../main-app/7.webp)|![](6.webp)|![](../main-app/8.webp)|

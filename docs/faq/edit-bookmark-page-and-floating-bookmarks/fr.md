@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modification des signets _normaux_ et _flottants_
@@ -20,6 +20,6 @@ Si vous devez modifier le numéro de page d'un signet **normal** :
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

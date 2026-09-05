@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurer la taille des zones d'onglet gauche/droite/haut/bas
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 Afin de configurer des actions lors du clic sur une zone d'onglet (zone de textos), vous devez ouvrir **Paramètres**,
 puis allez dans **Fonctions avancées**, recherchez la section **Zones d'onglets (zones de SMS)** et cliquez sur **configuration**.
@@ -19,7 +19,7 @@ Après l'installation, n'oubliez pas d'appuyer sur **Appliquer**
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 Pour configurer le routeur des zones d'onglets (zones de SMS), vous devez ouvrir les **Paramètres**.
 
@@ -27,4 +27,4 @@ Allez ensuite dans **Fonctions avancées**, trouvez la section **Zones d'onglets
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

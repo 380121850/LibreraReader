@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilizzo della funzionalità TTS per la lettura di condivisioni da altre app
@@ -14,13 +14,13 @@ Per leggere una pagina web ad alta voce in **Librera**:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Ora, una volta aperto l'articolo Web dal browser in **Librera**, puoi perfezionarne la leggibilità: abilita la sillabazione, per cominciare.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 Ora puoi far leggere ad alta voce **Librera**:
 * Tocca l'icona **TTS** nell'angolo in basso a sinistra
@@ -33,4 +33,4 @@ Ora puoi far leggere ad alta voce **Librera**:
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

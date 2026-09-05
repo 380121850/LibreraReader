@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Como restaurar configurações padrão/limpar cache
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Restaurando valores padrão em termos de configuração
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Renomeando modos de leitura e limpando alterações
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Se, por qualquer motivo, você estiver preso a algo que não funcionará corretamente e precisar de uma &quot;lista limpa&quot;, poderá desinstalar o _Librera Reader_ do sistema e excluir manualmente a pasta _Librera_ do armazenamento interno no seu dispositivo.**

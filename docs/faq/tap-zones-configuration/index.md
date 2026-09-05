@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configure tab zones size  left/right/top/bottom
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 In order to configure actions when clicking on a tab zone (texting zone), you need to open **Settings**, 
 then go to **Advanced functions**, find the section **Tab zones (texting zones)** and click **setup**. 
@@ -19,7 +19,7 @@ After installation, don't forget to press **Apply**
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 In order to configure the tab zones (texting zones) router, you need to open **Settings**.
 
@@ -27,4 +27,4 @@ Then go to **Advanced functions**, find the section **Tab zones (texting zones)*
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

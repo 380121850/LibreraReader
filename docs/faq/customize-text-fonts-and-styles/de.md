@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Konfigurieren von Schriftarten und Stilen
@@ -13,7 +13,7 @@ Sie führen alle oben genannten Schritte auf dem Haupt-Tab des Fensters **Einste
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Schriftanpassungen
 
@@ -34,11 +34,11 @@ Um benutzerspezifische Schriftarten für verschiedene Schriftstile einzurichten,
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Führende Initialen in FB2-Büchern
 
@@ -54,7 +54,7 @@ Sie können jedes Kapitel in Ihrem Buch mit einer gut aussehenden Initiale begin
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## Der Tab **Leseeinstellungen**
@@ -68,7 +68,7 @@ Sie können jedes Kapitel in Ihrem Buch mit einer gut aussehenden Initiale begin
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Wähle _Styles_ für dein Buch mit Bedacht aus**
 
@@ -86,8 +86,8 @@ Diejenigen, die mit CSS-Codierung vertraut sind, können die Darstellung Ihres B
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

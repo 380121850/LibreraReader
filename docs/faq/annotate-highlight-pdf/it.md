@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Annotazione e disegno nei file PDF
@@ -20,7 +20,7 @@ Questo rivelerà l'icona _Modifica_ nel menu in basso.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## File PDF con un livello di testo
 Oltre ai suddetti contrassegni:
@@ -31,7 +31,7 @@ Oltre ai suddetti contrassegni:
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Marcatura con strumenti preimpostati
 Il segno **+** consente all'utente di aggiungere all'elenco degli strumenti solo uno dei tre nel colore attualmente scelto.
@@ -39,7 +39,7 @@ Questo crea uno strumento preimpostato con il quale puoi indicare prontamente le
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Salvataggio dei file modificati
 * Un gesto _Chiudi_ aprirà la finestra _Salva modifiche?_
@@ -49,7 +49,7 @@ Questo crea uno strumento preimpostato con il quale puoi indicare prontamente le
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Nota: la gomma nella tavolozza _Annotazioni e disegni_ può essere utilizzata per cancellare i disegni lasciati da altre applicazioni.
 
@@ -61,4 +61,4 @@ Questo crea uno strumento preimpostato con il quale puoi indicare prontamente le
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

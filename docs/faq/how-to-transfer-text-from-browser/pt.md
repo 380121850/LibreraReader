@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Usando o recurso TTS para ler compartilhamentos de outros aplicativos
@@ -14,13 +14,13 @@ Para ler uma página da Web em voz alta no **Librera**:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Agora, depois que o artigo da web do navegador for aberto no **Librera**, você poderá ajustar sua legibilidade: ative a hifenização para iniciantes.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 Agora você pode fazer com que o **Librera** leia a página da Web em voz alta:
 * Toque no ícone **TTS** no canto inferior esquerdo
@@ -33,4 +33,4 @@ Agora você pode fazer com que o **Librera** leia a página da Web em voz alta:
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Navigation dans l'onglet _Bibliothèque_
@@ -12,7 +12,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Vue condensée (deux colonnes)
 * Affichage en grille
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 * Recherche de livres dans votre bibliothèque
 * Appuyez sur l'icône étoile pour ajouter un livre à **Favoris**.
@@ -31,7 +31,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Rechercher un livre par extension (FB2, dans notre exemple ci-dessous)
 * Appuyez sur le nom de l'auteur pour rechercher tous les livres de cet auteur dans la bibliothèque.
@@ -41,4 +41,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](10.webp)|![](11.webp)|![](12.webp)|

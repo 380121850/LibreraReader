@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modifica dei segnalibri _normali_ e _fluttuanti_
@@ -20,6 +20,6 @@ Se devi modificare il numero di pagina per un segnalibro **normale**:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

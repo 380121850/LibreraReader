@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Uso de un motor de texto a voz con _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Ejemplo: Configuración de Google Text-to-Speech Engine
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Nota: La configuración de voz en otros motores TTS se realiza de manera similar. Recuerde que los archivos de datos de voz pueden ser bastante grandes. Para ahorrar sus planes de datos celulares limitados, asegúrese de que se descarguen solo a través de la conexión WiFi.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modo de músico: alternar las marcas en pantalla
@@ -20,4 +20,4 @@ Para activarlos o desactivarlos:
 * Marca/desmarca las casillas correspondientes.
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

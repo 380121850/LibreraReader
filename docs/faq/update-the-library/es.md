@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Actualizando su biblioteca
@@ -11,6 +11,6 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 > Nota: **Librera** puede escanear las carpetas creadas para los libros descargados de los recursos de libros en línea. Puede sincronizar esas carpetas en múltiples dispositivos usando aplicaciones de terceros.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Open book with "Tag Manager"
@@ -16,7 +16,7 @@ It's not possible to set a tag for multiple books but it's possible to open tag 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 
 # Open tag manager
@@ -29,4 +29,4 @@ There are many ways to set\remove tags for the books
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|

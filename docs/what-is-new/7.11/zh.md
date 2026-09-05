@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.11
@@ -29,10 +29,6 @@ layout: main
 * 可以* * 个字母* * 或* * 个单词* * 方式选择文本
 * 任一手柄(起点或终点)均可实时实时拖动
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **RSVP(快速串行视觉演示)阅读/快速阅读**
 
 使用**Librera**进行快速阅读，您可以通过实施RSVP方法将阅读速度提高到每分钟700个单词(WPM)。
@@ -42,19 +38,11 @@ layout: main
 * 一键快速读取
 * 调整最小线长：最高30 CPL
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
-
 **书籍模式下的状态栏位置(顶部或底部)**
 
 * 默认情况下，状态栏位于底部
 * 从下拉列表中选择其位置
 * 状态栏位于顶部
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
 
 **打开带有图片的文件夹(在书本中绑定)**
 
@@ -64,17 +52,8 @@ layout: main
 * 带图片的文件夹作为虚拟书本打开
 * 裁剪空白，调整对比度和亮度等。
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
-
 **按语言分类书籍**
 
 * 查看库中所有可用的语言
 * 按语言分类书籍
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 

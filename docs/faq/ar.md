@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # الأسئلة المتداولة

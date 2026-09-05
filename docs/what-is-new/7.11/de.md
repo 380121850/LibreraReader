@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.11
@@ -29,10 +29,6 @@ Abonnieren Sie den **Librera Reader** -Telegrammkanal [https://t.me/LibreraReade
 * Text kann entweder **buchstabenweise** oder **wortweise** ausgewählt werden
 * Jedes Handle (Anfang oder Ende) kann separat in Echtzeit gezogen werden
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **RSVP-Lesung (Rapid Serial Visual Presentation)/Geschwindigkeitslesung**
 
 Mit der Lesegeschwindigkeit von **Librera** können Sie Ihre Lesegeschwindigkeit mit der RSVP-Methode auf bis zu 700 Wörter pro Minute (WPM) steigern.
@@ -42,19 +38,11 @@ Bitte folgen Sie dem Link, um weitere Informationen zum Thema [Schnelllesen-Absc
 * Geschwindigkeitslesung mit nur einem Fingertipp
 * Passen Sie die minimale Zeilenlänge an: bis zu 30 CPL
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
-
 **Position der Statusleiste (oben oder unten) im Buchmodus**
 
 * Die Statusleiste befindet sich standardmäßig unten
 * Wählen Sie seine Position aus der Dropdown-Liste aus
 * Statusleiste oben
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
 
 **Ordner mit Bildern als Buch öffnen (In einem Buch binden)**
 
@@ -64,17 +52,8 @@ Um einen Ordner als Buch zu öffnen, navigieren Sie auf der Registerkarte Ordner
 * Ordner mit Bildern, die als virtuelles Buch geöffnet wurden
 * Zuschneiden von Leerzeichen, Anpassen von Kontrast und Helligkeit usw.
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
-
 **Bücher nach Sprache sortieren**
 
 * Alle in der Bibliothek verfügbaren Sprachen anzeigen
 * Bücher nach Sprachen sortieren
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 

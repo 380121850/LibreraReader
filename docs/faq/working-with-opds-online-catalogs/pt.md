@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Trabalhando com catálogos OPDS
@@ -21,11 +21,11 @@ O * **Librera** vem com uma lista pré-configurada de catálogos na guia _Networ
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ## Download de um livro de um catálogo OPDS
 * Navegue até o livro que você deseja baixar
@@ -36,7 +36,7 @@ O * **Librera** vem com uma lista pré-configurada de catálogos na guia _Networ
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## Adicionando diretórios nos catálogos OPDS aos favoritos
 * Navegue para o seu diretório favorito em um catálogo OPDS
@@ -47,7 +47,7 @@ O * **Librera** vem com uma lista pré-configurada de catálogos na guia _Networ
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## Alteração das configurações
 * Toque no ícone de configurações
@@ -57,4 +57,4 @@ O * **Librera** vem com uma lista pré-configurada de catálogos na guia _Networ
 
 ||||
 |-|-|-|
-|![](17.jpg)|![](18.jpg)|![](19.jpg)|
+|![](17.webp)|![](18.webp)|![](19.webp)|

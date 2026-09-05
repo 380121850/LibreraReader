@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modes de lecture: défilement, livre et musicien
@@ -21,7 +21,7 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Vous pouvez également spécifier des modes de lecture par défaut pour chaque format d'ebook.**
 
@@ -32,7 +32,7 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * Pour modifier le mode de lecture d'un livre en cours, appuyez au centre de l'écran, puis appuyez sur l'icône à trois points en bas
 * Appuyez sur le mode préféré dans la boîte de dialogue
@@ -40,7 +40,7 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Mode défilement
 * Choisissez la jauge de vos défilements: par page, écran, préréglages de pourcentage d'écran ou une valeur personnalisée
@@ -49,7 +49,7 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Mode livre
 * Glissez horizontalement pour la page suivante/précédente
@@ -61,7 +61,7 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Mode musicien
 * Appuyez une fois pour démarrer/arrêter le défilement automatique
@@ -72,4 +72,4 @@ En **mode livre**, les pages sont retournées horizontalement avec des mouvement
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

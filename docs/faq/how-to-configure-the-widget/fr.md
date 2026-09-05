@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utilisation du widget de _Librera_
@@ -10,7 +10,7 @@ Pour commencer à utiliser le widget de **Librera**, vous devez le placer sur le
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](9.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](9.webp)|![](10.webp)|
 
 ## Personnalisation du widget
 
@@ -18,7 +18,7 @@ Pour commencer à utiliser le widget de **Librera**, vous devez le placer sur le
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](22.jpg)|
+|![](20.webp)|![](21.webp)|![](22.webp)|
 
 * Vous pouvez indiquer au widget ce qu'il doit afficher en choisissant entre vos documents _Favorites_ et _Recent_
 * Sélectionnez la disposition des livres dans le widget de **Librera**.
@@ -26,4 +26,4 @@ Pour commencer à utiliser le widget de **Librera**, vous devez le placer sur le
 
 ||||
 |-|-|-|
-|![](2.jpg)|![](3.jpg)|![](4.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|

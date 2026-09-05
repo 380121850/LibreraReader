@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Annotating and Drawing in PDF Files
@@ -20,7 +20,7 @@ This will reveal the _Edit_ icon on the bottom menu.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## PDF Files with a Text Layer
 In addition to the above markings:
@@ -31,7 +31,7 @@ In addition to the above markings:
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Marking Up with Preset Tools
 The **+** sign allows the user to add to the list of tools just one of the three in the currently chosen color.  
@@ -39,7 +39,7 @@ This creates a tool preset with which you can promptly indicate the words and wo
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Saving Edited Files
 * A _Close_ gesture will open the _Save changes?_ window
@@ -49,7 +49,7 @@ This creates a tool preset with which you can promptly indicate the words and wo
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Note: The Eraser in the _Annotations and Drawings_ palette can be used to nuke drawings left by other applications.
 
@@ -61,4 +61,4 @@ This creates a tool preset with which you can promptly indicate the words and wo
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

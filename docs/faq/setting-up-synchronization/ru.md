@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Синхронизация настроек чтения на нескольких устройствах
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Варианты синхронизации
 
@@ -27,7 +27,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > Примечание: Google Drive был выбран для его удобства. Аккаунты Google бесплатны и доступны для всех. Если по какой-либо причине вы предпочитаете любое другое облачное решение, используйте его:
 

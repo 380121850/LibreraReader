@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 在 PDF 文件中注释和绘图
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## 带有文本层的 PDF 文件
 除上述标记外：
@@ -31,7 +31,7 @@ layout: main
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## 使用预设工具标记
 **+** 符号允许用户将当前所选颜色的三个工具之一添加到工具列表中。
@@ -39,7 +39,7 @@ layout: main
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## 保存编辑过的文件
 * _关闭_手势将打开_保存更改？_ 窗口
@@ -49,7 +49,7 @@ layout: main
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > 注意：_Annotations and Drawings_ 调色板中的橡皮擦可用于清除其他应用程序留下的绘图。
 
@@ -61,4 +61,4 @@ layout: main
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

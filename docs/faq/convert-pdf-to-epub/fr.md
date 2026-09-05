@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Conversion de fichiers PDF en fichiers EPUB
@@ -18,7 +18,7 @@ Choisissez _Convert to EPUB_
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Mode _Reflow PDF_ (Conversion de PDF interne)**
 
@@ -32,5 +32,5 @@ L'option _Reflow PDF_ convertira votre document PDF au format EPUB hors ligne.
 
 |4|5|6|
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 > **Le résultat de la conversion (EPUB) sera enregistré dans le dossier _Librera/Downloads_ (stockage interne).**

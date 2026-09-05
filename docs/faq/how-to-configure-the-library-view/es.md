@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personalizar el aspecto de su biblioteca
@@ -17,7 +17,7 @@ Sus libros se muestran en la pestaña _Library_, donde puede realizar ajustes en
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * A continuación se ofrecen ejemplos de las vistas de algunas opciones de diseño:
  
@@ -25,7 +25,7 @@ Sus libros se muestran en la pestaña _Library_, donde puede realizar ajustes en
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## El _ Cubiertas del libro_ Panel
 
@@ -34,14 +34,14 @@ Sus libros se muestran en la pestaña _Library_, donde puede realizar ajustes en
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * Tus manipulaciones con el tamaño de las portadas de los libros dependerán del diseño que hayas elegido (lista o cuadrícula)
 * Para &quot;lista&quot;, use el control deslizante respectivo para cambiar el tamaño de las portadas de los libros (tamaño del estante)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 Tendrá más opciones para &quot;cuadrícula&quot;.
 
@@ -54,4 +54,4 @@ Tendrá más opciones para &quot;cuadrícula&quot;.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

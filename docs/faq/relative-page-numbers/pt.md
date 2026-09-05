@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Re-paginando seu documento para corresponder aos números de página do livro
@@ -19,4 +19,4 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

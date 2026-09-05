@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modo do músico: alternando as marcações na tela
@@ -20,4 +20,4 @@ Para ligá-los/desligá-los:
 * Marque/desmarque as caixas correspondentes
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

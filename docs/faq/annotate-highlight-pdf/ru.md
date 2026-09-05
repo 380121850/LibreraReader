@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Аннотирование и рисование в PDF-файлах
@@ -17,7 +17,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## PDF-файлы с текстовым слоем
 В дополнение к указанной выше маркировке:
@@ -28,7 +28,7 @@ layout: main
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Разметка предустановленными инструментами
 **+** позволяет пользователю добавить в список инструментов только один из трех в текущем выбранном цвете.
@@ -36,7 +36,7 @@ layout: main
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Сохранение отредактированных файлов
 * Жест _Закрыть_ откроет окно _Сохранить изменения? _
@@ -46,7 +46,7 @@ layout: main
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 > Примечание. Ластик в палитре _Аннотации и Рисунки_ можно использовать для удаления рисунков, оставленных другими приложениями.
 > Вы можете вызвать палитру:
 - Нажатие на маркировку
@@ -56,4 +56,4 @@ layout: main
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

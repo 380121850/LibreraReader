@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuración de fuentes y estilos
@@ -13,7 +13,7 @@ Hará todo lo anterior en la pestaña principal de la ventana **Preferencia** y,
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ajustes de fuente
 
@@ -34,11 +34,11 @@ Para configurar fuentes específicas del usuario para diferentes estilos de fuen
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Principales iniciales en libros de FB2
 
@@ -54,7 +54,7 @@ Puede hacer que cada capítulo de su libro comience con una bonita inicial.
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## La pestaña **Configuración de lectura**
@@ -68,7 +68,7 @@ Puede hacer que cada capítulo de su libro comience con una bonita inicial.
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Elija _Styles_ para su libro sabiamente**
 
@@ -86,8 +86,8 @@ Quienes estén familiarizados con la codificación CSS pueden realizar algunas p
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

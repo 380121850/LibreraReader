@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contraste et luminosité en PDF (effet noir/blanc)
@@ -21,7 +21,7 @@ Vous pouvez ajuster les paramètres suivants:
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## luminosité
 * Tapez sur l'icône _Contrast/Brightness_ dans le menu central.
@@ -30,7 +30,7 @@ Vous pouvez ajuster les paramètres suivants:
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Tout souligner (effet de lettre en gras)
 * Tapez sur l'icône _Contrast/Brightness_ dans le menu central.
@@ -39,6 +39,6 @@ Vous pouvez ajuster les paramètres suivants:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > Pour supprimer vos paramètres manuels, utilisez le lien _Restore default_ situé au bas de la fenêtre **Contraste et luminosité**.

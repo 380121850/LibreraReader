@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Helligkeitsregelung und Blaulichtfilter
@@ -16,7 +16,7 @@ Negative Helligkeit aktiviert standardmäßig den Blaulichtfilter und die Farbe 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Blaulichtfilter**
 > Der Blaulichtfilter hängt von Ihrer Helligkeitseinstellung ab und wird automatisch eingeschaltet, wenn die Helligkeitseinstellung einen negativen Wert aufweist.
@@ -27,4 +27,4 @@ Negative Helligkeit aktiviert standardmäßig den Blaulichtfilter und die Farbe 
 
 ||||
 |-|-|-|
-|![](7.png)|![](6.png)|![](8.png)|
+|![](../main-app/7.webp)|![](6.webp)|![](../main-app/8.webp)|

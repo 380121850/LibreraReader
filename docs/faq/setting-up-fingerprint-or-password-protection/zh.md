@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #设置指纹或密码保护
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##指纹保护
 
@@ -28,7 +28,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ##密码保护
 
@@ -42,6 +42,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 >要删除密码/指纹保护，请运行**Librera**，对应用程序进行身份验证，转到_提示输入密码_框，然后取消选中它。

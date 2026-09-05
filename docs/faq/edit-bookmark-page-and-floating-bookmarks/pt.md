@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Editando marcadores _Normal_ e _Floating_
@@ -20,6 +20,6 @@ Se você precisar alterar o número da página de um favorito **normal**:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

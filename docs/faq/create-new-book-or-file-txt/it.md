@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Creazione di un nuovo file TXT per note, preventivi, ecc.
@@ -14,4 +14,4 @@ Per creare un nuovo file:
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

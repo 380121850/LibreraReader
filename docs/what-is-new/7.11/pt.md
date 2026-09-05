@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.11
@@ -29,10 +29,6 @@ Inscreva-se no canal de telegrama **Librera Reader** [https://t.me/LibreraReader
 * O texto pode ser selecionado da maneira **letra por letra** ou **palavra por palavra**
 * Qualquer alça (início ou fim) pode ser arrastada separadamente, em tempo real
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Leitura RSVP (apresentação visual serial rápida)/leitura rápida**
 
 A velocidade de leitura com o **Librera** permite melhorar sua velocidade de leitura para até 700 palavras por minuto (WPM) implementando o método RSVP.
@@ -42,19 +38,11 @@ Por favor, siga o link para encontrar mais informações sobre o assunto [Seçã
 * Velocidade de leitura com apenas um toque
 * Ajuste o comprimento mínimo da linha: até 30 CPL
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
-
 **Posição da barra de status (superior ou inferior) no modo Livro**
 
 * A barra de status está na parte inferior por padrão
 * Selecione sua posição na lista suspensa
 * Barra de status na parte superior
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
 
 **Abrir pasta com imagens como livro (encadernar em um livro)**
 
@@ -64,17 +52,8 @@ Para abrir uma pasta como um livro, navegue até ela na guia Pastas e toque em s
 * Pasta com imagens abertas como um livro virtual
 * Corte o espaço em branco, ajuste o contraste e o brilho, etc.
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
-
 **Classificar livros por idioma**
 
 * Veja todos os idiomas disponíveis na Biblioteca
 * Classificar livros por idiomas
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 

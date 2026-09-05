@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modos de leitura: pergaminho, livro e música de músicos
@@ -21,7 +21,7 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Você também pode especificar modos de leitura padrão para cada formato de e-book.**
 
@@ -32,7 +32,7 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * Para alterar o modo de leitura de um livro atual, toque no centro da tela e toque no ícone de três pontos na parte inferior
 * Toque no modo preferido na caixa de diálogo
@@ -40,7 +40,7 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Modo de rolagem
 * Escolha o indicador de suas rolagens: por página, tela, predefinições de porcentagem da tela ou um valor personalizado
@@ -49,7 +49,7 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Modo Livro
 * Deslize horizontalmente para a página seguinte/anterior
@@ -61,7 +61,7 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Modo Músico
 * Toque único para iniciar/parar a rolagem automática
@@ -72,4 +72,4 @@ No **modo Livro**, as páginas são invertidas horizontalmente com deslizamentos
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

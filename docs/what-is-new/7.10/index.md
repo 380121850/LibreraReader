@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.10
@@ -23,20 +23,12 @@ TTS reading supports adjustable pauses (breaks) at punctuation marks.
 * Easy speed change
 * Improved notification behavior
 
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
 Search for multiple words in any book format. 
 The "Normalize font size" option makes all fonts the same size (height) and collapses no-break spaces to single spaces.
 
 * Multiple-word search queries in a book
 * Disable normalize font size 
 * Enable normalize font size
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
 
 Open an external audio file from the TTS Settings dialog and listen to it while reading.
 This feature should come in handy for those learning foreign languages or for musicians.
@@ -47,19 +39,11 @@ The format of the status bar legend can be changed from full to compact to chapt
 * Play media files in EPUB3 books
 * Three status bar legend formats to choose from
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
  Leading initials in chapters of __FB2__ books can be configured in the Configure Fonts dialog.
 
 * Pop up the Configure Fonts window after opening an FB2 book
 * Enable and configure leading initials
 * You can change their font, color, size, etc.
-
-||||
-|-|-|-|
-|![](6.png)|![](4.png)|![](5.png)|
 
 * Support for phones w/ notched displays
 * Table of contents for EPUB 3.0 books

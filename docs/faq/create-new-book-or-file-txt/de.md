@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Erstellen einer neuen TXT-Datei für Notizen, Zitate usw.
@@ -14,4 +14,4 @@ So erstellen Sie eine neue Datei:
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contrast and Brightness in PDF  (Black/White Effect)
@@ -21,7 +21,7 @@ You can adjust the following settings:
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## Brightness 
 * Tap on the _Contrast/Brightness_ icon in the center-tap-menu
@@ -30,7 +30,7 @@ You can adjust the following settings:
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Emphasize all  (bold-letter effect)
 * Tap on the _Contrast/Brightness_ icon in the "center-tap-menu"
@@ -39,6 +39,6 @@ You can adjust the following settings:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > To discard your manual settings, use the _Restore default_ link at the bottom of the **Contrast and Brightness** window.

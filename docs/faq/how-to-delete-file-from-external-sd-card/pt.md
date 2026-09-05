@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Como excluir um livro de um cartão SD externo
@@ -15,7 +15,7 @@ No **Librera**, você precisa adicionar seu cartão SD como um recurso (_bookshe
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Escolha seu cartão SD na lista de recursos do menu suspenso
 * Abra o menu de arquivo do livro que você deseja excluir tocando no ícone de três pontos
@@ -23,4 +23,4 @@ No **Librera**, você precisa adicionar seu cartão SD como um recurso (_bookshe
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

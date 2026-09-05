@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personalizando a aparência da sua biblioteca
@@ -17,7 +17,7 @@ Seus livros são mostrados na guia _Library_, onde você pode fazer ajustes na a
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * Exemplos das visualizações de apenas algumas opções de layout são apresentados abaixo:
  
@@ -25,7 +25,7 @@ Seus livros são mostrados na guia _Library_, onde você pode fazer ajustes na a
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## O painel _Capas de livros_
 
@@ -34,14 +34,14 @@ Seus livros são mostrados na guia _Library_, onde você pode fazer ajustes na a
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * Suas manipulações com o tamanho das capas de livros dependerão do layout que você escolheu (lista ou grade)
 * Para &quot;lista&quot;, use o respectivo controle deslizante para alterar o tamanho das capas dos livros (tamanho da prateleira)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 Você terá mais opções para &quot;grade&quot;.
 
@@ -54,4 +54,4 @@ Você terá mais opções para &quot;grade&quot;.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

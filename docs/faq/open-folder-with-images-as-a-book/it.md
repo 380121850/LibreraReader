@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Apertura di una cartella con immagini come libro (Associa a un libro)
@@ -12,5 +12,5 @@ In **Librera**, è molto semplice creare un libro rilegato di file di immagine i
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

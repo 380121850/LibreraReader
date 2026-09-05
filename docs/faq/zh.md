@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 常见问题

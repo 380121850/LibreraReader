@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Theming Librera's UI
@@ -15,7 +15,7 @@ In the _General Settings_ panel of the **Preferences** tab you can choose your p
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Font-Size Setting**
 
@@ -24,7 +24,7 @@ In the _General Settings_ panel of the **Preferences** tab you can choose your p
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **General Theme Setting**
 
@@ -35,7 +35,7 @@ In the _General Settings_ panel of the **Preferences** tab you can choose your p
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Header and Title Color (Trim) Setting**
 
@@ -45,7 +45,7 @@ In the _General Settings_ panel of the **Preferences** tab you can choose your p
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Link Color Setting**
 
@@ -56,6 +56,6 @@ In the _General Settings_ panel of the **Preferences** tab you can choose your p
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **The best thing offered by *Librera* is the ability to theme each profile you create in it individually. You can theme your profiles created for your mood changes, day and night reading, book genres, etc.**

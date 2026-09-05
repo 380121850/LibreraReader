@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Opções de exibição/layout de página
@@ -20,7 +20,7 @@ Para acessar as opções de visualização:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ajustando o layout da página em PDF/DjVu
 
@@ -31,10 +31,10 @@ A &quot;rigidez&quot; da página em PDF/DjVu e o tamanho da tela ditarão as op�
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 O modo * _Meia Página_ é útil nos layouts de página de duas colunas. Apenas divida sua página em duas escolhendo esta opção
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

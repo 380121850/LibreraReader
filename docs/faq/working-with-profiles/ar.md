@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # العمل مع ملفات تعريف _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## تبديل الملامح
 * في لوحة _Profile_ من علامة التبويب **التفضيلات** ، انقر على اسم ملف التعريف الحالي
@@ -25,7 +25,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ## إعادة تعيين ملف التعريف
 > إذا كنت بحاجة إلى إعادة إعدادات ملف التعريف الحالي إلى قيمها الأصلية (الافتراضية) ، فيجب عليك اتباع هذه الخطوات السهلة:
@@ -36,7 +36,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## حذف ملف التعريف
 > ملاحظة: يجب التبديل إلى ملف تعريف آخر قبل حذف ملف التعريف الحالي.
@@ -47,4 +47,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Uso di dizionari e traduttori
@@ -55,7 +55,7 @@ Per abilitare la ricerca immediata nel dizionario di una parola selezionata, è 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Impostazione di un dizionario predefinito
 Puoi anche configurare il tuo dizionario predefinito (che apparirà subito dopo la selezione di una parola):
@@ -64,7 +64,7 @@ Puoi anche configurare il tuo dizionario predefinito (che apparirà subito dopo 
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](55.jpg)|![](66.jpg)|
+|![](4.webp)|![](55.webp)|![](66.webp)|
 
 ## Lasciando la casella di selezione deselezionata
 Se lasci la casella _Open selection_ deselezionata, ti verrà presentata la finestra **Testo** dopo aver selezionato una parola o una sequenza di parole. Qui sarai in grado di:
@@ -72,17 +72,17 @@ Se lasci la casella _Open selection_ deselezionata, ti verrà presentata la fine
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Trova (toccando il segno * * +* *  se necessario) il dizionario o il traduttore installato preferito
 * Tocca la sua icona per richiamare la finestra popup con la traduzione delle parole (definizione)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 > Un rapido promemoria: non dimenticare di scegliere il dizionario predefinito PRIMA di selezionare la casella _Apri selezione nel dizionario_.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](55.jpg)|![](66.jpg)|
+|![](13.webp)|![](55.webp)|![](66.webp)|

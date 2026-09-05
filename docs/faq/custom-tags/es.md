@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Agregar y manejar etiquetas personalizadas
@@ -15,7 +15,7 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Agregar y eliminar etiquetas (tan fácil como un pastel)
 
@@ -26,7 +26,7 @@ layout: main
 
 |4|5|6|
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Crear una lista personalizada de libros
 
@@ -36,7 +36,7 @@ layout: main
 
 |7|8|9|
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Invocando su lista de _Favoritos_ personalizada del libro que está leyendo
 
@@ -46,4 +46,4 @@ layout: main
 
 |10|11|12|
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|

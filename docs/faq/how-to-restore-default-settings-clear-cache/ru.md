@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Как восстановить настройки по умолчанию/очистить кэш
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Восстановление значений по умолчанию
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Переименование режимов чтения и изменения клиринга
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Если по какой-либо причине вы застряли с чем-то, что не работает должным образом, и вам нужен «чистый лист», вы можете удалить _Librera Reader_ из системы и вручную удалить папку _Librera_ из внутреннего хранилища в ваше устройство.**

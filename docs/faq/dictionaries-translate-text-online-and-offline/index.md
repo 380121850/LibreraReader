@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Using Dictionaries and Translators
@@ -55,7 +55,7 @@ To enable an immediate dictionary lookup of a selected word, you need to:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Setting Up a Default Dictionary
 You can also configure your default dictionary (which will pop up right upon a word selection):
@@ -64,7 +64,7 @@ You can also configure your default dictionary (which will pop up right upon a w
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](55.jpg)|![](66.jpg)|
+|![](4.webp)|![](55.webp)|![](66.webp)|
 
 ## Leaving the Selection Box Unchecked
 If you leave the _Open selection_ box unchecked, you will be presented with the **Text** window upon selecting a word or word sequence. Here you will be able to:
@@ -72,17 +72,17 @@ If you leave the _Open selection_ box unchecked, you will be presented with the 
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Find (by tapping the **+** sign if necessary) your preferred installed dictionary or translator
 * Tap on its icon to invoke its popup window with the word translation (definition)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 > A quick reminder: Don't forget to choose your default dictionary BEFORE checking the _Open selection in dictionary_ box.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](55.jpg)|![](66.jpg)|
+|![](13.webp)|![](55.webp)|![](66.webp)|

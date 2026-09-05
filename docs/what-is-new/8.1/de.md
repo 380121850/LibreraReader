@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Beispiele für die Synchronisierung
 * Um ein Buch zu synchronisieren, rufen Sie dessen Menü auf und wählen Sie _Sync_.
 * Alle Ihre Bücher auf dem Tab &quot;Favoriten&quot; werden synchronisiert
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # Profile
@@ -46,10 +43,6 @@ Profile werden im internen Speicher des Geräts unter /sdcard/Librera/profile.[N
 
 Wenn Sie **lang auf** eines Profilnamens drücken, wird ein Warnfenster angezeigt, in dem Sie die Standardeinstellungen (Anfangseinstellungen) wiederherstellen können (Ihre Lesezeichen und Lesevorgänge bleiben erhalten).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # TTS-Ersetzungen und Wörterbücher
 
 * Tippen Sie in **TTS-Einstellungen** auf &quot;Ersetzungen&quot; und fügen Sie eine neue Leseregel hinzu.
@@ -59,10 +52,6 @@ Wenn Sie **lang auf** eines Profilnamens drücken, wird ein Warnfenster angezeig
 * Tippen Sie auf &quot;Anzeigen&quot;, um die Ergebnisse der Ersetzungen anzuzeigen
 * Externes Wörterbuch hinzufügen: Librera unterstützt @Voice Aloud- und .txt RegEx-Ersatzdateien
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Zusätzliche Einstellungen im Musikermodus
 
 * Tippen-Zonen anzeigen/ausblenden (mit gepunkteten Linien abgegrenzt)
@@ -71,19 +60,11 @@ Wenn Sie **lang auf** eines Profilnamens drücken, wird ein Warnfenster angezeig
 * Navigieren Sie von der ersten zur letzten Seite, indem Sie auf Vorherige Seite tippen
 * Navigieren Sie von der letzten zur ersten Seite, indem Sie auf die Zone Nächste Seite tippen
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Zusätzliche Funktionen und Verbesserungen der Benutzeroberfläche
 
 * Teilen \ Seiten als Bilder \ Text kopieren (lange auf eine Seitenminiatur im Fenster _Zur Seite wechseln drücken)
 * Unterstützung für gekerbte Bildschirme
 * Neue Sortierparameter: Sortieren nach **Publisher** und **Veröffentlichungsdatum**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Verschiedenes
 
@@ -92,5 +73,4 @@ Wenn Sie **lang auf** eines Profilnamens drücken, wird ein Warnfenster angezeig
 * Bewegliches Lesezeichen mit schwebendem Indikator (markiert automatisch Ihre aktuelle Leseposition als Lesezeichen und ermöglicht es Ihnen, nach vorübergehenden Besuchen in anderen Teilen und Abschnitten des Buches mithilfe des Gleitkommas in der rechten unteren Ecke dorthin zurückzukehren). Aktivieren Sie das Kontrollkästchen **Floating**, um ein verschiebbares Lesezeichen zu initiieren (hinzuzufügen)
 * Erlaube die Verwendung eines Fingerabdrucks anstelle eines Passworts (Android 9+)
 * Ermöglichen Sie, dass das Zeitlimit für den System-Ruhezustand zum Ausschalten des Bildschirms verwendet wird
-
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # TTS Replacements
@@ -12,7 +12,7 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Classic replacements are supported (straightforward change of one string for another), or you can use regular expressions (RegExp).
 
@@ -84,7 +84,7 @@ In **Librera** we have introduced special replacements (commands) that will allo
 
 |4|5|
 |-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|
 
 > **Please test your changes a few times to make sure everything is working as it should!**
 

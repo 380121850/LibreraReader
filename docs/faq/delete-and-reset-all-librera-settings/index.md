@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Delete and reset all Librera settings
@@ -19,8 +19,8 @@ If you did not create a profile, the _device.name of your device_ package is cre
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-|![](4.png)|![](5.png)||
+|![](1.webp)|![](2.webp)|![](3.webp)|
+|![](4.webp)|![](5.webp)||
 
 
 * app-Bookmarks.json - bookmarks

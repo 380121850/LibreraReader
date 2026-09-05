@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Використання механізму синтезу мовлення з _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Приклад: налаштування системи синтезу мовлення Google
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Примітка: налаштування голосу в інших механізмах TTS проводиться аналогічним чином. Пам’ятайте, що файли голосових даних можуть бути досить великими. Щоб зберегти обмежені тарифні плани мобільного передавання даних, переконайтеся, що вони завантажені лише через Wi-Fi.

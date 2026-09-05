@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Режим музиканта: перемикання позначок на екрані
@@ -20,4 +20,4 @@ layout: main
 * Поставте/зніміть відповідні прапорці
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

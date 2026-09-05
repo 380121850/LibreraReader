@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.11
@@ -29,10 +29,6 @@ Abonnez-vous au **lecteur Librera** du canal télégramme [https://t.me/LibreraR
 * Le texte peut être sélectionné de manière **lettre par lettre** ou **mot par mot**.
 * Chaque poignée (début ou fin) peut être déplacée séparément, en temps réel
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Lecture RSVP (présentation visuelle en série rapide)/Lecture rapide**
 
 La lecture rapide avec **Librera** vous permet d’accroître votre vitesse de lecture jusqu’à 700 mots par minute (WPM) en implémentant la méthode RSVP.
@@ -42,19 +38,11 @@ Veuillez suivre le lien pour trouver plus d'informations sur le sujet [Section d
 * Lecture rapide en un seul clic
 * Ajuster la longueur de ligne minimale: jusqu'à 30 CPL
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
-
 **Position de la barre d'état (haut ou bas) en mode Livre**
 
 * La barre d'état est en bas par défaut
 * Sélectionnez sa position dans la liste déroulante
 * Barre d'état en haut
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
 
 **Ouvrir un dossier avec des images sous forme de livre (relié dans un livre)**
 
@@ -64,17 +52,8 @@ Pour ouvrir un dossier sous forme de livre, naviguez jusqu'à celui-ci dans l'on
 * Dossier avec images ouvert en tant que livre virtuel
 * Recadrer les espaces blancs, régler le contraste et la luminosité, etc.
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
-
 **Trier les livres par langue**
 
 * Voir toutes les langues disponibles dans la bibliothèque
 * Trier les livres par langue
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 

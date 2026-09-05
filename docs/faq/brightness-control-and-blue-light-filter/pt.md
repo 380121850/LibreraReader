@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Controle de brilho e filtro de luz azul
@@ -16,7 +16,7 @@ O brilho negativo permite o filtro de luz azul e cor Preto por padrão.
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Filtro de luz azul**
 > O filtro de luz azul depende da sua configuração de brilho; ele liga automaticamente quando a configuração de brilho tem um valor negativo.
@@ -27,4 +27,4 @@ O brilho negativo permite o filtro de luz azul e cor Preto por padrão.
 
 ||||
 |-|-|-|
-|![](7.png)|![](6.png)|![](8.png)|
+|![](../main-app/7.webp)|![](6.webp)|![](../main-app/8.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Benutzeroberfläche von Theming Librera
@@ -15,7 +15,7 @@ Im Bereich &quot;Allgemeine Einstellungen&quot; auf dem Tab &quot;**Einstellunge
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Schriftgrößeneinstellung**
 
@@ -24,7 +24,7 @@ Im Bereich &quot;Allgemeine Einstellungen&quot; auf dem Tab &quot;**Einstellunge
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **Allgemeine Themeneinstellung**
 
@@ -35,7 +35,7 @@ Im Bereich &quot;Allgemeine Einstellungen&quot; auf dem Tab &quot;**Einstellunge
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Einstellung für Kopf- und Titelfarbe (Zuschneiden)**
 
@@ -45,7 +45,7 @@ Im Bereich &quot;Allgemeine Einstellungen&quot; auf dem Tab &quot;**Einstellunge
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Link-Farbeinstellung**
 
@@ -56,6 +56,6 @@ Im Bereich &quot;Allgemeine Einstellungen&quot; auf dem Tab &quot;**Einstellunge
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **Das Beste, was * Librera * bietet, ist die Möglichkeit, jedes darin erstellte Profil individuell zu gestalten. Sie können Ihre Profile thematisieren, die für Stimmungsänderungen, Lesen bei Tag und Nacht, Buchgenres usw. erstellt wurden.**

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Ouverture d'un dossier contenant des images sous forme de livre (relié dans un livre)
@@ -12,5 +12,5 @@ Dans **Librera**, il est très facile de créer une reliure de livres contenant 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

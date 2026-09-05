@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # تخصيص الشكل والمظهر لمكتبتك
@@ -17,7 +17,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * فيما يلي أمثلة على طرق عرض عدد قليل من خيارات التنسيق:
  
@@ -25,7 +25,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## لوحة _Book Covers_
 
@@ -34,14 +34,14 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * تعتمد عمليات التلاعب بحجم غلاف الكتب على التصميم الذي اخترته (قائمة أو شبكة)
 * بالنسبة لـ &quot;القائمة&quot; ، استخدم شريط التمرير المناسب لتغيير حجم أغلفة الكتب (حجم الرف)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 سيكون لديك المزيد من الخيارات لـ &quot;الشبكة&quot;.
 
@@ -54,4 +54,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

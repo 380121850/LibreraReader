@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Edición de marcadores _Normal_ y _Floating_
@@ -20,6 +20,6 @@ Si necesita cambiar el número de página por un marcador **normal**:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 

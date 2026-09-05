@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # احذف جميع إعدادات Librera وأعد ضبطها
@@ -19,8 +19,8 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-|![](4.png)|![](5.png)||
+|![](1.webp)|![](2.webp)|![](3.webp)|
+|![](4.webp)|![](5.webp)||
 
 
 * app-Bookmarks.json - الإشارات المرجعية

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Control de brillo y filtro de luz azul
@@ -16,7 +16,7 @@ El brillo negativo habilita el filtro de luz azul y el color negro de forma pred
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Filtro de luz azul**
 > El filtro de luz azul depende de su configuración de brillo, se activa automáticamente cuando la configuración de brillo tiene un valor negativo.
@@ -27,4 +27,4 @@ El brillo negativo habilita el filtro de luz azul y el color negro de forma pred
 
 ||||
 |-|-|-|
-|![](7.png)|![](6.png)|![](8.png)|
+|![](../main-app/7.webp)|![](6.webp)|![](../main-app/8.webp)|

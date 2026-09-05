@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #机芯风格的参考模式
@@ -13,4 +13,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
+|![](1.webp)|![](3.webp)|![](2.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Notas no texto x notas de rodapé
@@ -13,4 +13,4 @@ Para optar pela apresentação da nota no texto:
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

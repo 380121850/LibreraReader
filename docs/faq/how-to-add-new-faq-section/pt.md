@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Como adicionar um novo tópico de FAQ
@@ -12,7 +12,7 @@ Formato do cabeçalho do arquivo para **index.md**:
 
 ```
 ---
-layout: main
+layout: page
 ---
 
 # Topic Name from Here Goes to the FAQ Page
@@ -27,5 +27,5 @@ Você pode ilustrar sua discussão com imagens (JPEG). Todos os arquivos de imag
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 ```

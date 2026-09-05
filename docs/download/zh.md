@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 # 下载 HowRead 好好读
 

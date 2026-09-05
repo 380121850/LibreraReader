@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Trabalhando com favoritos no modo avançado (faixa de opções Favoritos)
@@ -15,7 +15,7 @@ Para habilitá-lo nos outros modos:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 As operações com a _ Ribbonmarks Ribbon_ são ilustradas no modo _Book_. Tudo funciona da mesma maneira nos três modos.
 
@@ -23,7 +23,7 @@ As operações com a _ Ribbonmarks Ribbon_ são ilustradas no modo _Book_. Tudo 
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Adicionando marcadores**
@@ -37,7 +37,7 @@ As operações com a _ Ribbonmarks Ribbon_ são ilustradas no modo _Book_. Tudo 
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Seu novo favorito aparecerá na janela _Bookmarks_ e, ao mesmo tempo, você o verá na _Bookmarks Ribbon_ na parte superior. Agora, para voltar a este marcador, basta tocar nele na faixa de opções.
 
@@ -49,7 +49,7 @@ A faixa de opções se tornará uma faixa completa na tela quando você tiver mu
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Adicionando marcadores rápidos**
 
@@ -60,7 +60,7 @@ A faixa de opções se tornará uma faixa completa na tela quando você tiver mu
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > Você pode ignorar algumas operações ao adicionar ou excluir favoritos usando a _Bookmarks Ribbon_:
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuración de protección de huella digital o contraseña
@@ -16,7 +16,7 @@ Los documentos pueden estar protegidos con huella digital o con contraseña.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Protección de huellas digitales
 
@@ -28,7 +28,7 @@ Los documentos pueden estar protegidos con huella digital o con contraseña.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Protección de contraseña
 
@@ -42,6 +42,6 @@ Configuración de inicio de sesión con contraseña:
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > Para eliminar la protección de contraseña/huella digital, ejecute **Librera**, autentíquese en la aplicación, vaya al cuadro _Prompt for password_ y desactívela.

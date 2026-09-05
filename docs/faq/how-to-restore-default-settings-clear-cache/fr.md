@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Comment restaurer les paramètres par défaut/Vider le cache
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Restauration des valeurs par défaut en fonction des paramètres
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Renommer les modes de lecture et effacer les modifications
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Si, pour une raison quelconque, vous êtes bloqué par quelque chose qui ne fonctionnera pas correctement et vous avez besoin d'une &quot;table rase&quot;, vous pouvez désinstaller _Librera Reader_ du système et supprimer manuellement le dossier _Librera_ de la mémoire de stockage interne. votre appareil.**

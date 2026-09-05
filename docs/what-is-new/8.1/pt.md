@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.1
@@ -33,9 +33,6 @@ Exemplos de sincronização
 * Para sincronizar um livro, chame seu menu e escolha _Sync_
 * Todos os seus livros na guia Favoritos serão sincronizados
 
-||||
-|-|-|-|
-|![](1.png)|![](3.png)|![](2.png)|
  
  
 # perfis
@@ -46,10 +43,6 @@ Os perfis são armazenados na memória interna do dispositivo em /sdcard/Librera
 
 Se pressionar **** no nome do perfil, será exibida uma janela de alerta para que você restaure as configurações padrão (iniciais) (seus favoritos e os progressos da leitura permanecerão intactos).
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 # substituições e dicionários TTS
 
 * Toque em &quot;Substituições&quot; em **Configurações do TTS** e adicione uma nova regra de leitura.
@@ -59,10 +52,6 @@ Se pressionar **** no nome do perfil, será exibida uma janela de alerta para qu
 * Toque em &quot;Mostrar&quot; para ver os resultados das substituições
 * Adicione um dicionário externo: o Librera suporta arquivos de substituição do @Voice Aloud e .txt RegEx
 
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 # Configurações adicionais no modo de músico
 
 * Mostrar \ ocultar zonas de toque (delineadas com linhas pontilhadas)
@@ -71,19 +60,11 @@ Se pressionar **** no nome do perfil, será exibida uma janela de alerta para qu
 * Navegue da primeira para a última página tocando na zona Página anterior
 * Navegue da última para a primeira página tocando na zona Próxima página
 
-||||
-|-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
-
 # Funções adicionais e melhorias na interface do usuário
 
 * Compartilhe \ copie páginas como imagens \ texto (pressione e segure em uma miniatura da página na janela _Ir para a página_)
 * Suporte para telas entalhadas
 * Novos parâmetros de classificação: classifique por **Editor** e **Data da publicação**
-
-||||
-|-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
 
 # Diversos
 
@@ -92,5 +73,4 @@ Se pressionar **** no nome do perfil, será exibida uma janela de alerta para qu
 * Marcador móvel, com um indicador flutuante (marca automaticamente sua posição atual de leitura e permite que você volte para ela, via flutuador no canto inferior direito, após visitas temporárias a outras partes e seções do livro). Para iniciar (adicionar) um marcador móvel, marque a caixa **Flutuante**
 * Permitir que impressões digitais sejam usadas em vez de senha (Android 9+)
 * Permita que o tempo limite de suspensão do sistema seja usado para desligar a tela
-
 

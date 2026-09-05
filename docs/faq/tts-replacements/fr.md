@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Remplacements TTS
@@ -12,7 +12,7 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Les remplacements classiques sont pris en charge (changement simple d'une chaîne pour une autre), ou vous pouvez utiliser des expressions régulières (RegExp).
 
@@ -84,7 +84,7 @@ Dans **Librera**, nous avons introduit des remplacements spéciaux (commandes) q
 
 |4|5|
 |-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|
 
 > **Testez vos modifications plusieurs fois pour vous assurer que tout fonctionne comme il se doit!**
 

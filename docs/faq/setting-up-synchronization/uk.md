@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Синхронізація налаштувань читання на кількох пристроях
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Параметри синхронізації
 
@@ -27,7 +27,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > Примітка. Диск Google було обрано для його зручності. Облікові записи Google безкоштовні і доступні кожному. Якщо з будь-якої причини ви віддаєте перевагу будь-яке інше хмарне рішення, скористайтеся ним.
 
@@ -51,7 +51,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **Щоб забезпечити безперебійну синхронізацію, зрозуміло, що ви повинні мати однакові налаштування на всіх ваших пристроях Android.**
 

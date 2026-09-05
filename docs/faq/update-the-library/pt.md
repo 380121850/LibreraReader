@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Atualizando sua biblioteca
@@ -11,6 +11,6 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 > Nota: o **Librera** pode digitalizar as pastas criadas para os livros baixados dos recursos de livros online. Você pode sincronizar essas pastas em vários dispositivos usando aplicativos de terceiros.

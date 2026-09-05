@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Verwenden einer Text-to-Speech-Engine mit _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Beispiel: Einrichten der Google Text-to-Speech-Engine
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Hinweis: Die Spracheinstellung in anderen TTS-Engines erfolgt auf ähnliche Weise. Denken Sie daran, dass Sprachdateien sehr groß sein können. Stellen Sie sicher, dass Ihre begrenzten Mobilfunkdaten nur über eine WiFi-Verbindung heruntergeladen werden.

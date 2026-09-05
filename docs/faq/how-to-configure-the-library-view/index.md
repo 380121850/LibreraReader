@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Customizing the Look and Feel of Your Library
@@ -17,7 +17,7 @@ Your books are shown in the _Library_ tab, where you can make adjustments to the
 
 ||||
 |-|-|-|
-|![](3.jpg)|![](1.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 * Examples of the views of just a few layout choices are given below:
  
@@ -25,7 +25,7 @@ Your books are shown in the _Library_ tab, where you can make adjustments to the
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ## The _Book Covers_ Panel
 
@@ -34,14 +34,14 @@ Your books are shown in the _Library_ tab, where you can make adjustments to the
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * Your manipulations with the size of book covers will depend on the layout you've chosen (list or grid)
 * For "list," use the respective slider to change the size of the book covers (shelf size)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 You will have more options for "grid."
 
@@ -54,4 +54,4 @@ You will have more options for "grid."
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](14.jpg)|![](15.jpg)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Uso de diccionarios y traductores
@@ -55,7 +55,7 @@ Para habilitar una búsqueda inmediata en el diccionario de una palabra seleccio
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 ## Configuración de un diccionario predeterminado
 También puede configurar su diccionario predeterminado (que aparecerá inmediatamente después de seleccionar una palabra):
@@ -64,7 +64,7 @@ También puede configurar su diccionario predeterminado (que aparecerá inmediat
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](55.jpg)|![](66.jpg)|
+|![](4.webp)|![](55.webp)|![](66.webp)|
 
 ## Dejar el cuadro de selección sin marcar
 Si deja la casilla _Abierta selección_ sin marcar, se le presentará la ventana **Texto** al seleccionar una palabra o secuencia de palabras. Aquí podrás:
@@ -72,17 +72,17 @@ Si deja la casilla _Abierta selección_ sin marcar, se le presentará la ventana
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Encuentra (tocando el signo * * +* *  si es necesario) tu diccionario o traductor instalado preferido
 * Toque su icono para invocar su ventana emergente con la traducción de la palabra (definición)
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 > Un recordatorio rápido: no olvides elegir tu diccionario predeterminado ANTES de marcar la casilla _Abra la selección en el diccionario_.
 
 ||||
 |-|-|-|
-|![](13.jpg)|![](55.jpg)|![](66.jpg)|
+|![](13.webp)|![](55.webp)|![](66.webp)|

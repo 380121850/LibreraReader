@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Opciones de visualización/diseño de página
@@ -20,7 +20,7 @@ Para acceder a las opciones de visualización:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ajuste del diseño de página en PDF/DjVu
 
@@ -31,10 +31,10 @@ La &quot;rigidez&quot; de la página en PDF/DjVu y el tamaño de la pantalla det
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 El modo * _Media página_ es útil en diseños de página de dos columnas. Solo divide tu página en dos eligiendo esta opción
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

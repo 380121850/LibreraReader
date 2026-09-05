@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Utiliser *Librera* pour l'apprentissage des langues étrangères
@@ -12,7 +12,7 @@ Utilisez simplement votre doigt (n'importe quel doigt) pour mettre en surbrillan
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Activer la recherche de dictionnaire par simple pression (appui long) (cochez la case)
 * Cela vaut également pour les traductions de passages si votre &quot;dictionnaire de choix&quot; est, par exemple, Google Translate (assurez-vous que votre connexion Internet est opérationnelle)
@@ -20,7 +20,7 @@ Utilisez simplement votre doigt (n'importe quel doigt) pour mettre en surbrillan
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 Si la sélection _Ouvrir dans le dictionnaire_ n'est pas cochée, vous aurez plusieurs choix dans la fenêtre _Texte_:
 * Faites **Librera** prononcer le mot pour vous ou relisez votre sélection à haute voix
@@ -30,7 +30,7 @@ Si la sélection _Ouvrir dans le dictionnaire_ n'est pas cochée, vous aurez plu
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 > Vous pouvez lire des fichiers audio externes avec **Librera**. Il prend en charge tous les formats audio fréquemment utilisés, par exemple, .mp3, .mp4, .wav, .ogg, .m4a et .flac.
 * Lisez des livres audio à côté de leurs copies de livres électroniques (lecture accompagnée par la voix)
@@ -39,6 +39,6 @@ Si la sélection _Ouvrir dans le dictionnaire_ n'est pas cochée, vous aurez plu
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 > **Un appui long sur le bouton Lecture/Pause permet de rembobiner la piste au tout début.**

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #增加PDF文档中的字体大小
@@ -12,7 +12,7 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 

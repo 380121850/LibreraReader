@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Opening a Folder with Images as a Book (Bind in a Book)
@@ -12,5 +12,5 @@ In **Librera**, it is very easy to make a book bound of image files placed in a 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

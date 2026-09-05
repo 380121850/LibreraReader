@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Setting Up the Status Bar
@@ -13,7 +13,7 @@ You can make all changes to the status bar in the _Status Bar_ tab:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 By default, the status bar is located at the screen bottom. Use the _Position_ dropdown list to change its location.
 > Note! If the _Top_ setting is selected, the _Always display book title on top_ will gray out.
@@ -21,7 +21,7 @@ By default, the status bar is located at the screen bottom. Use the _Position_ d
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Check/uncheck the boxes according to your preferences. You can also:
 * Change the scale of the slider that pops up at the bottom on a center-screen tap
@@ -31,7 +31,7 @@ Check/uncheck the boxes according to your preferences. You can also:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * If the status bar's position is _Bottom_, you can opt for permanent display of a book title on the top of the screen (even if the status bar is not showing)
 * Additionally, you can select current time and remaining battery juice to be display with the book status
@@ -39,7 +39,7 @@ Check/uncheck the boxes according to your preferences. You can also:
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Enable or disable the reading progress bar
 * Select what tick marks on the progress bar you prefer (if any) 
@@ -47,11 +47,11 @@ Check/uncheck the boxes according to your preferences. You can also:
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Change the status bar's font size and color
 * Change the height of the progress bar
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

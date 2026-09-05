@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Contraste y brillo en PDF (efecto blanco/negro)
@@ -21,7 +21,7 @@ Puede ajustar la siguiente configuración:
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## Brillo
 * Toque el icono _Contraste/Brillo_ en el menú central-toque
@@ -30,7 +30,7 @@ Puede ajustar la siguiente configuración:
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Destacar todo (efecto de letra en negrita)
 * Toque el icono _Contraste/Brillo_ en el &quot;menú de toque central&quot;
@@ -39,6 +39,6 @@ Puede ajustar la siguiente configuración:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > Para descartar la configuración manual, use el enlace _Restore default_ en la parte inferior de la ventana **Contraste y Brillo**.

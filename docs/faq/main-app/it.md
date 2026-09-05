@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Navigazione nella scheda _Library_
@@ -12,7 +12,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Vista condensata (a due colonne)
 * Vista griglia
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 * Trova libri nella tua biblioteca
 * Tocca l'icona a forma di stella per aggiungere un libro a **Preferiti**
@@ -31,7 +31,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Trova un libro per estensione (FB2, nel nostro esempio di seguito)
 * Tocca il nome dell'autore per trovare tutti i libri di questo autore nella Libreria
@@ -41,4 +41,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](10.webp)|![](11.webp)|![](12.webp)|

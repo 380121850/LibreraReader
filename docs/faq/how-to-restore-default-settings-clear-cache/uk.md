@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Як відновити налаштування за замовчуванням/очистити кеш
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## Відновлення значень за замовчуванням
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Перейменування режимів читання та видалення змін
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **Якщо з будь-якої причини ви застрягли в чомусь, що не працюватиме належним чином, і вам потрібен &quot;чистий лист&quot;, ви можете видалити _Librera Reader_ із системи та вручну видалити папку _Librera_ із внутрішньої пам’яті на ваш пристрій.**

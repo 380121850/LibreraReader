@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Selezione del testo in più colonne nei PDF

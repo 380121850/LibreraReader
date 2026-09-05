@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Kommentieren und Zeichnen in PDF-Dateien
@@ -20,7 +20,7 @@ Dadurch wird das Symbol _Bearbeiten_ im unteren Menü angezeigt.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## PDF-Dateien mit einer Textebene
 Zusätzlich zu den obigen Markierungen:
@@ -31,7 +31,7 @@ Zusätzlich zu den obigen Markierungen:
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Markieren mit voreingestellten Tools
 Mit dem **+**-Zeichen kann der Benutzer nur eines der drei Werkzeuge in der aktuell ausgewählten Farbe zur Liste der Werkzeuge hinzufügen.
@@ -39,7 +39,7 @@ Dadurch entsteht ein Werkzeug-Preset, mit dem Sie zeitnah die Wörter und Wortfo
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Bearbeitete Dateien speichern
 * Eine _Schließen_-Geste öffnet das Fenster _Änderungen speichern?_
@@ -49,7 +49,7 @@ Dadurch entsteht ein Werkzeug-Preset, mit dem Sie zeitnah die Wörter und Wortfo
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Hinweis: Der Radierer in der Palette _Anmerkungen und Zeichnungen_ kann verwendet werden, um Zeichnungen, die von anderen Anwendungen hinterlassen wurden, zu entfernen.
 
@@ -61,4 +61,4 @@ Dadurch entsteht ein Werkzeug-Preset, mit dem Sie zeitnah die Wörter und Wortfo
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

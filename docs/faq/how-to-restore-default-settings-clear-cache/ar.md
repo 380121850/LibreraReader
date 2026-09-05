@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # كيفية استعادة الإعدادات الافتراضية/مسح ذاكرة التخزين المؤقت
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](21.jpg)|
+|![](19.webp)|![](20.webp)|![](21.webp)|
 
 ## استعادة ضبط القيم الافتراضية
 
@@ -26,7 +26,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## إعادة تسمية أوضاع القراءة وإلغاء التغييرات
 
@@ -38,6 +38,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 > **إذا ، لأي سبب من الأسباب ، كنت متمسكًا بشيء لن يعمل بشكل صحيح وتحتاج إلى &quot;قائمة نظيفة&quot; ، يمكنك إلغاء تثبيت _Librera Reader_ من النظام وحذف مجلد _Librera_ يدويًا من وحدة التخزين الداخلية على جهازك.**

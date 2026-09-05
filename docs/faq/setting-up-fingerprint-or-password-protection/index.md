@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Setting Up Fingerprint or Password Protection
@@ -16,7 +16,7 @@ The documents can be either fingerprint- or password-protected.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Fingerprint Protection
 
@@ -28,7 +28,7 @@ The documents can be either fingerprint- or password-protected.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Password Protection
 
@@ -42,6 +42,6 @@ Setting up password login:
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > To remove password/fingerprint protection, run **Librera**, authenticate yourself to the application, go to _Prompt for password_ box and uncheck it.

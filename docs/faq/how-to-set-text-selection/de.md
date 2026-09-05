@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Auswählen von Text in _Librera_
@@ -14,7 +14,7 @@ So aktivieren Sie die Textauswahl:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Textauswahloptionen
 * Ungeduldige Benutzer können das Kontrollkästchen &quot;Zum Auswählen einmal tippen&quot; aktivieren. (Diese Option eignet sich hervorragend für die Option _Open selection in dictionary_ im Haupt-Tab des Fensters **Preferences**.)
@@ -28,4 +28,4 @@ So aktivieren Sie die Textauswahl:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

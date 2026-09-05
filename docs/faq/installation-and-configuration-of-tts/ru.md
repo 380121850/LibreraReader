@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Использование механизма преобразования текста в речь с _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Пример: настройка Google Text-to-Speech Engine
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Примечание. Настройка голоса в других движках TTS выполняется аналогичным образом. Помните, что файлы голосовых данных могут быть довольно большими. Чтобы сэкономить свои ограниченные тарифные планы на передачу данных, убедитесь, что они загружаются только через соединение WiFi.

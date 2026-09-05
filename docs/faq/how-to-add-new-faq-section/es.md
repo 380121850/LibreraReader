@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Cómo agregar un nuevo tema de preguntas frecuentes
@@ -12,7 +12,7 @@ Formato de encabezado de archivo para **index.md**:
 
 ```
 ---
-layout: main
+layout: page
 ---
 
 # Topic Name from Here Goes to the FAQ Page
@@ -27,5 +27,5 @@ Puede ilustrar su discusión con imágenes (JPEG). Todos los archivos de imagen 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 ```

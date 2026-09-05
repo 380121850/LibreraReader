@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Mode musicien : basculement des marquages à l'écran
@@ -20,4 +20,4 @@ Pour les activer/désactiver :
 * Cochez/décochez les cases correspondantes
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

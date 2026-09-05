@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Lesemodi: Blättern, Buch und Musiker
@@ -21,7 +21,7 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **Sie können auch Standard-Lesemodi für jedes E-Book-Format festlegen.**
 
@@ -32,7 +32,7 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * Um den Lesemodus für ein aktuelles Buch zu ändern, tippen Sie in der Mitte auf den Bildschirm und anschließend auf das Dreifachpunktsymbol unten
 * Tippen Sie im Dialogfeld auf den bevorzugten Modus
@@ -40,7 +40,7 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Bildlaufmodus
 * Wählen Sie die Größe Ihrer Bildlaufstreifen aus: nach Seite, Bildschirm, Bildschirmprozentsatzvorgaben oder einem benutzerdefinierten Wert
@@ -49,7 +49,7 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Buchmodus
 * Streichen Sie horizontal zur nächsten/vorherigen Seite
@@ -61,7 +61,7 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Musikermodus
 * Tippen Sie einmal, um den automatischen Bildlauf zu starten/zu stoppen
@@ -72,4 +72,4 @@ Der** Musiker-Modus** ist ein Fall des Auto-Scroll-Modus, der speziell für Musi
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

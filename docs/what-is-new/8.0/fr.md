@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.0
@@ -25,24 +25,12 @@ En utilisant cette application, vous acceptez les termes de la [Politique de con
 
 **Choisir la position des onglets: haut ou bas**
 
-||||
-|-|-|-|
-|![](2.png)|![](3.png)|![](1.png)|
-
 **Préréglages en mode lecture**
 
 * Indiquez **Librera** le mode de lecture par défaut que vous préférez pour un format de livre particulier.
 * Ajoutez manuellement le format souhaité
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Thèmes OLED sombres et sombres**
 
 * Choisissez le thème Dark OLED avec une couleur noire
-
-||||
-|-|-|-|
-|![](9.png)|![](8.png)|![](7.png)|
 

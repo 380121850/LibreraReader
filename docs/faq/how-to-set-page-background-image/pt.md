@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Personalizando o plano de fundo da página
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Alterando um fundo de cor sólida
 * Toque em **Cor** para abrir uma paleta de cores com uma cruz e arraste a cruz ao redor da paleta (siga as alterações na visualização da página em tempo real na parte superior)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Adicionando textura ou imagem ao fundo
 * Toque em **Imagem** no painel _Background_
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > Você sempre pode usar as predefinições de fundo e fonte mostradas na Fig. 2. Elas podem ser editadas facilmente na janela **Configurar** (toque no ícone de edição indicado pela seta roxa).

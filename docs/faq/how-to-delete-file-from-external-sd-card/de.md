@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # So löschen Sie ein Buch von einer externen SD-Karte
@@ -15,7 +15,7 @@ In **Librera** müssen Sie Ihre SD-Karte als Ressource hinzufügen (_bookshelf_)
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Wählen Sie Ihre SD-Karte aus der Dropdown-Liste aus
 * Öffnen Sie das Dateimenü des Buches, das Sie löschen möchten, indem Sie auf das dreifache Punktsymbol tippen
@@ -23,4 +23,4 @@ In **Librera** müssen Sie Ihre SD-Karte als Ressource hinzufügen (_bookshelf_)
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

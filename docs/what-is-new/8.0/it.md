@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.0
@@ -25,24 +25,12 @@ Utilizzando questa app accetti i termini delle [Norme sulla privacy]({{ site.bas
 
 **Scegli la posizione delle schede: in alto o in basso**
 
-||||
-|-|-|-|
-|![](2.png)|![](3.png)|![](1.png)|
-
 **Predefiniti in modalità lettura**
 
 * Indica a **Librera** quale modalità di lettura predefinita preferisci per un particolare formato di libro
 * Aggiungi manualmente qualsiasi formato desiderato
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Temi OLED Dark &amp; Dark**
 
 * Scegli il tema OLED scuro con il colore nero pece
-
-||||
-|-|-|-|
-|![](9.png)|![](8.png)|![](7.png)|
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #使用_Librera_的小部件
@@ -10,7 +10,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](9.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](9.webp)|![](10.webp)|
 
 ##自定义小部件
 
@@ -18,7 +18,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](22.jpg)|
+|![](20.webp)|![](21.webp)|![](22.webp)|
 
 * 您可以通过在_Favorites_和_Recent_文档之间进行选择来告诉窗口小部件显示什么
 * 在* * Librera* * 的小部件中选择书籍的布局
@@ -26,4 +26,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](2.jpg)|![](3.jpg)|![](4.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|

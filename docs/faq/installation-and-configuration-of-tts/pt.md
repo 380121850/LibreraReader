@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Usando um mecanismo de conversão de texto em fala com _Librera_
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](3.jpg)|![](2.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|
 
 ## Exemplo: configurando o mecanismo de conversão de texto em voz do Google
 
@@ -29,10 +29,10 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 > Nota: A configuração de voz em outros mecanismos TTS é realizada de maneira semelhante. Lembre-se de que os arquivos de dados de voz podem ser bem grandes. Para poupar seus planos limitados de dados de celular, verifique se eles foram baixados apenas via conexão WiFi.

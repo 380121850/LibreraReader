@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurar o tamanho das zonas da guia esquerda/direita/superior/inferior
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 Para configurar ações ao clicar em uma zona de guia (zona de mensagens de texto), você precisa abrir **Configurações**,
 em seguida, vá para **Funções avançadas**, localize a seção **Zonas de guia (zonas de mensagens de texto)** e clique em **configurar**.
@@ -19,7 +19,7 @@ Após a instalação, não se esqueça de pressionar **Aplicar**
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 Para configurar o roteador das zonas de guias (zonas de mensagens de texto), você precisa abrir **Configurações**.
 
@@ -27,4 +27,4 @@ Em seguida, vá para **Funções avançadas**, localize a seção **Zonas de gui
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

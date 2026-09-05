@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Резервне копіювання та переміщення даних
@@ -51,4 +51,4 @@ _Migrate_: /storage/AAAA-AAAA/Книги в /storage/BBBB-BBBB/Книги:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

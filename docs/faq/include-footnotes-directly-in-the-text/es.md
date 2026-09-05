@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Notas en el texto versus notas al pie
@@ -13,4 +13,4 @@ Para optar por la presentación de notas en el texto:
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

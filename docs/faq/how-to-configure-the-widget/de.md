@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Verwenden des Widgets von _Librera_
@@ -10,7 +10,7 @@ Um das Widget von **Librera** zu verwenden, sollten Sie es über den Tab _Widget
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](9.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](9.webp)|![](10.webp)|
 
 ## Anpassen des Widgets
 
@@ -18,7 +18,7 @@ Um das Widget von **Librera** zu verwenden, sollten Sie es über den Tab _Widget
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](22.jpg)|
+|![](20.webp)|![](21.webp)|![](22.webp)|
 
 * Sie können dem Widget mitteilen, was angezeigt werden soll, indem Sie zwischen Ihren _Favoriten_ und _Neuesten_ Dokumenten wählen
 * Wählen Sie das Layout für die Bücher im Widget von **Librera** aus
@@ -26,4 +26,4 @@ Um das Widget von **Librera** zu verwenden, sollten Sie es über den Tab _Widget
 
 ||||
 |-|-|-|
-|![](2.jpg)|![](3.jpg)|![](4.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|

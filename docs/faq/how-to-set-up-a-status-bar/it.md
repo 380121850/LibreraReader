@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Impostazione della barra di stato
@@ -13,7 +13,7 @@ Puoi apportare tutte le modifiche alla barra di stato nella scheda _Status Bar_:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Per impostazione predefinita, la barra di stato si trova nella parte inferiore dello schermo. Utilizzare l'elenco a discesa _Posizione_ per modificarne la posizione.
 > Nota! Se si seleziona l'impostazione _Top_, il _Di sempre visualizzare il titolo del libro in cima_ diventerà grigio.
@@ -21,7 +21,7 @@ Per impostazione predefinita, la barra di stato si trova nella parte inferiore d
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Seleziona/deseleziona le caselle in base alle tue preferenze. Puoi anche:
 * Modifica la scala del dispositivo di scorrimento che si apre in basso con un tocco sullo schermo centrale
@@ -31,7 +31,7 @@ Seleziona/deseleziona le caselle in base alle tue preferenze. Puoi anche:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * Se la posizione della barra di stato è _Bottom_, puoi optare per la visualizzazione permanente del titolo di un libro nella parte superiore dello schermo (anche se la barra di stato non viene visualizzata)
 * Inoltre, è possibile selezionare l'ora corrente e la carica residua della batteria da visualizzare con lo stato del libro
@@ -39,7 +39,7 @@ Seleziona/deseleziona le caselle in base alle tue preferenze. Puoi anche:
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Abilita o disabilita la barra di avanzamento della lettura
 * Seleziona i segni di spunta sulla barra di avanzamento che preferisci (se presente)
@@ -47,11 +47,11 @@ Seleziona/deseleziona le caselle in base alle tue preferenze. Puoi anche:
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Modifica la dimensione e il colore del carattere della barra di stato
 * Modifica l'altezza della barra di avanzamento
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

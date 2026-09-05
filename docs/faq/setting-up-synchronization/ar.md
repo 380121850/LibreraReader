@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # مزامنة إعداد القراءة الخاص بك عبر أجهزة متعددة
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## خيارات التزامن
 
@@ -27,7 +27,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > ملاحظة: تم اختيار Google Drive لراحتها. حسابات Google مجانية ومتاحة لأي شخص. إذا كنت تفضل أي حل سحابي آخر لأي سبب من الأسباب ، فاستمر في استخدامه.
 
@@ -51,7 +51,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **لضمان تجربة مزامنة سلسة ، من الواضح أنه يجب أن يكون لديك نفس الإعداد عبر جميع أجهزة Android الخاصة بك.**
 

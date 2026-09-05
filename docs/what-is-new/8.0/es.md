@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 8.0
@@ -25,24 +25,12 @@ Al utilizar esta aplicación, acepta los términos de la [Política de privacida
 
 **Elija la posición de las pestañas: superior o inferior**
 
-||||
-|-|-|-|
-|![](2.png)|![](3.png)|![](1.png)|
-
 **Presets del modo de lectura**
 
 * Indica a **Librera** qué modo de lectura predeterminado prefieres para un formato de libro en particular
 * Agregue manualmente cualquier formato deseado
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Temas OLED oscuros y oscuros**
 
 * Elija el tema OLED oscuro con color negro intenso
-
-||||
-|-|-|-|
-|![](9.png)|![](8.png)|![](7.png)|
 

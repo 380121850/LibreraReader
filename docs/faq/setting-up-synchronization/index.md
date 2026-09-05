@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Syncing Your Reading Setup Across Multiple Devices
@@ -16,7 +16,7 @@ For the convenience of most of our users, we have chosen Google Drive as _Librer
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Synchronization Options
 
@@ -27,7 +27,7 @@ For the convenience of most of our users, we have chosen Google Drive as _Librer
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > Note: Google Drive has been chosen for its convenience. Google accounts are free and available to anyone. If, for whatever reason, you prefer any other cloud solution, go ahead and use it.
 
@@ -51,7 +51,7 @@ If both of the two prerequisites hold:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **To ensure a seamless syncing experience, it goes without saying, obviously, that you should have the same setup across all of your Android devices.**
 

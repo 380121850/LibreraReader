@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Öffnen eines Ordners mit Bildern als Buch (In einem Buch binden)
@@ -12,5 +12,5 @@ In **Librera** ist es sehr einfach, ein Buch aus Bilddateien zu erstellen, die i
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

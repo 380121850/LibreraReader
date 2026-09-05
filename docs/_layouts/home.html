@@ -1,0 +1,197 @@
+{% include codes.md %}<!DOCTYPE html>
+<html lang="{% if full == '中文' %}zh-CN{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ page.seo_description }}">
+    <meta property="og:title" content="{{ page.seo_title }}">
+    <meta property="og:description" content="{{ page.seo_description }}">
+    <meta property="og:image" content="{{ site.baseurl }}/web/256.png">
+    <title>{{ page.seo_title }}</title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/showcase/style.css">
+    <link rel="icon" href="{{ site.baseurl }}/web/256.png" type="image/png">
+</head>
+<body id="top">
+    {% include navbar.md %}
+
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 id="hero-title" class="hero-title">{{ page.hero_title }}</h1>
+                    <p class="hero-subtitle">{{ page.hero_subtitle }}</p>
+                    <p class="hero-description">{{ page.hero_description }}</p>
+                    <div class="hero-buttons">
+                        <a href="#download" class="btn btn-primary" role="button">{{ page.hero_btn_primary }}</a>
+                        <a href="{{ site.baseurl }}/online-book-reader/" target="_blank" class="btn btn-secondary" role="button">{{ page.hero_btn_secondary }}</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="software-icon-container">
+                        <img src="{{ site.baseurl }}/web/256.webp" alt="HowRead" class="hero-icon">
+                        <div class="icon-tooltip" role="tooltip">
+                            <p>{{ page.hero_tooltip }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features" aria-labelledby="features-title">
+        <div class="container">
+            <h2 id="features-title" class="section-title">{{ page.features_title }}</h2>
+            <div class="features-grid">
+                {% for f in page.features %}
+                <div class="feature-card" role="region" aria-labelledby="feature-title-{{ forloop.index }}">
+                    <div class="feature-icon">
+                        {% case forloop.index0 %}
+                        {% when 0 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                        {% when 1 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        {% when 2 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M2 12H22" stroke="currentColor" stroke-width="2"/><path d="M12 2C15.5 5.5 17.5 8.5 17.5 12C17.5 15.5 15.5 18.5 12 22C8.5 18.5 6.5 15.5 6.5 12C6.5 8.5 8.5 5.5 12 2Z" stroke="currentColor" stroke-width="2"/></svg>
+                        {% when 3 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 18V5L21 3V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/></svg>
+                        {% when 4 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        {% else %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="currentColor"/></svg>
+                        {% endcase %}
+                    </div>
+                    <h3 id="feature-title-{{ forloop.index }}" class="feature-title">{{ f.title }}</h3>
+                    <p class="feature-description">{{ f.description }}</p>
+                    {% if f.tooltip %}<div class="feature-tooltip" role="tooltip"><p>{{ f.tooltip }}</p></div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="screenshots" aria-label="Screenshots">
+        <div class="container">
+            <div class="screenshots-grid">
+                {% for s in page.screenshots %}
+                <img src="{{ site.baseurl }}/{{ s }}" alt="HowRead screenshot {{ forloop.index }}">
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about" aria-labelledby="about-title">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 id="about-title" class="section-title">{{ page.about_title }}</h2>
+                    {% for p in page.about_paragraphs %}
+                    <p class="about-description">{{ p }}</p>
+                    {% endfor %}
+                    <div class="about-stats">
+                        {% for st in page.stats %}
+                        <div class="stat-item">
+                            <span class="stat-number">{{ st.number }}</span>
+                            <span class="stat-label">{{ st.label }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="about-image">
+                    <img src="{{ site.baseurl }}/web/256.webp" alt="HowRead" class="about-icon">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="changelog" class="changelog" aria-labelledby="changelog-title">
+        <div class="container">
+            <h2 id="changelog-title" class="section-title">{{ page.changelog_title }}</h2>
+            <div class="changelog-accordion">
+                {% for entry in site.data.changelog.recent %}
+                <div class="accordion-item">
+                    <button class="accordion-header" aria-expanded="false" aria-controls="changelog-content-{{ forloop.index }}">
+                        <h3>{{ entry.date[page.lang_key] }} · {{ entry.title[page.lang_key] }}</h3>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div id="changelog-content-{{ forloop.index }}" class="accordion-content" role="region" aria-hidden="true">
+                        <ul>
+                            {% for item in entry.items[page.lang_key] %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="changelog-more"><a href="{{ site.baseurl }}/what-is-new/{{ page.lang_key_link }}.html">{{ page.changelog_more }}</a></div>
+        </div>
+    </section>
+
+    <section id="download" class="download" aria-labelledby="download-title">
+        <div class="container">
+            <h2 id="download-title" class="section-title">{{ page.download_title }}</h2>
+            <p class="download-subtitle">{{ page.download_subtitle }}</p>
+            <div class="download-grid">
+                {% for d in page.downloads %}
+                <div class="download-card" role="region" aria-labelledby="download-card-{{ forloop.index }}">
+                    <div class="download-icon">
+                        {% case forloop.index0 %}
+                        {% when 0 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 3.5V20.5C4 20.8 4.35 21 4.6 20.85L18.2 12.35C18.45 12.2 18.45 11.8 18.2 11.65L4.6 3.15C4.35 3 4 3.2 4 3.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 3.5L13.5 12L4 20.5" stroke="currentColor" stroke-width="0"/></svg>
+                        {% when 1 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 8C7 5.5 9.2 3.5 12 3.5C14.8 3.5 17 5.5 17 8V15H7V8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><rect x="4" y="10" width="3" height="7" rx="1.5" fill="currentColor"/><rect x="17" y="10" width="3" height="7" rx="1.5" fill="currentColor"/><rect x="7" y="15" width="10" height="5" rx="1.5" fill="currentColor"/><line x1="9" y1="2" x2="10" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="15" y1="2" x2="14" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        {% when 2 %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.5a5.1 5.1 0 0 0-6 0C7.27.65 6.09 1 6.09 1A5.07 5.07 0 0 0 6 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {% else %}
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M2 12H22" stroke="currentColor" stroke-width="2"/><path d="M12 2C15.5 5.5 17.5 8.5 17.5 12C17.5 15.5 15.5 18.5 12 22C8.5 18.5 6.5 15.5 6.5 12C6.5 8.5 8.5 5.5 12 2Z" stroke="currentColor" stroke-width="2"/></svg>
+                        {% endcase %}
+                    </div>
+                    <h3 id="download-card-{{ forloop.index }}" class="download-title">{{ d.title }}</h3>
+                    <p class="download-version">{{ d.version }}</p>
+                    <p class="download-size">{{ d.size }}</p>
+                    <a href="{{ d.url }}" class="btn btn-download" role="button" {% if d.blank %}target="_blank"{% endif %}>{{ d.button }}</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="{{ site.baseurl }}/web/256.webp" alt="HowRead" class="footer-icon">
+                    <span class="footer-logo-text">HowRead</span>
+                </div>
+                <div class="footer-links">
+                    <h4>{{ page.footer_nav_title }}</h4>
+                    <ul>
+                        <li><a href="#features">{{ page.footer_nav_features }}</a></li>
+                        <li><a href="{{ site.baseurl }}/what-is-new/{{ page.lang_key_link }}.html">{{ page.footer_nav_changelog }}</a></li>
+                        <li><a href="{{ site.baseurl }}/faq/{{ page.lang_key_link }}.html">{{ page.footer_nav_faq }}</a></li>
+                        <li><a href="#download">{{ page.footer_nav_download }}</a></li>
+                    </ul>
+                </div>
+                <div class="footer-social">
+                    <h4>{{ page.footer_social_title }}</h4>
+                    <div class="social-icons">
+                        <a href="https://github.com/380121850/howread" target="_blank" aria-label="GitHub"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.5a5.1 5.1 0 0 0-6 0C7.27.65 6.09 1 6.09 1A5.07 5.07 0 0 0 6 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+                        <a href="https://github.com/380121850/howread/issues" target="_blank" aria-label="GitHub Issues"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></a>
+                        <a href="{{ site.baseurl }}/online-book-reader/" target="_blank" aria-label="Online Reader"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 HowRead 好好读 · This is a fork of Librera Reader</p>
+                <p>Page template based on <a href="https://github.com/yxs2003/App-Showcase-Template">App-Showcase-Template</a> (GPL-3.0)</p>
+            </div>
+        </div>
+    </footer>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <img class="modal-content" id="img01" alt="">
+    </div>
+
+    <script src="{{ site.baseurl }}/showcase/script.js"></script>
+</body>
+</html>

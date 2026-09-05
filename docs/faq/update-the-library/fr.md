@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Mise à jour de votre bibliothèque
@@ -11,6 +11,6 @@ layout: main
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 > Remarque: **Librera** peut analyser les dossiers créés pour les livres téléchargés à partir de ressources de livres en ligne. Vous pouvez synchroniser ces dossiers sur plusieurs appareils à l'aide d'applications tierces.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Arbeiten mit Lesezeichen im erweiterten Modus (Lesezeichenleiste)
@@ -15,7 +15,7 @@ So aktivieren Sie es in den anderen Modi:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Vorgänge mit der _Bookmarks-Multifunktionsleiste_ werden im _Book_-Modus veranschaulicht. Für alle drei Modi funktioniert alles gleich.
 
@@ -23,7 +23,7 @@ Vorgänge mit der _Bookmarks-Multifunktionsleiste_ werden im _Book_-Modus verans
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Hinzufügen von Lesezeichen**
@@ -37,7 +37,7 @@ Vorgänge mit der _Bookmarks-Multifunktionsleiste_ werden im _Book_-Modus verans
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Ihr neues Lesezeichen wird im Fenster &quot;Lesezeichen&quot; angezeigt, und gleichzeitig wird es oben in der Multifunktionsleiste &quot;Lesezeichen&quot; angezeigt. Um zu diesem Lesezeichen zurückzukehren, müssen Sie es nur in der Multifunktionsleiste antippen.
 
@@ -49,7 +49,7 @@ Die Multifunktionsleiste wird zu einer vollständigen Multifunktionsleiste auf I
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Hinzufügen von Schnelllesezeichen**
 
@@ -60,7 +60,7 @@ Die Multifunktionsleiste wird zu einer vollständigen Multifunktionsleiste auf I
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > Sie können einige Vorgänge umgehen, wenn Sie Lesezeichen hinzufügen oder löschen, indem Sie das _Bookmarks Ribbon_ verwenden:
 

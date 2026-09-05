@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Kontrast und Helligkeit in PDF (Schwarz/Weiß-Effekt)
@@ -21,7 +21,7 @@ Sie können folgende Einstellungen vornehmen:
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## Helligkeit
 * Tippen Sie im mittleren Tap-Menü auf das Symbol _Kontrast/Helligkeit_
@@ -30,7 +30,7 @@ Sie können folgende Einstellungen vornehmen:
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## Alles betonen (Fettdruck)
 * Tippen Sie im &quot;Mitteltipp-Menü&quot; auf das Symbol _Kontrast/Helligkeit_.
@@ -39,6 +39,6 @@ Sie können folgende Einstellungen vornehmen:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > Um Ihre manuellen Einstellungen zu verwerfen, verwenden Sie den Link &quot;Standard wiederherstellen&quot; unten im Fenster &quot;**Kontrast und Helligkeit**&quot;.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurando fontes e estilos
@@ -13,7 +13,7 @@ Você fará tudo isso acima na guia principal da janela **Preferência** e, obvi
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ajustes de fonte
 
@@ -34,11 +34,11 @@ Para configurar fontes específicas do usuário para diferentes estilos de fonte
 
 ||||
 |-|-|-|
-|![](23.jpg)|![](4.jpg)|![](5.jpg)|
+|![](23.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](42.jpg)|![](43.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](42.webp)|![](43.webp)|
 
 ## Iniciais principais nos livros do FB2
 
@@ -54,7 +54,7 @@ Você pode fazer com que cada capítulo de seu livro comece com uma inicial boni
 
 ||||
 |-|-|-|
-|![](19.jpg)|![](20.jpg)|![](22.jpg)|
+|![](19.webp)|![](20.webp)|![](22.webp)|
 
 
 ## A guia **Configurações de leitura**
@@ -68,7 +68,7 @@ Você pode fazer com que cada capítulo de seu livro comece com uma inicial boni
 
 ||||
 |-|-|-|
-|![](8.jpg)|![](9.jpg)|![](10.jpg)|
+|![](8.webp)|![](9.webp)|![](10.webp)|
 
 **Escolha _Styles_ para o seu livro com sabedoria**
 
@@ -86,8 +86,8 @@ Aqueles familiarizados com a codificação CSS podem fazer algumas customizaçõ
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 ||||
 |-|-|-|
-|![](14.jpg)|![](15.jpg)|![](16.jpg)|
+|![](14.webp)|![](15.webp)|![](16.webp)|

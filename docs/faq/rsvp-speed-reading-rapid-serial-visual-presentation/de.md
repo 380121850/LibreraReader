@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 
@@ -31,5 +31,5 @@ oder
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 

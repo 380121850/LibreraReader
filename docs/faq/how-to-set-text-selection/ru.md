@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Как выбрать текст в _Librera_
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Варианты выбора текста
 * Нетерпеливые пользователи могут установить флажок _Single-to to select_. (Эта опция прекрасно работает с опцией _Open in dictionary_ на главной вкладке окна **Preferences**)
@@ -28,4 +28,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

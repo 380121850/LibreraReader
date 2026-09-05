@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuration de la barre d'état
@@ -13,7 +13,7 @@ Vous pouvez apporter toutes les modifications à la barre d'état dans l'onglet 
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Par défaut, la barre d'état est située en bas de l'écran. Utilisez la liste déroulante _Position_ pour modifier son emplacement.
 > Remarque! Si le paramètre _Top_ est sélectionné, le _Toujours afficher le titre du livre en haut_ est grisé.
@@ -21,7 +21,7 @@ Par défaut, la barre d'état est située en bas de l'écran. Utilisez la liste 
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](22.jpg)|![](21.jpg)|
+|![](20.webp)|![](22.webp)|![](21.webp)|
 
 Cochez/décochez les cases selon vos préférences. Vous pouvez également:
 * Modifiez l'échelle du curseur qui apparaît en bas sur un toucher de l'écran central
@@ -31,7 +31,7 @@ Cochez/décochez les cases selon vos préférences. Vous pouvez également:
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 * Si la position de la barre d'état est _Bottom_, vous pouvez opter pour l'affichage permanent d'un titre de livre en haut de l'écran (même si la barre d'état ne s'affiche pas)
 * De plus, vous pouvez sélectionner l'heure actuelle et l'autonomie restante de la batterie à afficher avec l'état du livre
@@ -39,7 +39,7 @@ Cochez/décochez les cases selon vos préférences. Vous pouvez également:
  
 ||||
 |-|-|-|
-|![](40.jpg)|![](41.jpg)|![](42.jpg)|
+|![](40.webp)|![](41.webp)|![](42.webp)|
 
 * Activer ou désactiver la barre de progression de la lecture
 * Sélectionnez les graduations sur la barre de progression que vous préférez (le cas échéant)
@@ -47,11 +47,11 @@ Cochez/décochez les cases selon vos préférences. Vous pouvez également:
 
 ||||
 |-|-|-|
-|![](50.jpg)|![](51.jpg)|![](52.jpg)|
+|![](50.webp)|![](51.webp)|![](52.webp)|
 
 * Modifier la taille et la couleur de la police de la barre d'état
 * Modifier la hauteur de la barre de progression
 
 ||||
 |-|-|-|
-|![](60.jpg)|![](61.jpg)|![](622.jpg)|
+|![](60.webp)|![](61.webp)|![](622.webp)|

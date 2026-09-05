@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Interface utilisateur de Theming Librera
@@ -15,7 +15,7 @@ Dans le panneau &quot;Paramètres généraux&quot; de l'onglet **Préférences**
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Paramètre de taille de police**
 
@@ -24,7 +24,7 @@ Dans le panneau &quot;Paramètres généraux&quot; de l'onglet **Préférences**
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **Paramètre de thème général**
 
@@ -35,7 +35,7 @@ Dans le panneau &quot;Paramètres généraux&quot; de l'onglet **Préférences**
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Paramètres de couleur d'en-tête et de titre (Rogner)**
 
@@ -45,7 +45,7 @@ Dans le panneau &quot;Paramètres généraux&quot; de l'onglet **Préférences**
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Paramètres de couleur des liens**
 
@@ -56,6 +56,6 @@ Dans le panneau &quot;Paramètres généraux&quot; de l'onglet **Préférences**
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **La meilleure chose offerte par * Librera * est la possibilité de thème chaque profil que vous créez individuellement. Vous pouvez cibler vos profils créés en fonction de vos changements d'humeur, de vos lectures de jour et de nuit, des genres de livres, etc.**

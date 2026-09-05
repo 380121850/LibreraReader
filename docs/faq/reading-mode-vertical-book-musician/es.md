@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Modos de lectura: desplazamiento, libro y músico
@@ -21,7 +21,7 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **También puede especificar modos de lectura predeterminados para cada formato de libro electrónico.**
 
@@ -32,7 +32,7 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * Para cambiar el modo de lectura de un libro actual, toque la pantalla con el centro y luego toque el icono de tres puntos en la parte inferior
 * Toque el modo preferido en el cuadro de diálogo
@@ -40,7 +40,7 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Modo de desplazamiento
 * Elija el calibrador de sus desplazamientos de desplazamiento: por página, pantalla, valores predeterminados de porcentaje de pantalla o un valor personalizado
@@ -49,7 +49,7 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Modo libro
 * Desliza horizontalmente para la página siguiente/anterior
@@ -61,7 +61,7 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Modo de músico
 * Solo toque para iniciar/detener el desplazamiento automático
@@ -72,4 +72,4 @@ En **modo Libro**, las páginas se voltean horizontalmente con deslizamientos de
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

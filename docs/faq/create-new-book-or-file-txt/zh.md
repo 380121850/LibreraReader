@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #为注释，引号等创建新的TXT文件。
@@ -14,4 +14,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|

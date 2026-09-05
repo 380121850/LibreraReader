@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #如何从外部SD卡删除书籍
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * 从下拉资源列表中选择SD卡
 * 通过点击要删除的图书的三点图标，打开其文件菜单
@@ -23,4 +23,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

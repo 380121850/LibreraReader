@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #在扩展模式下使用书签(书签功能区)
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 在_Book_模式下说明了_Bookmark Ribbon_的操作。所有这三种模式的工作方式都相同。
 
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **添加书签**
@@ -37,7 +37,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 您的新书签将显示在_Bookmarks_窗口中，同时您会在顶部的_Bookmarks Ribbon_中看到它。现在，为了返回该书签，您只需要在功能区中点击它。
 
@@ -49,7 +49,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **添加快速书签**
 
@@ -60,7 +60,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 >在添加或删除书签时，可以使用_Bookmarks Ribbon_绕过某些操作：
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # 7.11
@@ -29,10 +29,6 @@ Abbonati al canale **Librera Reader** Telegram [https://t.me/LibreraReader lasti
 * Il testo può essere selezionato in **lettera per lettera** o **parola per parola**
 * L'handle (inizio o fine) può essere trascinato separatamente, in tempo reale
 
-||||
-|-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
-
 **Lettura RSVP (Rapid Serial Visual Presentation)/Lettura veloce**
 
 La lettura rapida con **Librera** consente di migliorare la velocità di lettura fino a 700 parole al minuto (WPM) implementando il metodo RSVP.
@@ -42,19 +38,11 @@ Si prega di seguire il link per trovare maggiori informazioni sull'argomento [se
 * Velocità di lettura in un solo tocco
 * Regola la lunghezza minima della linea: fino a 30 CPL
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
-
 **Posizione barra di stato (in alto o in basso) in modalità Libro**
 
 * La barra di stato è in basso per impostazione predefinita
 * Seleziona la sua posizione dall'elenco a discesa
 * Barra di stato in alto
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
 
 **Apri cartella con immagini come libro (Rileva in un libro)**
 
@@ -64,17 +52,8 @@ Per aprire una cartella come libro, naviga nella scheda Cartelle e tocca il suo 
 * Cartella con immagini aperte come libro virtuale
 * Ritaglia spazio bianco, regola contrasto e luminosità, ecc.
 
-||||
-|-|-|-|
-|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
-
 **Ordina i libri per lingua**
 
 * Visualizza tutte le lingue disponibili nella Libreria
 * Ordina i libri per lingue
-
-||||
-|-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
-
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # L'interfaccia utente di Theming Librera
@@ -15,7 +15,7 @@ Nel pannello _General Settings_ della scheda **Preferenze** puoi scegliere il tu
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **Impostazione dimensione carattere**
 
@@ -24,7 +24,7 @@ Nel pannello _General Settings_ della scheda **Preferenze** puoi scegliere il tu
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **Impostazione del tema generale**
 
@@ -35,7 +35,7 @@ Nel pannello _General Settings_ della scheda **Preferenze** puoi scegliere il tu
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **Impostazioni colore (intonaco) intestazione e titolo**
 
@@ -45,7 +45,7 @@ Nel pannello _General Settings_ della scheda **Preferenze** puoi scegliere il tu
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **Impostazione colore link**
 
@@ -56,6 +56,6 @@ Nel pannello _General Settings_ della scheda **Preferenze** puoi scegliere il tu
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **La cosa migliore offerta da * Librera * è la possibilità di creare temi per ogni profilo che crei in esso individualmente. Puoi creare temi per i tuoi profili creati per i tuoi cambiamenti d'umore, la lettura diurna e notturna, i generi di libri, ecc.**

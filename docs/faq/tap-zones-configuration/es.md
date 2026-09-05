@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configurar el tamaño de las zonas de pestañas izquierda/derecha/arriba/abajo
@@ -8,7 +8,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|
+|![](1.webp)|
 
 Para configurar acciones al hacer clic en una pestaña (zona de mensajes de texto), debe abrir **Configuración**,
 luego ve a **Funciones avanzadas**, busca la sección **Zonas de pestañas (zonas de mensajes de texto)** y haz clic en **configurar**.
@@ -19,7 +19,7 @@ Después de la instalación, no olvide presionar **Aplicar**
 
 ||||
 |-|-|-|
-|![](2.png)|![](3.png)|
+|![](2.webp)|![](3.webp)|
 
 Para configurar el enrutador de las zonas de pestañas (zonas de mensajes de texto), debe abrir **Configuración**.
 
@@ -27,4 +27,4 @@ Luego vaya a **Funciones avanzadas**, busque la sección **Zonas de pestañas (z
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|
+|![](4.webp)|![](5.webp)|

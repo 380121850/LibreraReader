@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # تخصيص خلفية الصفحة
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## تغيير خلفية بلون خالص
 * اضغط **Color** لفتح لوحة ألوان مع تقاطع واسحب التقاطع حول اللوحة (اتبع التغييرات في معاينة الصفحة في الوقت الحقيقي في الأعلى)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## إضافة نسيج أو صورة إلى الخلفية
 * اضغط **الصورة** في لوحة _Background_
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > يمكنك دائمًا استخدام الإعدادات المسبقة للخط والخطوط الموضحة في الشكل 2. ويمكن تحريرها بسهولة في نافذة **تكوين** (انقر على أيقونة التحرير المشار إليها في السهم الأرجواني).

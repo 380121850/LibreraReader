@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # وضع الموسيقي: تبديل العلامات التي تظهر على الشاشة
@@ -20,4 +20,4 @@ layout: main
 * قم بتحديد/إلغاء تحديد المربعات المقابلة
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

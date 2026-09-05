@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # PDF 多列文本选择

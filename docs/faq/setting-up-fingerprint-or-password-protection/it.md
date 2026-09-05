@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Impostazione della protezione delle impronte digitali o della password
@@ -16,7 +16,7 @@ I documenti possono essere protetti da impronte digitali o password.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Protezione delle impronte digitali
 
@@ -28,7 +28,7 @@ I documenti possono essere protetti da impronte digitali o password.
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Protezione password
 
@@ -42,6 +42,6 @@ Impostazione dell'accesso con password:
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > Per rimuovere la protezione con password/impronte digitali, esegui **Librera**, autenticati sull'applicazione, vai alla casella _Prompt for password_ e deseleziona.

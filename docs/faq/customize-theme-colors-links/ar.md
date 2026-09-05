@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Theming Librera's UI
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **إعداد حجم الخط**
 
@@ -24,7 +24,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **إعداد السمة العامة**
 
@@ -35,7 +35,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **إعداد لون الرأس والعنوان (القطع)**
 
@@ -45,7 +45,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **إعداد لون الرابط**
 
@@ -56,6 +56,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > **إن أفضل ما تقدمه * Librera * هو القدرة على تصميم كل ملف تعريف تنشئه على حدة. يمكنك تخصيص ملفاتك الشخصية التي تم إنشاؤها من أجل تغييرات مزاجك ، والقراءة ليلا ونهارا ، وأنواع الكتب ، وما إلى ذلك**

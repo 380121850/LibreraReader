@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # العمل مع الإشارات المرجعية في الوضع الموسع (شريط الإشارات المرجعية)
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 يتم توضيح العمليات التي تحتوي على علامات _ الشريط في وضع _Book_. كل شيء يعمل نفسه بالنسبة لجميع الأوضاع الثلاثة.
 
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **إضافة إشارات مرجعية**
@@ -37,7 +37,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 ستظهر الإشارة المرجعية الجديدة في نافذة _Bookmarks_ ، وفي الوقت نفسه ستراها في علامة _ الشريط المرجعية في الأعلى. الآن ، من أجل العودة إلى هذه الإشارة المرجعية ، تحتاج فقط إلى النقر عليها في الشريط.
 
@@ -49,7 +49,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **إضافة إشارات مرجعية سريعة**
 
@@ -60,7 +60,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > يمكنك تجاوز بعض العمليات عند إضافة إشارات مرجعية أو حذفها باستخدام علامات _ الشريط المرجعية:
 

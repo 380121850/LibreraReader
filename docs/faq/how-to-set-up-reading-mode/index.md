@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Page Viewing/Layout Options
@@ -20,7 +20,7 @@ To access the viewing options:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Adjusting Page Layout in PDF/DjVu
 
@@ -31,10 +31,10 @@ Page "rigidity" in PDF/DjVu and the size of your screen will dictate your page l
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 * _Half-Page_ mode comes in handy in two-column page layouts. Just split your page in two by choosing this option
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

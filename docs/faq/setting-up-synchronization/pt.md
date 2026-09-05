@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Sincronizando sua configuração de leitura em vários dispositivos
@@ -16,7 +16,7 @@ Para a conveniência da maioria de nossos usuários, escolhemos o Google Drive c
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Opções de sincronização
 
@@ -27,7 +27,7 @@ Para a conveniência da maioria de nossos usuários, escolhemos o Google Drive c
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > Nota: o Google Drive foi escolhido por sua conveniência. As contas do Google são gratuitas e estão disponíveis para qualquer pessoa. Se, por qualquer motivo, você preferir qualquer outra solução em nuvem, vá em frente e use-a.
 
@@ -51,7 +51,7 @@ Se ambos os dois pré-requisitos forem válidos:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **Para garantir uma experiência de sincronização perfeita, é óbvio que você deve ter a mesma configuração em todos os seus dispositivos Android.**
 

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #使用TTS功能从其他应用程序读取共享
@@ -14,13 +14,13 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 现在，在**Librera**中打开浏览器中的Web文章后，您就可以对其可读性进行微调：为初学者启用连字符。
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 现在，您可以让**Librera**大声地阅读网页：
 * 点击左下角的* * TTS* * 图标
@@ -33,4 +33,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](10.jpg)|
+|![](7.webp)|![](8.webp)|![](10.webp)|

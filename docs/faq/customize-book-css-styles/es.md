@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Codificación CSS personalizada
@@ -17,7 +17,7 @@ Se admiten tres modos **Estilos**:
 
 |1|2|3|
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 Documento + modo definido por el usuario está habilitado de forma predeterminada
 

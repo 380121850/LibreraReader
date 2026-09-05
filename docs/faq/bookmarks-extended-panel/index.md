@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Working with Bookmarks in Extended Mode (Bookmarks Ribbon)
@@ -15,7 +15,7 @@ To enable it in the other modes:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 Operations with the _Bookmarks Ribbon_ are illustrated in _Book_ mode. It all works the same for all three modes.
 
@@ -23,7 +23,7 @@ Operations with the _Bookmarks Ribbon_ are illustrated in _Book_ mode. It all wo
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 
 **Adding Bookmarks**
@@ -37,7 +37,7 @@ Operations with the _Bookmarks Ribbon_ are illustrated in _Book_ mode. It all wo
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 Your new bookmark will appear in the _Bookmarks_ window, and at the same time you will see it in the _Bookmarks Ribbon_ on top. Now, in order to go back to this bookmark, you just need to tap on it in the Ribbon.
 
@@ -49,7 +49,7 @@ The Ribbon will become a full-blown ribbon across your screen when you have many
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](15.jpg)|![](11.jpg)|
+|![](10.webp)|![](15.webp)|![](11.webp)|
 
 **Adding Quick Bookmarks** 
 
@@ -60,7 +60,7 @@ The Ribbon will become a full-blown ribbon across your screen when you have many
 
 ||||
 |-|-|-|
-|![](12.jpg)|![](13.jpg)|![](14.jpg)|
+|![](12.webp)|![](13.webp)|![](14.webp)|
 
 > You can bypass some operations when adding or deleting bookmarks by using the _Bookmarks Ribbon_:
 

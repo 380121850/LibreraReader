@@ -1,44 +1,78 @@
 ---
-layout: main
+layout: home
+lang_key: en
+lang_key_link: index
+seo_title: "HowRead — an open-source ebook reader focused on personal reading experience"
+seo_description: "HowRead is an open-source ebook reader focused on personal reading experience, for Android / HarmonyOS supporting PDF, EPUB, MOBI, DjVu, TXT and more, with WebDAV sync and a no-install online reader."
+hero_title: "HowRead"
+hero_subtitle: "An open-source ebook reader focused on personal reading experience"
+hero_description: "Read PDF, EPUB, MOBI, DjVu, FB2, TXT, CBZ and more on Android / HarmonyOS. Intuitive yet powerful, with a unique hands-free auto-scrolling Musician's mode — plus a no-install online reader."
+hero_btn_primary: "Download Now"
+hero_btn_secondary: "Online Reader"
+hero_tooltip: "Open source, no lock-in: your local documents are never uploaded; sync connects directly to your own WebDAV server."
+features_title: "Key Features"
+features:
+  - title: "WebDAV Sync"
+    description: "Sync reading positions, bookmarks and annotations across devices via your own WebDAV server — no third-party account involved."
+    tooltip: "Google Drive sync has been removed; the sync chain is fully under your control."
+  - title: "All Formats"
+    description: "PDF, EPUB, MOBI, AZW3, DjVu, FB2, TXT, RTF, HTML, CBZ, CBR — even documents inside zip archives."
+    tooltip: "12+ formats for your whole library."
+  - title: "TTS & Musician's Mode"
+    description: "Customizable text-to-speech with a built-in media player, plus the hands-free auto-scrolling Musician's mode."
+    tooltip: "Great for practice, cooking and commuting."
+  - title: "Dictionaries & Translation"
+    description: "Multiple online (including translators) and offline dictionaries: select text to translate, share, copy or search."
+    tooltip: "A handy companion for reading foreign languages."
+  - title: "Deeply Customizable"
+    description: "Day/night modes, custom CSS, fonts and backgrounds, link colors, vertical-scroll lock, dual-page single view — everything is adjustable."
+    tooltip: "Settings can be exported/imported, with automatic session backups."
+  - title: "Online Reader"
+    description: "No install needed — open PDF / EPUB / FB2 / CBZ right in your browser, with wheel/click page-turning and position memory."
+    tooltip: "Click \"Online Reader\" above to try it now."
+screenshots: ["1.webp", "2.webp", "3.webp"]
+about_title: "About HowRead"
+about_paragraphs:
+  - "HowRead is an open-source ebook reader focused on personal reading experience, forked from Librera Reader. Choose which formats and folders to include and build a self-maintained library: list or grid views, size- and style-adjustable thumbnail covers, sorting and filtering by path, name, size, date, etc."
+  - "While reading, lock documents into a vertical-scroll-only mode and navigate page- or screen-wise. Text can be reflowed and annotated. Volume-key functionality is configurable, and backgrounds and fonts are customizable via the intuitive Settings window. Excerpts can be translated, shared, copied and searched for inside the document or on the Internet."
+stats:
+  - number: "12+"
+    label: "Formats supported"
+  - number: "2"
+    label: "Platforms (Android · HarmonyOS)"
+  - number: "100%"
+    label: "Open source"
+changelog_title: "Changelog"
+changelog_more: "Full changelog →"
+download_title: "Download Now"
+download_subtitle: "Pick your channel · current version 0.9.0"
+downloads:
+  - title: "Google Play"
+    version: "Version 0.9.0"
+    size: "Android · Official store"
+    url: "https://play.google.com/store/apps/details?id=com.howread.reader"
+    button: "Open Google Play"
+  - title: "F-Droid"
+    version: "Version 0.9.0"
+    size: "No ads · No Google dependencies"
+    url: "https://f-droid.org/packages/com.howread.reader/"
+    button: "Open F-Droid"
+  - title: "GitHub Releases"
+    version: "Version 0.9.0"
+    size: "Direct APK download"
+    url: "https://github.com/380121850/howread/releases/latest"
+    blank: true
+    button: "Download APK"
+  - title: "Online Reader"
+    version: "No install"
+    size: "Opens in your browser"
+    url: "online-book-reader/"
+    blank: true
+    button: "Try It Now"
+footer_nav_title: "Quick Links"
+footer_nav_features: "Features"
+footer_nav_changelog: "Changelog"
+footer_nav_faq: "FAQ"
+footer_nav_download: "Download"
+footer_social_title: "Follow Us"
 ---
-
-# HowRead — a highly customizable book reader
-
-> **HowRead** is a highly customizable and feature-rich application for reading books in **PDF, EPUB, MOBI, DjVu, FB2, TXT, RTF, AZW, AZW3, HTML, CBZ, CBR** formats on **Android / HarmonyOS** devices. With its intuitive, yet powerful, interface, HowRead makes ebook reading a veritable pleasure. It even features a unique auto-scrolling, hands-free **Musician's mode**.
-
-||||
-|-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
-
-# Main features
-
-* Easy document discovery: Auto-Scan (of user-preset folders), Browse (with an in-app file explorer), Recent (featuring a reading-progress indicator)
-* Support for bookmarks, annotations, and EPUB3 tables of contents
-* Cross-device **WebDAV** sync (reading progress, bookmarks, etc.) — straight to your own server
-* Configurable Day and Night modes
-* Configurable link color (hence, footnotes and endnotes color)
-* Support for many popular online (including translators) and offline dictionaries
-* Vertical-scroll lock
-* Auto- and manual centering of documents
-* Custom CSS code input
-* Single-page view of two-page documents
-* Musician's mode with configurable scroll speed
-* Customizable TTS reading and built-in media player
-* Multi-word text search
-* Online document conversion
-* Reading of archived (.zip) documents
-* Support for RTL languages (Thai, Hebrew, Arabic, etc.)
-* Import and export of settings, auto-backup of current session
-* **Online Book Reader**: open PDF / EPUB / FB2 / CBZ right in your browser, no install needed — [try it now]({{ site.baseurl }}/online-book-reader/)
-
-# Download
-
-* [Google Play](https://play.google.com/store/apps/details?id=com.howread.reader)
-* [F-Droid (no ads, no Google dependencies)](https://f-droid.org/packages/com.howread.reader/)
-* [GitHub Releases (direct APK download)](https://github.com/380121850/howread/releases/latest)
-
-See the [Download page]({{ site.baseurl }}/download) for all options and the [Privacy Policy]({{ site.baseurl }}/PrivacyPolicy).
-
-With **HowRead**, you can easily create self-maintained libraries of all your documents by specifying which formats to include and which folders to scan. All document collections can be viewed as a list or grid. Documents are easily identified by size- and style-adjustable thumbnail covers and detailed descriptions. Your library can be sorted by path, name, size, date, etc., and there is a filter to help locate specific documents or document groups.
-
-While reading, documents can be locked into a vertical-scroll-only mode and navigated either page- or screen-wise. Text can be reflowed and annotated. Volume keys' functionality is configurable, and backgrounds and fonts customizable via the intuitive Settings window. Excerpts (selections) can be translated, shared, copied, and searched for inside the document or on the Internet.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #跨多个设备同步您的阅读设置
@@ -16,7 +16,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##同步选项
 
@@ -27,7 +27,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](32.jpg)|![](41.jpg)|![](42.jpg)|
+|![](32.webp)|![](41.webp)|![](42.webp)|
 
 > 注意：选择 Google Drive 是为了方便。 Google 帐户是免费的，任何人都可以使用。如果出于某种原因，您更喜欢任何其他云解决方案，请继续使用它。
 
@@ -51,7 +51,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 **为了确保无缝同步体验，毫无疑问，您应该在所有 Android 设备上进行相同的设置。**
 

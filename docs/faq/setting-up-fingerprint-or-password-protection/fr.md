@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Configuration de la protection par empreinte digitale ou par mot de passe
@@ -16,7 +16,7 @@ Les documents peuvent être protégés par empreinte digitale ou par mot de pass
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Protection contre les empreintes digitales
 
@@ -28,7 +28,7 @@ Les documents peuvent être protégés par empreinte digitale ou par mot de pass
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](7.webp)|
 
 ## Protection par mot de passe
 
@@ -42,6 +42,6 @@ Configuration du login par mot de passe:
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](8.jpg)|![](10.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](8.webp)|![](10.webp)|
 
 > Pour supprimer la protection par mot de passe/empreinte digitale, exécutez **Librera**, authentifiez-vous auprès de l'application, accédez à _Prompt for password_ box et décochez-la.

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Navegando por la pestaña _Library_
@@ -12,7 +12,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 * Vista condensada (dos columnas)
 * Vista de cuadrícula
@@ -20,7 +20,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 * Encuentra libros en tu biblioteca
 * Toque el icono de estrella para agregar un libro a **Favoritos**
@@ -31,7 +31,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](7.webp)|![](8.webp)|![](9.webp)|
 
 * Encuentre un libro por extensión (FB2, en nuestro ejemplo a continuación)
 * Toque el nombre del autor para encontrar todos los libros de este autor en la Biblioteca
@@ -41,4 +41,4 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](10.webp)|![](11.webp)|![](12.webp)|

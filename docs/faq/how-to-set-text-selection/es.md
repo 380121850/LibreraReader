@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Cómo seleccionar texto en _Librera_
@@ -14,7 +14,7 @@ Para habilitar la selección de texto:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Opciones de selección de texto
 * Los usuarios impacientes pueden marcar la casilla _Single-tap to select_. (Esta opción funciona muy bien con la opción _Abrir selección en diccionario_ en la pestaña principal de la ventana **Preferencias**)
@@ -28,4 +28,4 @@ Para habilitar la selección de texto:
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

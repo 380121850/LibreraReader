@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Abra o livro com o &quot;Gerenciador de tags&quot;
@@ -16,7 +16,7 @@ Não é possível definir uma tag para vários livros, mas é possível abrir o 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 
 # Abra o gerenciador de tags
@@ -29,4 +29,4 @@ Existem várias maneiras de definir \ remover tags dos livros
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|

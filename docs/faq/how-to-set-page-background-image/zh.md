@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #自定义页面背景
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ##更改纯色背景
 * 点击* * 颜色* * 以打开带有十字的调色板，并将十字拖动到调色板周围(在顶部的实时页面预览中进行更改)
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ##在背景中添加纹理或图片
 在_Background_面板中*点击**图像**
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 >您始终可以使用图2中所示的背景和字体预设。可以在**Configure**窗口中很容易地对其进行编辑(点击紫色箭头指示的编辑图标)。

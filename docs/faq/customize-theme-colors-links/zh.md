@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 #主题库的用户界面
@@ -15,7 +15,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 **字体大小设置**
 
@@ -24,7 +24,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](34.jpg)|![](32.jpg)|![](33.jpg)|
+|![](34.webp)|![](32.webp)|![](33.webp)|
 
 **常规主题设置**
 
@@ -35,7 +35,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](21.jpg)|![](22.jpg)|![](23.jpg)|
+|![](21.webp)|![](22.webp)|![](23.webp)|
 
 **标题和标题颜色(修整)设置**
 
@@ -45,7 +45,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](11.jpg)|![](12.jpg)|![](13.jpg)|
+|![](11.webp)|![](12.webp)|![](13.webp)|
 
 **链接颜色设置**
 
@@ -56,6 +56,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](41.jpg)|![](42.jpg)|![](43.jpg)|
+|![](41.webp)|![](42.webp)|![](43.webp)|
 
 > *** Librera *所提供的最好的功能就是能够为您在其中创建的每个配置文件单独设置主题背景。您可以为自己的个人资料设置主题，这些个人资料是为您的情绪变化，白天和黑夜的阅读，书籍类型等创建的。**

@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 # Privacy Policy — HowRead (com.howread.reader)
 

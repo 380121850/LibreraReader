@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Opzioni di visualizzazione/layout della pagina
@@ -20,7 +20,7 @@ Per accedere alle opzioni di visualizzazione:
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Regolazione del layout di pagina in PDF/DjVu
 
@@ -31,10 +31,10 @@ La &quot;rigidità&quot; della pagina in PDF/DjVu e le dimensioni dello schermo 
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|
 
 La modalità * _Half-Page_ è utile nei layout di pagina a due colonne. Basta dividere la pagina in due scegliendo questa opzione
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](8.jpg)|![](9.jpg)|
+|![](7.webp)|![](8.webp)|![](9.webp)|

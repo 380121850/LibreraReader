@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Режим музыканта: переключение экранных отметок
@@ -20,4 +20,4 @@ layout: main
 * поставить/снять отметку в соответствующих полях
 
 
-![disable dashed lines](1.png)
+![disable dashed lines](1.webp)

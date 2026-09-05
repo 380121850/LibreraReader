@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Anpassen des Seitenhintergrunds
@@ -14,7 +14,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Ändern eines einfarbigen Hintergrunds
 * Tippen Sie auf **Farbe**, um eine Farbpalette mit einem Kreuz zu öffnen, und ziehen Sie das Kreuz über die Palette (folgen Sie den Änderungen in der Echtzeit-Seitenansicht oben).
@@ -23,7 +23,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](6.jpg)|![](5.jpg)|![](8.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](8.webp)|
 
 ## Hinzufügen von Texturen oder Bildern zum Hintergrund
 * Tippen Sie im Bereich _Background_ auf **Image**
@@ -35,6 +35,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](7.jpg)|![](4.jpg)|![](9.jpg)|
+|![](7.webp)|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](9.webp)|
 
 > Sie können jederzeit die in Abb. 2 gezeigten Voreinstellungen für Hintergrund und Schriftarten verwenden. Sie können ganz einfach im Fenster **Konfigurieren** bearbeitet werden (tippen Sie auf das Bearbeitungssymbol, das durch den violetten Pfeil gekennzeichnet ist).

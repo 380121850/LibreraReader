@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Anotar y dibujar en archivos PDF
@@ -20,7 +20,7 @@ Esto revelará el icono _Editar_ en el menú inferior.
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 ## Archivos PDF con una capa de texto
 Además de las marcas anteriores:
@@ -31,7 +31,7 @@ Además de las marcas anteriores:
 
 |||
 |-|-|
-|![](4.jpg)|![](5.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|
 
 ## Marcado con herramientas preestablecidas
 El signo **+** permite al usuario agregar a la lista de herramientas solo una de las tres en el color elegido actualmente.
@@ -39,7 +39,7 @@ Esto crea una herramienta preestablecida con la que puede indicar rápidamente l
 
 |||
 |-|-|
-|![](8.jpg)|![](9.jpg)|
+|![](8.webp)|![](9.webp)|
 
 ## Guardar archivos editados
 * Un gesto _Cerrar_ abrirá la ventana _ ¿Guardar cambios? _
@@ -49,7 +49,7 @@ Esto crea una herramienta preestablecida con la que puede indicar rápidamente l
 
 |||
 |-|-|
-|![](6.jpg)|![](7.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/6.webp)|![](7.webp)|
 
 > Nota: El borrador de la paleta _Anotaciones y dibujos_ se puede utilizar para destruir dibujos dejados por otras aplicaciones.
 
@@ -61,4 +61,4 @@ Esto crea una herramienta preestablecida con la que puede indicar rápidamente l
 
 |||
 |-|-|
-|![](10.jpg)|![](11.jpg)|
+|![](10.webp)|![](11.webp)|

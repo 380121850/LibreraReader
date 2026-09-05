@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # التباين والسطوع في ملف PDF (تأثير أبيض/أسود)
@@ -21,7 +21,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](10.jpg)|![](11.jpg)|![](12.jpg)|
+|![](10.webp)|![](11.webp)|![](12.webp)|
 
 ## السطوع
 * اضغط على أيقونة _Contrast/Brightness_ في قائمة الضغط
@@ -30,7 +30,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](20.jpg)|![](21.jpg)|![](222.jpg)|
+|![](20.webp)|![](21.webp)|![](222.webp)|
 
 ## التأكيد على الكل (تأثير الحروف الغامقة)
 * اضغط على أيقونة _Contrast/Brightness_ في &quot;center-tap-menu&quot;
@@ -39,6 +39,6 @@ layout: main
 
 ||||
 |-|-|-|
-|![](30.jpg)|![](31.jpg)|![](32.jpg)|
+|![](30.webp)|![](31.webp)|![](32.webp)|
 
 > لتجاهل الإعدادات اليدوية ، استخدم الرابط _Restore default_ في أسفل نافذة **Contrast and Brightness**.

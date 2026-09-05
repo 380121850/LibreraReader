@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # تحديد النص في عدة أعمدة في ملفات PDF

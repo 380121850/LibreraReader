@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Cómo eliminar un libro de una tarjeta SD externa
@@ -15,7 +15,7 @@ En **Librera**, debe agregar su tarjeta SD como recurso (_bookshelf_) y luego pe
 
 ||||
 |-|-|-|
-|![](1.jpg)|![](2.jpg)|![](3.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/1.webp)|![](../dictionaries-translate-text-online-and-offline/2.webp)|![](../dictionaries-translate-text-online-and-offline/3.webp)|
 
 * Elija su tarjeta SD de la lista desplegable de recursos
 * Abra el menú de archivo del libro que desea eliminar tocando su ícono de triple punto
@@ -23,4 +23,4 @@ En **Librera**, debe agregar su tarjeta SD como recurso (_bookshelf_) y luego pe
 
 ||||
 |-|-|-|
-|![](4.jpg)|![](5.jpg)|![](6.jpg)|
+|![](../dictionaries-translate-text-online-and-offline/4.webp)|![](../dictionaries-translate-text-online-and-offline/5.webp)|![](../dictionaries-translate-text-online-and-offline/6.webp)|

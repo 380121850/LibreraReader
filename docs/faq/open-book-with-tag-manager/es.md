@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Libro abierto con &quot;Tag Manager&quot;
@@ -16,7 +16,7 @@ No es posible establecer una etiqueta para varios libros, pero es posible abrir 
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 
 # Abrir administrador de etiquetas
@@ -29,4 +29,4 @@ Hay muchas formas de configurar/eliminar etiquetas para los libros
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|

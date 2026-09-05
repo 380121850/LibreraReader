@@ -1,5 +1,5 @@
 ---
-layout: main
+layout: page
 ---
 
 # Reading Modes: Scroll, Book, and Musician's
@@ -21,7 +21,7 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](1.png)|![](2.png)|![](3.png)|
+|![](1.webp)|![](2.webp)|![](3.webp)|
 
 **You can also specify default reading modes for each and every ebook format.**
 
@@ -32,7 +32,7 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](1a.jpg)|![](2a.jpg)|![](3a.jpg)|
+|![](1a.webp)|![](2a.webp)|![](3a.webp)|
 
 * To change the reading mode for a current book, center-tap the screen and then tap on the triple-dot icon at the bottom
 * Tap on the preferred mode in the dialog
@@ -40,7 +40,7 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](4.png)|![](5.png)|![](6.png)|
+|![](4.webp)|![](5.webp)|![](6.webp)|
 
 ## Scroll Mode
 * Choose the gage of your scroll-swipes: by Page, Screen, screen percentage presets, or a custom value
@@ -49,7 +49,7 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](7.png)|![](8.png)|![](9.png)|
+|![](../main-app/7.webp)|![](../main-app/8.webp)|![](../main-app/9.webp)|
 
 ## Book Mode
 * Swipe horizontally for next/previous page
@@ -61,7 +61,7 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](10.png)|![](11.png)|![](12.png)|
+|![](../main-app/10.webp)|![](../main-app/11.webp)|![](../main-app/12.webp)|
 
 ## Musician's Mode
 * Single-tap to start/stop auto-scroll
@@ -72,4 +72,4 @@ In **Book mode**, pages are flipped horizontally with left-right or up-down fing
 
 ||||
 |-|-|-|
-|![](13.png)|![](14.png)|![](15.png)|
+|![](13.webp)|![](14.webp)|![](15.webp)|

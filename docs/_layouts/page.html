@@ -1,0 +1,85 @@
+{% include codes.md %}<!DOCTYPE html>
+<html lang="{% if full == '中文' %}zh-CN{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }}{% else %}HowRead · 好好读{% endif %}</title>
+    <link rel="stylesheet" href="{{ site.baseurl }}/showcase/style.css">
+    <link rel="icon" href="{{ site.baseurl }}/web/256.png" type="image/png">
+</head>
+<body id="top">
+    {% include navbar.md %}
+
+    <section class="page-section">
+        <div class="container">
+            <div class="page-content">
+                {% assign ask=false %}
+                {% if parent == '/faq/' or parent == '/' or parent == '/what-is-new/' %}
+                    {% assign ask=true %}
+                    {% if lang == '' %}
+                        <a class="page-back" href="{{ site.baseurl }}{{parent}}"> &lt; </a>
+                    {% else %}
+                        <a class="page-back" href="{{ site.baseurl }}{{parent}}{{lang}}.html"> &lt; </a>
+                    {% endif %}
+                {% endif %}
+
+                {{content}}
+
+                {% if page.url contains 'what-is-new' %}
+                    {% capture my_include2 %}{% include versions.md %}{% endcapture %}
+                    {{ my_include2 | markdownify }}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer" role="contentinfo">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <a class="nav-logo" href="{% if full == '中文' %}{{ site.baseurl }}/{% else %}{{ site.baseurl }}/en.html{% endif %}" style="color:#fff;">
+                        <img src="{{ site.baseurl }}/web/256.webp" alt="HowRead" class="footer-icon">
+                        <span class="footer-logo-text">HowRead</span>
+                    </a>
+                </div>
+                <div class="footer-links">
+                    {% if full == '中文' %}
+                    <h4>快速导航</h4>
+                    <ul>
+                        <li><a href="{{ site.baseurl }}/#features">功能特点</a></li>
+                        <li><a href="{{ site.baseurl }}/#download">下载</a></li>
+                        <li><a href="{{ site.baseurl }}/online-book-reader/">在线阅读</a></li>
+                    </ul>
+                    {% else %}
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ site.baseurl }}/en.html#features">Features</a></li>
+                        <li><a href="{{ site.baseurl }}/en.html#download">Download</a></li>
+                        <li><a href="{{ site.baseurl }}/online-book-reader/">Online Reader</a></li>
+                    </ul>
+                    {% endif %}
+                </div>
+                <div class="footer-social">
+                    <h4>GitHub</h4>
+                    <div class="social-icons">
+                        <a href="https://github.com/380121850/howread" target="_blank">GitHub</a>
+                        <a href="https://github.com/380121850/howread/issues" target="_blank">Issues</a>
+                        <a href="https://github.com/380121850/howread/releases/latest" target="_blank">{% if full == '中文' %}APK 下载{% else %}Releases{% endif %}</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 HowRead 好好读 · This is a fork of Librera Reader</p>
+                <p>Page template based on <a href="https://github.com/yxs2003/App-Showcase-Template">App-Showcase-Template</a> (GPL-3.0)</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <img class="modal-content" id="img01" alt="">
+    </div>
+
+    <script src="{{ site.baseurl }}/showcase/script.js"></script>
+</body>
+</html>
