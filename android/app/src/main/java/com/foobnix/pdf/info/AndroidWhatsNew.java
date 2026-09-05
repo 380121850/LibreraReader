@@ -40,7 +40,7 @@ public class AndroidWhatsNew {
     public static final String DETAIL_URL_RU = (SDK_INT >= 24 ? "https" : "http") + "://github.com/380121850/LibreraReader";
     private static final String BETA_TXT = "changelog.txt";
     private static final String BETA = "beta-";
-    private static final String WHATSNEW_URL = (SDK_INT >= 24 ? "https" : "http") + "://github.com/380121850/LibreraReader/releases";
+    private static final String WHATSNEW_URL = (SDK_INT >= 24 ? "https" : "http") + "://github.com/380121850/howread/blob/master/CHANGES.md";
     public static final String DOWNLOAD_LINK = "https://github.com/380121850/LibreraReader/releases";
 
     public static String getLangUrl(Context c) {
@@ -49,23 +49,8 @@ public class AndroidWhatsNew {
         // String url = String.format(WIKI_URL, shortVersion);
         String url = WHATSNEW_URL;
 
-        List<String> lns = Arrays.asList("ar", "de", "es", "fr", "it", "pt", "ru", "zh");
-        String appLang = AppState.get().appLang;
-        if (appLang.equals(AppState.MY_SYSTEM_LANG)) {
-            appLang = Urls.getLangCode();
-        }
-
-        if (lns.contains(appLang)) {
-            url += appLang;
-        }
-
-        // url += "?utm_p=" + Apps.getPackageName(c);
-        // url += "&utm_v=" + Apps.getVersionName(c);
-        // url += "&utm_ln=" + appLang;
-        // url += "&utm_beta=" + AppsConfig.IS_BETA;
-
-        //
-        // url += "#" + shortVersion.replace(".", "");
+        // the changelog is a single markdown file on master — it has no
+        // per-language variants, so no language suffix is appended
 
         LOG.d("getLangUrl", url);
         return url;

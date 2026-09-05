@@ -17,33 +17,15 @@
         android:background="@drawable/bg_search_second"
         android:text="Product: Lirbi Free" />
 
-    <LinearLayout
-
+    <TextView
+        android:id="@+id/appDescription"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dip"
         android:gravity="left|center_vertical"
-        android:orientation="horizontal"
         android:padding="4dip"
-        android:visibility="visible">
-
-        <ImageView
-            android:id="@+id/imageView1"
-            android:layout_width="@dimen/wh_button"
-            android:layout_height="@dimen/wh_button"
-            android:layout_margin="4dip"
-            android:src="@mipmap/icon_pdf_pro"
-            android:tag="@string/no_tint" />
-
-        <TextView
-            android:id="@+id/downloadPRO"
-            style="@style/textLink"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="2dp"
-            android:singleLine="false"
-            android:text="@string/librera_pro" />
-    </LinearLayout>
+        android:singleLine="false"
+        android:text="@string/app_description" />
 
 
     <TextView
@@ -134,7 +116,7 @@
             style="@style/textLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="howread.git" />
+            android:text="HowRead 好好读" />
     </LinearLayout>
 
     <LinearLayout
@@ -212,5 +194,14 @@
             android:singleLine="false"
             android:text="@string/rate_pdf_reader1" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dip"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="5dip"
+        android:singleLine="false"
+        android:text="@string/fork_of_librera" />
 
 </LinearLayout>

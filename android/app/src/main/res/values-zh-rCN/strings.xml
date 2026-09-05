@@ -467,6 +467,7 @@
    <string name="displaying_the_author_and_title_of_the_pdf_book_from_the_meta_tags">显示PDF元数据中的作者和书名</string>
    <string name="meta_tags">元标签</string>
    <string name="librera_pro">HowRead Pro：无广告的应用程序</string>
+   <string name="app_description">一个专注于个人阅读体验的开源电子书阅读器</string>
    <string name="annotation">注释</string>
    <string name="book">书名</string>
    <string name="information">信息</string>

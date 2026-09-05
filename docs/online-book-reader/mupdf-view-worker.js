@@ -33,12 +33,29 @@ importScripts("lib/mupdf-wasm.js")
 // which GitHub Pages rejects after ~25 s (NetworkError on 'send'), leaving the
 // worker stuck before READY. Preload the binary with the streaming fetch API
 // and hand it to the factory through the standard `wasmBinary` option instead.
-fetch("lib/mupdf-wasm.wasm")
-	.then((response) => {
+// Prefer the pre-gzipped copy (7.7 MB) decompressed natively in the browser —
+// GitHub Pages does not compress .wasm on the wire, and raw downloads stall on
+// slow/limited links (e.g. github.io access from China).
+function loadWasmBinary() {
+	if (typeof DecompressionStream === "function") {
+		return fetch("lib/mupdf-wasm.wasm.gz")
+			.then((response) => {
+				if (!response.ok)
+					throw new Error("Failed to load mupdf-wasm.wasm.gz: HTTP " + response.status)
+				return response.arrayBuffer()
+			})
+			.then((gzBuffer) =>
+				new Response(new Blob([ gzBuffer ]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()
+			)
+	}
+	return fetch("lib/mupdf-wasm.wasm").then((response) => {
 		if (!response.ok)
 			throw new Error("Failed to load mupdf-wasm.wasm: HTTP " + response.status)
 		return response.arrayBuffer()
 	})
+}
+
+loadWasmBinary()
 	.then((wasmBinary) => {
 		const factory = libmupdf
 		libmupdf = function (injections) {

@@ -5,6 +5,16 @@
 
 ---
 
+## [2026-09-05] 官网在线阅读器补充优化：新增预压缩 mupdf-wasm.wasm.gz（14.4MB→7.7MB），worker 优先下载 gz 并用浏览器原生 DecompressionStream 解压；实测确认 github.io 国内访问带宽是主要瓶颈
+
+**实测数据**（本机 curl 直连 github.io）：CDN 对 .wasm 请求带 Accept-Encoding: gzip 时返回 gzip 传输（Content-Encoding: gzip）——7.69MB 耗时 145.7s；无压缩 14.4MB 耗时 258.9s，即到 github.io 带宽仅约 53KB/s。浏览器 fetch 默认携带 gzip 头（等价 7.7MB），此前 worker 的同步 XHR 25 秒即被掐断是雪上加霜。
+
+**改动**：`docs/online-book-reader/lib/mupdf-wasm.wasm.gz`（gzip -9 预压缩，7.69MB）；`mupdf-view-worker.js` 的 loadWasmBinary() 优先 fetch `mupdf-wasm.wasm.gz` 并用 `DecompressionStream("gzip")` 解压（Chrome 80+/Edge/Firefox 113+/Safari 16.4+ 均支持），不支持时回退原始 `.wasm`。等价体积、双保险。
+
+**局域网端到端验证**（服务器 python3 http.server + 浏览器实测）：worker 正常 READY（20 个方法全部注册），`?file=` 打开 PDF 成功渲染多页 canvas、文本层与工具栏正常、无任何报错。**结论：worker 修复本身已验证正确；线上 github.io 首次打开预计需 2~3 分钟（7.7MB@50KB/s），之后走 HTTP 缓存（max-age 600s）。国内要快只能换 CDN/自定义域名（如 Cloudflare 前置）或境内托管，属后续可选方案。** 未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 官网上线：docs/ Jekyll 站全面品牌化改造为 HowRead（好好读），适配 GitHub Pages 项目页路径，新增 Pages 自动部署 workflow，在线阅读器一并发布
 
 **背景**：docs/ 原为 Librera 老官网（Jekyll、发布于 librera.mobi、全站绝对路径）。本次将其改造为 HowRead 官网并发布到 GitHub Pages 项目页 `https://380121850.github.io/howread/`，同时上线自带的 MuPDF-WASM 在线阅读器 `online-book-reader/`（全静态、相对路径、14.4MB wasm 本地引用，无需改动路径即可在 /howread/ 子路径工作）。

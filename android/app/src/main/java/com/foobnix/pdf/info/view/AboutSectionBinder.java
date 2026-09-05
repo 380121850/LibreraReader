@@ -79,10 +79,6 @@ public class AboutSectionBinder {
             openWeb.setOnClickListener(v -> Urls.open(a, a.getString(R.string.my_site)));
         }
 
-        TextView proText = root.findViewById(R.id.downloadPRO);
-        TxtUtils.underlineTextView(proText);
-        ((View) proText.getParent()).setOnClickListener(v -> Urls.openPdfPro(a));
-
         TextView rateIt = root.findViewById(R.id.onRateIt);
         TxtUtils.underlineTextView(rateIt);
         rateIt.setOnClickListener(v -> Urls.rateIT(a));
