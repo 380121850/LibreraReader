@@ -36,7 +36,7 @@ layout: main
 **RSVP (عرض تسلسلي مرئي سريع) القراءة/القراءة السريعة**
 
 تتيح لك سرعة القراءة باستخدام **Librera** تحسين سرعة القراءة لديك حتى 700 كلمة في الدقيقة (WPM) التي تنفذ طريقة RSVP.
-يرجى اتباع الرابط للعثور على مزيد من المعلومات حول هذا الموضوع [قسم القراءة السريعة](/manual/Rapid-Serial-Visual-Presentation/ar)
+يرجى اتباع الرابط للعثور على مزيد من المعلومات حول هذا الموضوع [قسم القراءة السريعة]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/ar)
 
 * يمكن تشغيل وضع RSVP من قائمة الكتب (سرعة القراءة)
 * سرعة القراءة بنقرة واحدة فقط
@@ -44,7 +44,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **موضع شريط الحالة (أعلى أو أسفل) في وضع الكتاب**
 
@@ -66,7 +66,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **فرز الكتب حسب اللغة**
 

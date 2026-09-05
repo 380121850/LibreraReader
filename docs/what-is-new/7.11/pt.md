@@ -36,7 +36,7 @@ Inscreva-se no canal de telegrama **Librera Reader** [https://t.me/LibreraReader
 **Leitura RSVP (apresentação visual serial rápida)/leitura rápida**
 
 A velocidade de leitura com o **Librera** permite melhorar sua velocidade de leitura para até 700 palavras por minuto (WPM) implementando o método RSVP.
-Por favor, siga o link para encontrar mais informações sobre o assunto [Seção de leitura rápida](/manual/Rapid-Serial-Visual-Presentation/pt)
+Por favor, siga o link para encontrar mais informações sobre o assunto [Seção de leitura rápida]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/pt)
 
 * O modo RSVP pode ser iniciado no menu do livro (leitura rápida)
 * Velocidade de leitura com apenas um toque
@@ -44,7 +44,7 @@ Por favor, siga o link para encontrar mais informações sobre o assunto [Seçã
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Posição da barra de status (superior ou inferior) no modo Livro**
 
@@ -66,7 +66,7 @@ Para abrir uma pasta como um livro, navegue até ela na guia Pastas e toque em s
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Classificar livros por idioma**
 

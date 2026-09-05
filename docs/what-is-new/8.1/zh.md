@@ -4,7 +4,7 @@ layout: main
 
 # 8.1
 
-使用此应用即表示您同意 [隐私政策](/PrivacyPolicy/zh) 的条款
+使用此应用即表示您同意 [隐私政策]({{ site.baseurl }}/PrivacyPolicy/zh) 的条款
 
 **新功能和改进**
 

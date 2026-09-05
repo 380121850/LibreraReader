@@ -36,7 +36,7 @@ Abbonati al canale **Librera Reader** Telegram [https://t.me/LibreraReader lasti
 **Lettura RSVP (Rapid Serial Visual Presentation)/Lettura veloce**
 
 La lettura rapida con **Librera** consente di migliorare la velocità di lettura fino a 700 parole al minuto (WPM) implementando il metodo RSVP.
-Si prega di seguire il link per trovare maggiori informazioni sull'argomento [sezione di lettura veloce](/manual/Rapid-Serial-Visual-Presentation/it)
+Si prega di seguire il link per trovare maggiori informazioni sull'argomento [sezione di lettura veloce]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/it)
 
 * La modalità RSVP può essere avviata dal menu libro (lettura veloce)
 * Velocità di lettura in un solo tocco
@@ -44,7 +44,7 @@ Si prega di seguire il link per trovare maggiori informazioni sull'argomento [se
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Posizione barra di stato (in alto o in basso) in modalità Libro**
 
@@ -66,7 +66,7 @@ Per aprire una cartella come libro, naviga nella scheda Cartelle e tocca il suo 
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Ordina i libri per lingua**
 

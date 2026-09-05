@@ -36,7 +36,7 @@ layout: main
 **Чтение/быстрое считывание RSVP (быстрое последовательное визуальное представление)**
 
 Скорость чтения с помощью **Librera** позволяет повысить скорость чтения до 700 слов в минуту (WPM) с помощью метода RSVP.
-Пожалуйста, перейдите по ссылке, чтобы найти больше информации по теме [Раздел скорочтения](/manual/Rapid-Serial-Visual-Presentation/ru)
+Пожалуйста, перейдите по ссылке, чтобы найти больше информации по теме [Раздел скорочтения]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/ru)
 
 * Режим RSVP можно запустить из меню книги (Скорость чтения)
 * Скорость чтения всего одним нажатием
@@ -44,7 +44,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Положение строки состояния (вверху или внизу) в режиме книги**
 
@@ -66,7 +66,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Сортировка книг по языку**
 

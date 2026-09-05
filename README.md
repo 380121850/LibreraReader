@@ -42,50 +42,33 @@ Librera Reader is an e-book reader for Android devices;
 it supports the following formats: PDF, EPUB, EPUB3, MOBI, DjVu, FB2, TXT, RTF, AZW, AZW3, HTML, CBZ, CBR, DOC, DOCX,
 and OPDS Catalogs
 
-# Download application
+# Download application (HowRead 好好读)
 
-[Librera Reader on Google Play](https://play.google.com/store/apps/details?id=com.foobnix.pdf.reader)
+[Official website](https://380121850.github.io/howread/)
 
-[Librera PRO on Google Play](https://play.google.com/store/apps/details?id=com.foobnix.pro.pdf.reader)
+[Download page](https://380121850.github.io/howread/download/)
 
-[Librera F-Droid](https://f-droid.org/en/packages/com.foobnix.pro.pdf.reader/)
+[Google Play](https://play.google.com/store/apps/details?id=com.howread.reader)
 
-[Beta testing .apk](http://beta.librera.mobi/)
+[F-Droid (no ads, no Google dependencies)](https://f-droid.org/packages/com.howread.reader/)
 
-[Application Fonts.zip](https://github.com/foobnix/LirbiReader/tree/master/Builder/fonts)
+[GitHub Releases (direct APK download)](https://github.com/380121850/howread/releases/latest)
 
+[Web browser Online Book Reader](https://380121850.github.io/howread/online-book-reader/)
 
-[Web browser Librera Book Reader](https://librera.mobi/online-book-reader/)
+https://380121850.github.io/howread/online-book-reader/?file=https://pdfobject.com/pdf/sample.pdf
 
-https://librera.mobi/online-book-reader/?file=https://pdfobject.com/pdf/sample.pdf
-
-[Google Chrome Extension](https://chromewebstore.google.com/detail/epub-reader-librera/kfpiokccdkdlbjmgiajpfcdefcbdbphe)
-
-[zip Chrome Extension](https://github.com/foobnix/LibreraReader/raw/master/Builder/librara-chrome-extension.zip)
-
-[MacOS DMG / Desktop version](http://beta.librera.mobi/)
-
-Librera for macOS, supports PDF, EPUB, FB2, CBZ, CBR (beta.librera.mobi for downloads)
-
-![img1](https://raw.githubusercontent.com/foobnix/LirbiReader/master/iosApp/img1.png)
-
-![img2](https://raw.githubusercontent.com/foobnix/LirbiReader/master/iosApp/img2.png)
+[Privacy Policy](https://380121850.github.io/howread/PrivacyPolicy/)
 
 ### Links
 
-[web: https://librera.mobi/](https://librera.mobi/)
+[web: https://380121850.github.io/howread/](https://380121850.github.io/howread/)
 
-[What is new/Changes](https://librera.mobi/what-is-new/)
+[What is new/Changes](https://380121850.github.io/howread/what-is-new/)
 
-[FAQ](https://librera.mobi/faq/)
+[FAQ](https://380121850.github.io/howread/faq/)
 
-[Telegram Info](https://t.me/LibreraReader)
-
-[Telegram Chat](https://t.me/librera_reader_chat)
-
-♥︎♥︎♥︎ [Support & Donation on Patreon](https://www.patreon.com/librera) ♥︎♥︎♥︎
-
-[Email: librera.reader@gmail.com](mailto:librera.reader@gmail.com)
+[Feedback / Issues](https://github.com/380121850/howread/issues)
 
 ## Required build libs
 

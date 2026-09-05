@@ -1,0 +1,44 @@
+---
+layout: main
+---
+
+# HowRead — a highly customizable book reader
+
+> **HowRead** is a highly customizable and feature-rich application for reading books in **PDF, EPUB, MOBI, DjVu, FB2, TXT, RTF, AZW, AZW3, HTML, CBZ, CBR** formats on **Android / HarmonyOS** devices. With its intuitive, yet powerful, interface, HowRead makes ebook reading a veritable pleasure. It even features a unique auto-scrolling, hands-free **Musician's mode**.
+
+||||
+|-|-|-|
+|![](1.png)|![](2.png)|![](3.png)|
+
+# Main features
+
+* Easy document discovery: Auto-Scan (of user-preset folders), Browse (with an in-app file explorer), Recent (featuring a reading-progress indicator)
+* Support for bookmarks, annotations, and EPUB3 tables of contents
+* Cross-device **WebDAV** sync (reading progress, bookmarks, etc.) — straight to your own server
+* Configurable Day and Night modes
+* Configurable link color (hence, footnotes and endnotes color)
+* Support for many popular online (including translators) and offline dictionaries
+* Vertical-scroll lock
+* Auto- and manual centering of documents
+* Custom CSS code input
+* Single-page view of two-page documents
+* Musician's mode with configurable scroll speed
+* Customizable TTS reading and built-in media player
+* Multi-word text search
+* Online document conversion
+* Reading of archived (.zip) documents
+* Support for RTL languages (Thai, Hebrew, Arabic, etc.)
+* Import and export of settings, auto-backup of current session
+* **Online Book Reader**: open PDF / EPUB / FB2 / CBZ right in your browser, no install needed — [try it now]({{ site.baseurl }}/online-book-reader/)
+
+# Download
+
+* [Google Play](https://play.google.com/store/apps/details?id=com.howread.reader)
+* [F-Droid (no ads, no Google dependencies)](https://f-droid.org/packages/com.howread.reader/)
+* [GitHub Releases (direct APK download)](https://github.com/380121850/howread/releases/latest)
+
+See the [Download page]({{ site.baseurl }}/download) for all options and the [Privacy Policy]({{ site.baseurl }}/PrivacyPolicy).
+
+With **HowRead**, you can easily create self-maintained libraries of all your documents by specifying which formats to include and which folders to scan. All document collections can be viewed as a list or grid. Documents are easily identified by size- and style-adjustable thumbnail covers and detailed descriptions. Your library can be sorted by path, name, size, date, etc., and there is a filter to help locate specific documents or document groups.
+
+While reading, documents can be locked into a vertical-scroll-only mode and navigated either page- or screen-wise. Text can be reflowed and annotated. Volume keys' functionality is configurable, and backgrounds and fonts customizable via the intuitive Settings window. Excerpts (selections) can be translated, shared, copied, and searched for inside the document or on the Internet.

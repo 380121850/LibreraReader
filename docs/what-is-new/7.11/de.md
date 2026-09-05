@@ -36,7 +36,7 @@ Abonnieren Sie den **Librera Reader** -Telegrammkanal [https://t.me/LibreraReade
 **RSVP-Lesung (Rapid Serial Visual Presentation)/Geschwindigkeitslesung**
 
 Mit der Lesegeschwindigkeit von **Librera** können Sie Ihre Lesegeschwindigkeit mit der RSVP-Methode auf bis zu 700 Wörter pro Minute (WPM) steigern.
-Bitte folgen Sie dem Link, um weitere Informationen zum Thema [Schnelllesen-Abschnitt](/manual/Rapid-Serial-Visual-Presentation/de) zu erhalten.
+Bitte folgen Sie dem Link, um weitere Informationen zum Thema [Schnelllesen-Abschnitt]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/de) zu erhalten.
 
 * Der RSVP-Modus kann über das Buchmenü gestartet werden (Schnelllesen).
 * Geschwindigkeitslesung mit nur einem Fingertipp
@@ -44,7 +44,7 @@ Bitte folgen Sie dem Link, um weitere Informationen zum Thema [Schnelllesen-Absc
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Position der Statusleiste (oben oder unten) im Buchmodus**
 
@@ -66,7 +66,7 @@ Um einen Ordner als Buch zu öffnen, navigieren Sie auf der Registerkarte Ordner
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Bücher nach Sprache sortieren**
 

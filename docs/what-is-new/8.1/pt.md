@@ -4,7 +4,7 @@ layout: main
 
 # 8.1
 
-Ao usar este aplicativo, você concorda com os termos da [Política de Privacidade](/PrivacyPolicy/pt)
+Ao usar este aplicativo, você concorda com os termos da [Política de Privacidade]({{ site.baseurl }}/PrivacyPolicy/pt)
 
 **Novos recursos e melhorias**
 

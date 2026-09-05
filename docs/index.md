@@ -2,46 +2,43 @@
 layout: main
 ---
 
-# About the Librera Book Reader  application for Android
+# HowRead 好好读 — 高度可定制的电子书阅读器
 
-> __Librera Reader__ (a.k.a. __Lirbi Reader__, __PDF Reader__) is a highly customizable and feature-rich application
-for reading books in PDF, EPUB, MOBI, DjVu, FB2, TXT, RTF, AZW, AZW3, HTML, CBZ, CBR formats on Android devices.
-With its intuitive, yet powerful, interface, Librera makes ebook reading a veritable pleasure.
-It even features a unique auto-scrolling, hands-free Musician's mode.
-As of today, it can boast more than __10 million__ downloads to devices running all flavors of Android OS.
+> **HowRead（好好读）** 是一款高度可定制、功能丰富的阅读应用，支持在 **Android / HarmonyOS（鸿蒙）** 设备上阅读 **PDF、EPUB、MOBI、DjVu、FB2、TXT、RTF、AZW、AZW3、HTML、CBZ、CBR** 等格式的图书与文档。界面直观、功能强大，还带有独特的免提自动滚动**音乐家模式**。
 
 ||||
 |-|-|-|
 |![](1.png)|![](2.png)|![](3.png)|
 
-# Just a few librera's main features
+# 主要功能
 
-* Easy document discovery by configurable criteria:
-* Auto-Scan (of user-preset folders)
-* Browse (with an in-app file explorer)
-* Recent (featuring a reading-progress indicator)
-* Support for bookmarks, annotations, and EPUB3 tables of contents
-* Support for clouds and online catalogs
-* Syncing across Android devices via Google Drive (reading progress, bookmarks, etc.)
-* Configurable Day and Night modes
-* Configurable link color (hence, footnotes and endnotes color)
-* Support for many popular online (including translators) and offline dictionaries
-* Vertical-scroll lock
-* Auto- and manual centering of documents
-* Custom CSS code input
-* Single-page view of two-page documents
-* Musician's mode with configurable scroll speed
-* Customizable TTS reading and built-in media player
-* Multi-word text search
-* Online document conversion
-* Reading of archived (.zip) documents
-* Support for RTL languages (Thai, Hebrew, Arabic, etc.)
-* Import and export of settings, auto-backup of current session
-* Leading initials in FB2 documents
-* And a whole bunch of other features for you to check out.
+* 轻松找到文档：自动扫描（用户预设文件夹）、内置文件浏览器浏览、最近阅读（带阅读进度指示）
+* 支持书签、批注和 EPUB3 目录
+* 通过 **WebDAV** 在多台设备间同步（阅读进度、书签等），直连你自己的服务器
+* 可配置的日间 / 夜间模式
+* 可配置的链接颜色（脚注、尾注颜色）
+* 支持多种在线（含翻译）与离线词典，划词翻译、分享、复制
+* 垂直滚动锁定
+* 文档自动 / 手动居中
+* 自定义 CSS
+* 双页文档的单页视图
+* 音乐家模式：可配置的自动滚动速度
+* 可自定义的 TTS 朗读与内置媒体播放器
+* 多关键词搜索
+* 在线文档转换
+* 直接阅读 .zip 压缩包中的文档
+* 支持 RTL 语言（泰语、希伯来语、阿拉伯语等）
+* 设置导入导出、当前会话自动备份
+* **在线阅读器**：无需安装，浏览器直接打开 PDF / EPUB / FB2 / CBZ — [立即体验]({{ site.baseurl }}/online-book-reader/)
 
-With __Librera Reader__, you can easily create self-maintained libraries of all your documents by specifying which formats to include and which folders to scan. All document collections can be viewed as a list or grid. Documents are easily identified by size- and style-adjustable thumbnail covers and detailed descriptions. Your library can be sorted by path, name, size, date, etc., and there is a filter to help locate specific documents or document groups.
+# 下载
 
-While reading, documents can be locked into a vertical-scroll-only mode and navigated either page- or screen-wise. Text can be reflowed and annotated. Volume keys' functionality is configurable, and backgrounds and fonts customizable via the intuitive Settings window. Excerpts (selections) can be translated, shared, copied, and searched for inside the document or on the Internet.
+* [Google Play · HowRead 好好读](https://play.google.com/store/apps/details?id=com.howread.reader)
+* [F-Droid（无广告、无 Google 依赖）](https://f-droid.org/packages/com.howread.reader/)
+* [GitHub Releases（APK 直接下载）](https://github.com/380121850/howread/releases/latest)
 
-The best way to fully appreciate Librera Reader, however, is to use its PRO version. You can start with Free, ad-supported one first, and decide for yourselves. We promise you won't be disappointed. Once you are convinced, please obtain a PRO license to help the app's further development.
+更多下载方式见[下载页]({{ site.baseurl }}/download/zh)，隐私说明见[隐私政策]({{ site.baseurl }}/PrivacyPolicy/zh)。
+
+通过 **HowRead 好好读**，你可以指定要收录的格式与要扫描的文件夹，轻松建立自维护的书库。所有文档集合可以列表或网格方式查看，通过可调大小、可调样式的缩略图封面和详细信息快速识别；书库可按路径、名称、大小、日期等排序，并配有筛选器帮助你定位特定文档。
+
+阅读时可将文档锁定为仅垂直滚动模式，并按页或按屏翻页；文本可重排、可批注；音量键功能可配置，背景与字体可在直观的设置窗口中自定义；摘录可在文档内或互联网上翻译、共享、复制和搜索。

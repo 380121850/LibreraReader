@@ -1,4 +1,4 @@
-* [Sobre o aplicativo](/pt)
-* [Perguntas frequentes](/faq/pt)
-* [O que é novo](/what-is-new/pt)
-* [Baixar](/download/pt)
+* [Sobre o aplicativo]({{ site.baseurl }}/pt)
+* [Perguntas frequentes]({{ site.baseurl }}/faq/pt)
+* [O que é novo]({{ site.baseurl }}/what-is-new/pt)
+* [Baixar]({{ site.baseurl }}/download/pt)

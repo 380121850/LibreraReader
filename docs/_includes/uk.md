@@ -1,4 +1,4 @@
-* [Про програму](/uk)
-* [Часті питання](/faq/uk)
-* [Що нового](/what-is-new/uk)
-* [Завантажити](/download/uk)
+* [Про програму]({{ site.baseurl }}/uk)
+* [Часті питання]({{ site.baseurl }}/faq/uk)
+* [Що нового]({{ site.baseurl }}/what-is-new/uk)
+* [Завантажити]({{ site.baseurl }}/download/uk)

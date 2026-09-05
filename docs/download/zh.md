@@ -1,22 +1,28 @@
 ---
 layout: main
 ---
-#下载
+# 下载 HowRead 好好读
 
-[Google Play 上的 Librera 阅读器](https://play.google.com/store/apps/details?id=com.foobnix.pdf.reader)
+## Google Play
 
-[Google Play 上的 Librera PRO(无广告)](https://play.google.com/store/apps/details?id=com.foobnix.pro.pdf.reader)
+[Google Play · HowRead 好好读](https://play.google.com/store/apps/details?id=com.howread.reader)
 
-[F-Droid 上的 Librera FDroid](https://f-droid.org/en/packages/com.foobnix.pro.pdf.reader/)
+## F-Droid（无广告、无 Google 依赖）
 
-[Dropbox 上的 .apk 测试版](https://www.dropbox.com/sh/06uflsamq4qirp3/AABAc0RXaMHCKBbYvxN-W8aYa?lst)
+[F-Droid · HowRead 好好读](https://f-droid.org/packages/com.howread.reader/)
 
-[NextCloud 上的 .apk 测试版](https://emma.cloud.tabdigital.eu/s/E8froWd87JC6cM5)
+## GitHub Releases（APK 直接下载）
 
-[电报上的 Librera 新闻和更新](https://t.me/LibreraReader)
+[GitHub 最新版本](https://github.com/380121850/howread/releases/latest) — 提供各渠道签名 APK。
 
-[GitHub上的源代码和发布](https://github.com/foobnix/LibreraReader)
+## 在线阅读器
 
-[隐私政策](/PrivacyPolicy/zh)
+无需安装，浏览器直接打开 PDF / EPUB / FB2 / CBZ：
+[在线阅读器]({{ site.baseurl }}/online-book-reader/)
 
-[在 Patreon 上捐款](https://www.patreon.com/librera)
+## 源码与反馈
+
+* [GitHub 源码仓库](https://github.com/380121850/howread)
+* [问题反馈（Issues）](https://github.com/380121850/howread/issues)
+
+[隐私政策]({{ site.baseurl }}/PrivacyPolicy/zh)

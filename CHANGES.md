@@ -5,6 +5,22 @@
 
 ---
 
+## [2026-09-05] 官网上线：docs/ Jekyll 站全面品牌化改造为 HowRead（好好读），适配 GitHub Pages 项目页路径，新增 Pages 自动部署 workflow，在线阅读器一并发布
+
+**背景**：docs/ 原为 Librera 老官网（Jekyll、发布于 librera.mobi、全站绝对路径）。本次将其改造为 HowRead 官网并发布到 GitHub Pages 项目页 `https://380121850.github.io/howread/`，同时上线自带的 MuPDF-WASM 在线阅读器 `online-book-reader/`（全静态、相对路径、14.4MB wasm 本地引用，无需改动路径即可在 /howread/ 子路径工作）。
+
+**路径适配（防断链）**：`docs/_config.yml` 新增 `baseurl: /howread` 与站点元信息；服务器端 sed 批量把全站 103 个 md 文件的绝对链接 `](/xxx)` 改为 `]({{ site.baseurl }}/xxx)`；`_layouts/main.html` 的 css/在线阅读器/站点标题链接与 FAQ 返回链接全部加 baseurl 前缀，grep 审计绝对路径清零。
+
+**品牌与内容**：布局标题/侧栏/页脚改为 HowRead · 好好读（联系渠道改为 GitHub Issues，favicon 改用 web/256.png，移除失效的 favicon.ico 与 RSS 引用）；首页重写为中文为主（根路径 / 即中文页，`_includes/codes.md` 新增根页与 /en 语言判定、语言选择器相应调整），英文版移至 en.md；主要功能列表更新为现状——**WebDAV 同步（替代已移除的 Google Drive）**、HarmonyOS 版本、在线阅读器入口等；其余 8 个语言首页与下载页改为指向中英文版的占位。下载页重写：Google Play（com.howread.reader）、F-Droid（占位）、GitHub Releases（releases/latest）。隐私政策新增 `PrivacyPolicy/com.howread.reader.md`（英文）与 `com.howread.reader.zh.md`（中文全文）：AdMob 广告仅 Google Play 渠道、无 GMS/Drive、WebDAV 直连用户自建服务器、本地文档不上传，索引页 HowRead 置顶、旧 Librera 各包政策归档保留。
+
+**清理**：删除 `CNAME`（librera.mobi）、`ads.txt`/`app-ads.txt`（旧 AdSense ID）、`google6872a6801fea9f0a.html`（旧 Search Console 验证）、`epub-reader/`（与 online-book-reader 字节级相同的 14.9MB 副本，可由其 build.sh 再生成）；在线阅读器标题品牌化为"在线阅读器"；根 `README.md` 的下载/链接区块更新为新官网地址。
+
+**CI**：新增 `.github/workflows/deploy.yml` —— push 到 master（paths 限定 docs/** 与本文件）或手动触发时，checkout → configure-pages（enablement 自动开启 Pages）→ **jekyll-build-pages（source: ./docs，layout/baseurl 依赖 Jekyll 构建）** → upload-pages-artifact → deploy-pages，带 Pages 权限与并发锁。
+
+**遗留说明**：首页截图 1/2/3.png 仍为旧版 UI 截图，后续建议真机截图替换；FAQ/更新日志小语种翻译仅修链接不改内容。首次部署后需在仓库 Settings → Pages 确认 Source 为 GitHub Actions（workflow 的 enablement 会自动处理）。未执行任何 git 命令。
+
+---
+
 ## [2026-09-05] 定位并修复：A机「阅读配置→单击」被改回左右翻页——隐藏的"按格式指定阅读模式"开关（isPrefFormatMode）在打开书籍时按扩展名静默覆盖单击设置
 
 **根因**（A机真机定位）：「单击」的值是 `AppSP.readingMode`（1=上下翻页，2=左右翻页）。A机与 MI9 的 `app-State.json` 里 `isPrefFormatMode=true`——这是"按扩展名决定打开模式"的隐藏功能（其唯一入口"更多模式设置"齿轮按钮在布局里 visibility=gone，界面找不到也关不掉）。`ExtUtils.showDocumentWithoutDialog2` 在该开关开启时按扩展名静默改写 readingMode：`prefScrollMode="pdf, djvu"→上下翻页`、`prefBookMode="epub, mobi, fb2, azw, azw3"→左右翻页`。A机主要在读 (官场小说).mobi——每打开一次 mobi/epub，单击就被改回左右翻页；同步日志中 readingMode 1↔2 的多次翻转与 lastBookPath 换书记录完全吻合。readingMode 又随 app-Misc.json 同步，翻转会被广播到所有设备。同步合并逻辑本身无责。

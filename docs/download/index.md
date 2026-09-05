@@ -1,26 +1,28 @@
 ---
 layout: main
 ---
-# Download
+# Download HowRead
 
-[Librera Reader on Google Play](https://play.google.com/store/apps/details?id=com.foobnix.pdf.reader)
+## Google Play
 
-[Librera PRO (Ads free) on Google Play](https://play.google.com/store/apps/details?id=com.foobnix.pro.pdf.reader)
+[HowRead on Google Play](https://play.google.com/store/apps/details?id=com.howread.reader)
 
-[Librera FDroid on F-Droid](https://f-droid.org/en/packages/com.foobnix.pro.pdf.reader/)
+## F-Droid (no ads, no Google dependencies)
 
-[MacOS DMG / Desktop version](http://beta.librera.mobi/) 
+[HowRead on F-Droid](https://f-droid.org/packages/com.howread.reader/)
 
-Librera for macOS, supports PDF, EPUB, FB2, CBZ, CBR (beta.librera.mobi for downloads)
+## GitHub Releases (direct APK download)
 
-[Beta .apk on Dropbox](https://www.dropbox.com/sh/06uflsamq4qirp3/AABAc0RXaMHCKBbYvxN-W8aYa?lst)
+[Latest release on GitHub](https://github.com/380121850/howread/releases/latest) — signed APKs for all builds.
 
-[Beta .apk on NextCloud](https://emma.cloud.tabdigital.eu/s/E8froWd87JC6cM5)
+## Online Book Reader
 
-[Librera News and Updates on Telegram](https://t.me/LibreraReader) 
+Read PDF / EPUB / FB2 / CBZ right in your browser, no install needed:
+[Online Book Reader]({{ site.baseurl }}/online-book-reader/)
 
-[Source code and releases on GitHub](https://github.com/foobnix/LibreraReader)
+## Source code & feedback
 
-[Privacy Policy](/PrivacyPolicy)
+* [Source code on GitHub](https://github.com/380121850/howread)
+* [Issues / feedback](https://github.com/380121850/howread/issues)
 
-[Donate on Patreon](https://www.patreon.com/librera)
+[Privacy Policy]({{ site.baseurl }}/PrivacyPolicy)

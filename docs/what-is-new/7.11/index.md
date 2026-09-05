@@ -36,7 +36,7 @@ Subscribe to the __Librera Reader__ Telegram channel [https://t.me/LibreraReader
 **RSVP (Rapid Serial Visual Presentation) Reading / Speed Reading**
 
 Speed reading with __Librera__ allows you to improve your reading speed to up to 700 words per minute (WPM) implementing the RSVP method.
-Please follow the link to find more info on the subject  [Speed reading section](/manual/Rapid-Serial-Visual-Presentation/)
+Please follow the link to find more info on the subject  [Speed reading section]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/)
 
 * The RSVP mode can be launched from the book menu (Speed read)
 * Speed read in just one tap
@@ -44,7 +44,7 @@ Please follow the link to find more info on the subject  [Speed reading section]
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Status Bar Position (Top or Bottom) in Book Mode**
 
@@ -66,7 +66,7 @@ To open a folder as a book, navigate to it in the Folders tab and tap on its nam
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Sort books by Language**
 

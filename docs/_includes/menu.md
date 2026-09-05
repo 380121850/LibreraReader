@@ -2,6 +2,7 @@
 
 {% if lang == 'ar' %}{% include ar.md %}{% endif %}
 {% if lang == 'de' %}{% include de.md %}{% endif %}
+{% if lang == 'en' %}{% include index.md %}{% endif %}
 {% if lang == 'es' %}{% include es.md %}{% endif %}
 {% if lang == 'fr' %}{% include fr.md %}{% endif %}
 {% if lang == 'it' %}{% include it.md %}{% endif %}
@@ -12,7 +13,11 @@
 
 <ul class="languagepicker roundborders large">
 	<a href="#"><li>{{ full }}</li></a>
+{% if is_home %}
+{% if full != 'English'%}<a href="en"><li>English</li></a>{% endif %}
+{% else %}
 {% if full != 'English'%}<a href="index"><li>English</li></a>{% endif %}
+{% endif %}
 {% if full != 'Українська'%}<a href="uk"><li>Українська</li></a>{% endif %}
 {% if full != 'Français'%}<a href="fr"><li>Français</li></a>{% endif %}
 {% if full != 'Deutsch'%}<a href="de"><li>Deutsch</li></a>{% endif %}

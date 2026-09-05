@@ -4,7 +4,7 @@ layout: main
 
 # 8.0
 
-Al utilizar esta aplicación, acepta los términos de la [Política de privacidad](/PrivacyPolicy/es)
+Al utilizar esta aplicación, acepta los términos de la [Política de privacidad]({{ site.baseurl }}/PrivacyPolicy/es)
 
 **Mejoras generales**
 

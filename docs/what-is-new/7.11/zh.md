@@ -36,7 +36,7 @@ layout: main
 **RSVP(快速串行视觉演示)阅读/快速阅读**
 
 使用**Librera**进行快速阅读，您可以通过实施RSVP方法将阅读速度提高到每分钟700个单词(WPM)。
-请点击链接以查找有关该主题的更多信息 [速读部分](/manual/Rapid-Serial-Visual-Presentation/zh)
+请点击链接以查找有关该主题的更多信息 [速读部分]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/zh)
 
 * 可以从书本菜单启动RSVP模式(快速阅读)
 * 一键快速读取
@@ -44,7 +44,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **书籍模式下的状态栏位置(顶部或底部)**
 
@@ -66,7 +66,7 @@ layout: main
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **按语言分类书籍**
 

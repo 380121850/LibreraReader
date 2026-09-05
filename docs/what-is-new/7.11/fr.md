@@ -36,7 +36,7 @@ Abonnez-vous au **lecteur Librera** du canal télégramme [https://t.me/LibreraR
 **Lecture RSVP (présentation visuelle en série rapide)/Lecture rapide**
 
 La lecture rapide avec **Librera** vous permet d’accroître votre vitesse de lecture jusqu’à 700 mots par minute (WPM) en implémentant la méthode RSVP.
-Veuillez suivre le lien pour trouver plus d'informations sur le sujet [Section de lecture rapide](/manual/Rapid-Serial-Visual-Presentation/fr)
+Veuillez suivre le lien pour trouver plus d'informations sur le sujet [Section de lecture rapide]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/fr)
 
 * Le mode RSVP peut être lancé à partir du menu du livre (Lecture rapide)
 * Lecture rapide en un seul clic
@@ -44,7 +44,7 @@ Veuillez suivre le lien pour trouver plus d'informations sur le sujet [Section d
 
 ||||
 |-|-|-|
-|![](/manual/Rapid-Serial-Visual-Presentation/1.png)|![](/manual/Rapid-Serial-Visual-Presentation/2.png)|![](/manual/Rapid-Serial-Visual-Presentation/3.png)|
+|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/1.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/2.png)|![]({{ site.baseurl }}/manual/Rapid-Serial-Visual-Presentation/3.png)|
 
 **Position de la barre d'état (haut ou bas) en mode Livre**
 
@@ -66,7 +66,7 @@ Pour ouvrir un dossier sous forme de livre, naviguez jusqu'à celui-ci dans l'on
 
 ||||
 |-|-|-|
-|![](/manual/Open-Folder-With-Images-As-A-Book/1.png)|![](/manual/Open-Folder-With-Images-As-A-Book/2.png)|![](/manual/Open-Folder-With-Images-As-A-Book/3.png)|
+|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/1.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/2.png)|![]({{ site.baseurl }}/manual/Open-Folder-With-Images-As-A-Book/3.png)|
 
 **Trier les livres par langue**
 
