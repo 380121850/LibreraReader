@@ -1,0 +1,99 @@
+[12:54:45] 运行标识: 20260906-125445_L1_ui-device | flavor=google pkg=com.howread.reader level=L1 devices=['48fee174', '3JJ4C18904004595', 'NETNU20617301956']
+[12:54:49] [48fee174] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm64.apk
+[12:54:49] [48fee174][1/8] ▶ FN-08(ui/P0) intent 打开 开始 [timeout=300s retries=1]
+[12:54:50] [NETNU20617301956] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm.apk
+[12:54:50] [NETNU20617301956][1/8] ▶ FN-08(ui/P0) intent 打开 开始 [timeout=300s retries=1]
+[12:54:50] [3JJ4C18904004595] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm64.apk
+[12:54:50] [3JJ4C18904004595][1/8] ▶ FN-08(ui/P0) intent 打开 开始 [timeout=300s retries=1]
+[12:55:12] [48fee174][1/8] ✅ FN-08 intent 打开 结束 23.3s (尝试1次)
+[12:55:12] [48fee174][2/8] ▶ FN-01(ui/P1) 最近列表 开始 [timeout=300s retries=1]
+[12:55:19] [NETNU20617301956][1/8] ✅ FN-08 intent 打开 结束 28.6s (尝试1次)
+[12:55:19] [NETNU20617301956][2/8] ▶ FN-01(ui/P1) 最近列表 开始 [timeout=300s retries=1]
+[12:55:20]   ⏳ 心跳 | FN-08 intent 打开 已运行 30s
+[12:55:27] [3JJ4C18904004595][1/8] ✅ FN-08 intent 打开 结束 36.1s (尝试1次)
+[12:55:27] [3JJ4C18904004595][2/8] ▶ FN-01(ui/P1) 最近列表 开始 [timeout=300s retries=1]
+[12:55:32] [48fee174][2/8] ✅ FN-01 最近列表 结束 20.0s (尝试1次)
+[12:55:32] [48fee174][3/8] ▶ FN-02(ui/P1) 收藏 开始 [timeout=300s retries=1]
+[12:55:49]   ⏳ 心跳 | FN-01 最近列表 已运行 30s
+[12:55:53] [NETNU20617301956][2/8] ✅ FN-01 最近列表 结束 33.9s (尝试1次)
+[12:55:53] [NETNU20617301956][3/8] ▶ FN-02(ui/P1) 收藏 开始 [timeout=300s retries=1]
+[12:55:57]   ⏳ 心跳 | FN-01 最近列表 已运行 30s
+[12:55:57] [3JJ4C18904004595][2/8] ✅ FN-01 最近列表 结束 30.5s (尝试1次)
+[12:55:57] [3JJ4C18904004595][3/8] ▶ FN-02(ui/P1) 收藏 开始 [timeout=300s retries=1]
+[12:56:02]   ⏳ 心跳 | FN-02 收藏 已运行 30s
+[12:56:23]   ⏳ 心跳 | FN-02 收藏 已运行 30s
+[12:56:27]   ⏳ 心跳 | FN-02 收藏 已运行 30s
+[12:56:30] [NETNU20617301956][3/8] ⏭️ FN-02 收藏 结束 37.3s (尝试1次) | 设备书库未收录 big25，Browse 收藏路径不可用（环境限制）
+[12:56:30] [NETNU20617301956][4/8] ▶ FN-03(ui/P0) 书签 开始 [timeout=300s retries=1]
+[12:56:32] [3JJ4C18904004595][3/8] ⏭️ FN-02 收藏 结束 34.6s (尝试1次) | 设备书库未收录 big25，Browse 收藏路径不可用（环境限制）
+[12:56:32] [3JJ4C18904004595][4/8] ▶ FN-03(ui/P0) 书签 开始 [timeout=300s retries=1]
+[12:56:32]   ⏳ 心跳 | FN-02 收藏 已运行 60s
+[12:56:36] [48fee174][3/8] ✅ FN-02 收藏 结束 63.9s (尝试1次)
+[12:56:36] [48fee174][4/8] ▶ FN-03(ui/P0) 书签 开始 [timeout=300s retries=1]
+[12:57:00]   ⏳ 心跳 | FN-03 书签 已运行 30s
+[12:57:02]   ⏳ 心跳 | FN-03 书签 已运行 30s
+[12:57:06]   ⏳ 心跳 | FN-03 书签 已运行 30s
+[12:57:30]   ⏳ 心跳 | FN-03 书签 已运行 60s
+[12:57:32]   ⏳ 心跳 | FN-03 书签 已运行 60s
+[12:57:36]   ⏳ 心跳 | FN-03 书签 已运行 60s
+[12:57:54] [48fee174][4/8] ✅ FN-03 书签 结束 77.5s (尝试1次)
+[12:57:54] [48fee174][5/8] ▶ FN-04(ui/P0) 全文搜索 开始 [timeout=300s retries=1]
+[12:58:00]   ⏳ 心跳 | FN-03 书签 已运行 90s
+[12:58:02]   ⏳ 心跳 | FN-03 书签 已运行 90s
+[12:58:17] [NETNU20617301956][4/8] ✅ FN-03 书签 结束 107.0s (尝试1次)
+[12:58:17] [NETNU20617301956][5/8] ▶ FN-04(ui/P0) 全文搜索 开始 [timeout=300s retries=1]
+[12:58:19] [3JJ4C18904004595][4/8] ✅ FN-03 书签 结束 106.9s (尝试1次)
+[12:58:19] [3JJ4C18904004595][5/8] ▶ FN-04(ui/P0) 全文搜索 开始 [timeout=300s retries=1]
+[12:58:22] [48fee174][5/8] ✅ FN-04 全文搜索 结束 28.5s (尝试1次)
+[12:58:22] [48fee174][6/8] ▶ FN-05(ui/P1) 阅读设置 开始 [timeout=300s retries=1]
+[12:58:46] [48fee174][6/8] ✅ FN-05 阅读设置 结束 23.3s (尝试1次)
+[12:58:46] [48fee174][7/8] ▶ FN-06(ui/P1) 主题切换 开始 [timeout=300s retries=1]
+[12:58:47] [48fee174][7/8] ↻ FN-06 第 1 次失败，自动重试（异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^）
+[12:58:47]   ⏳ 心跳 | FN-04 全文搜索 已运行 30s
+[12:58:49]   ⏳ 心跳 | FN-04 全文搜索 已运行 30s
+[12:58:49] [48fee174][7/8] ❌ FN-06 主题切换 结束 3.8s (尝试2次) | 异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Fil
+[12:58:49] [48fee174][8/8] ▶ FN-07(ui/P2) TTS 朗读 开始 [timeout=300s retries=0]
+[12:58:53] [NETNU20617301956][5/8] ✅ FN-04 全文搜索 结束 36.2s (尝试1次)
+[12:58:53] [NETNU20617301956][6/8] ▶ FN-05(ui/P1) 阅读设置 开始 [timeout=300s retries=1]
+[12:58:55] [3JJ4C18904004595][5/8] ✅ FN-04 全文搜索 结束 36.6s (尝试1次)
+[12:58:55] [3JJ4C18904004595][6/8] ▶ FN-05(ui/P1) 阅读设置 开始 [timeout=300s retries=1]
+[12:59:19]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 30s
+[12:59:23]   ⏳ 心跳 | FN-05 阅读设置 已运行 30s
+[12:59:25]   ⏳ 心跳 | FN-05 阅读设置 已运行 30s
+[12:59:26] [NETNU20617301956][6/8] ✅ FN-05 阅读设置 结束 32.5s (尝试1次)
+[12:59:26] [NETNU20617301956][7/8] ▶ FN-06(ui/P1) 主题切换 开始 [timeout=300s retries=1]
+[12:59:27] [NETNU20617301956][7/8] ↻ FN-06 第 1 次失败，自动重试（异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^）
+[12:59:30] [3JJ4C18904004595][6/8] ✅ FN-05 阅读设置 结束 34.3s (尝试1次)
+[12:59:30] [3JJ4C18904004595][7/8] ▶ FN-06(ui/P1) 主题切换 开始 [timeout=300s retries=1]
+[12:59:31] [NETNU20617301956][7/8] ❌ FN-06 主题切换 结束 4.9s (尝试2次) | 异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Fil
+[12:59:31] [NETNU20617301956][8/8] ▶ FN-07(ui/P2) TTS 朗读 开始 [timeout=300s retries=0]
+[12:59:31] [3JJ4C18904004595][7/8] ↻ FN-06 第 1 次失败，自动重试（异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^）
+[12:59:35] [3JJ4C18904004595][7/8] ❌ FN-06 主题切换 结束 5.0s (尝试2次) | 异常: No module named 'cases.tc_smoke' | er.py", line 466, in target
+    fn(self, case_id, *args, **kwargs)
+    ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Fil
+[12:59:35] [3JJ4C18904004595][8/8] ▶ FN-07(ui/P2) TTS 朗读 开始 [timeout=300s retries=0]
+[12:59:49]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 60s
+[13:00:01]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 30s
+[13:00:05]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 30s
+[13:00:18] [48fee174][8/8] ⏭️ FN-07 TTS 朗读 结束 88.8s (尝试1次) | TTS 入口未在已知位置找到（入口待勘探，见取证 dump）
+[13:00:31]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 60s
+[13:00:35]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 60s
+[13:01:01]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 90s
+[13:01:05]   ⏳ 心跳 | FN-07 TTS 朗读 已运行 90s
+[13:01:06] [NETNU20617301956][8/8] ⏭️ FN-07 TTS 朗读 结束 95.5s (尝试1次) | TTS 入口未在已知位置找到（入口待勘探，见取证 dump）
+[13:01:11] [3JJ4C18904004595][8/8] ⏭️ FN-07 TTS 朗读 结束 96.1s (尝试1次) | TTS 入口未在已知位置找到（入口待勘探，见取证 dump）
+[13:01:11] 报告: Z:\opt\librera\LibreraReader\ci\autotest\results\20260906-125445_L1_ui-device\report.md
+[13:01:11] 结果: 19 PASS / 3 FAIL / 5 SKIP（共 27）

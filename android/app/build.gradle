@@ -363,6 +363,7 @@ dependencies {
 
 /** Testing **/
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.runner)
 
 }

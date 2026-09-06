@@ -5,6 +5,12 @@
 
 ---
 
+## [2026-09-06] 新增四层自动测试体系（ci/autotest）：JVM 单元 / Robolectric 集成 / AVD UI / 真机 UI
+
+**改动**：①新增 `ci/autotest/` 作为工程内自动测试目录——`docs/`（TEST_PLAN 分层矩阵/ARCHITECTURE 架构/ENV_DEPENDENCIES 环境依赖）、`config/`（devices.json 三真机+AVD 档案、cases.yaml 用例注册表含 layer/P0-P2 优先级/单用例超时/重试次数）、`lib/driver.py`（uiautomator2 驱动：进度显示+30s 心跳+单用例强制超时+失败自动重试+crash 守护+截图/dump/logcat 证据留存）、`cases/ui/`（L0 冒烟 SM-01~07、L1 功能回归 FN-01~08、L2 专项 PF-01/PF-03/ST-01）、`results/<时间戳>_<层级>/`（每次运行独立结果目录：report.md+run.log+证据）、`tools/ai_mock.py`（OpenAI 兼容 AI mock 服务 :8770）、`run_all.py`（UI 层入口，按 ABI 自动选包，--avd/--serial/--flavor）、`run_unit.sh`（服务器 JVM 层入口）、`teskbook/`（测试书目：big25.pdf/test.pdf/test.epub 等，新增 alicesadventures.epub）；②新增真实 JVM 测试 `android/app/src/test/java/com/foobnix/autotest/` 6 个类 53 条断言——单元层 MyMathTest/StringUtilsTest/TxtUtilsTest/AppBookmarkTest（LOG 框架依赖 Build.*，以 Robolectric runner 运行）、集成层 AppStatePersistTest（AppState JSON 持久化往返）/BookmarksDataTest（书签增查，走 getAllFiles 的 device.* 目录扫描语义）；③`libs.versions.toml`+`app/build.gradle` 新增 robolectric 4.16 testImplementation；④归档 8 个僵尸/坏断言旧测试（TestDB/TestGFile/TestSync/TestYearFormat/TestPage/TestSVG/ExampleUnitTest/LibreraBuildConfig）至 `ci/autotest/archive/stale_tests/`。
+
+**验证**：服务器 `./gradlew :app:testGoogleDebugUnitTest` BUILD SUCCESSFUL（53 tests, 0 failed）；真机层三台（MI9/P20/KSA）L0 冒烟 24/24 PASS、L1 功能回归 22 PASS/0 FAIL/5 环境性 SKIP、google/fdroid/pro 三 flavor 冒烟各自全绿；ST-01 受控 monkey 5min 零 crash；PF-03 内存无泄漏（开书后 PSS 增长 12%）；框架具备每用例进度/心跳/超时/重试与时间戳结果目录（results/<时间戳>_<层级>/）。已知发现：Debug 包冷启动 3.3s 超阈值（待 release 复测）、KSA/P20 书库首扫不收录 Download（FN-02 SKIP）、TTS 入口未定位（FN-07 SKIP）、VIEW intent 仅冷态生效（warm 态 onNewIntent 被忽略，driver 已固化冷态投递）、MedicineAVD 镜像损坏致 UI-AVD 层暂挂（框架就绪，待 wipe data）。未执行任何 git 命令。
+
 ## [2026-09-06] 官网版本号同步：APK 升级 v1.0.0 后更新站点展示版本
 
 **改动**：随 `android/app/gradle.properties` 升级为 1.0.0（appCodeNumber 7200），同步更新官网展示——①中英首页下载区副标题"当前版本 0.9.0/current version 0.9.0"→1.0.0，Google Play/F-Droid/GitHub Releases 三张下载卡版本号→1.0.0；②中英更新日志页"当前版本 0.9.x/Current version: 0.9.x"→1.0.x。首页更新日志手风琴中"品牌焕新与架构升级（v0.9.0）"为历史条目，保留不动。

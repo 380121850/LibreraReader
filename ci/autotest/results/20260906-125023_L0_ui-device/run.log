@@ -1,0 +1,66 @@
+[12:50:23] 运行标识: 20260906-125023_L0_ui-device | flavor=google pkg=com.howread.reader level=L0 devices=['48fee174', '3JJ4C18904004595', 'NETNU20617301956']
+[12:50:27] [48fee174] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm64.apk
+[12:50:27] [48fee174][1/7] ▶ SM-01(ui/P0) 安装/升级安装 开始 [timeout=300s retries=0]
+[12:50:28] [NETNU20617301956] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm.apk
+[12:50:28] [NETNU20617301956][1/7] ▶ SM-01(ui/P0) 安装/升级安装 开始 [timeout=300s retries=0]
+[12:50:30] [3JJ4C18904004595] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-arm64.apk
+[12:50:30] [3JJ4C18904004595][1/7] ▶ SM-01(ui/P0) 安装/升级安装 开始 [timeout=300s retries=0]
+[12:50:35] [48fee174][1/7] ✅ SM-01 安装/升级安装 结束 7.7s (尝试1次)
+[12:50:36] [48fee174][2/7] ▶ SM-02(ui/P0) 冷启动 开始 [timeout=300s retries=1]
+[12:50:41] [48fee174][2/7] ✅ SM-02 冷启动 结束 5.8s (尝试1次)
+[12:50:41] [48fee174][3/7] ▶ SM-03(ui/P0) Tab 遍历 开始 [timeout=300s retries=1]
+[12:50:43] [NETNU20617301956][1/7] ✅ SM-01 安装/升级安装 结束 14.9s (尝试1次)
+[12:50:46] [NETNU20617301956][2/7] ▶ SM-02(ui/P0) 冷启动 开始 [timeout=300s retries=1]
+[12:50:47] [3JJ4C18904004595][1/7] ✅ SM-01 安装/升级安装 结束 17.5s (尝试1次)
+[12:50:48] [3JJ4C18904004595][2/7] ▶ SM-02(ui/P0) 冷启动 开始 [timeout=300s retries=1]
+[12:50:59] [48fee174][3/7] ✅ SM-03 Tab 遍历 结束 17.4s (尝试1次)
+[12:50:59] [48fee174][4/7] ▶ SM-04(ui/P0) 打开 PDF 翻页 开始 [timeout=300s retries=1]
+[12:50:59] [NETNU20617301956][2/7] ✅ SM-02 冷启动 结束 13.6s (尝试1次)
+[12:50:59] [NETNU20617301956][3/7] ▶ SM-03(ui/P0) Tab 遍历 开始 [timeout=300s retries=1]
+[12:51:02] [3JJ4C18904004595][2/7] ✅ SM-02 冷启动 结束 14.3s (尝试1次)
+[12:51:02] [3JJ4C18904004595][3/7] ▶ SM-03(ui/P0) Tab 遍历 开始 [timeout=300s retries=1]
+[12:51:21] [NETNU20617301956][3/7] ✅ SM-03 Tab 遍历 结束 21.3s (尝试1次)
+[12:51:21] [NETNU20617301956][4/7] ▶ SM-04(ui/P0) 打开 PDF 翻页 开始 [timeout=300s retries=1]
+[12:51:29]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 30s
+[12:51:29] [3JJ4C18904004595][3/7] ✅ SM-03 Tab 遍历 结束 27.0s (尝试1次)
+[12:51:29] [3JJ4C18904004595][4/7] ▶ SM-04(ui/P0) 打开 PDF 翻页 开始 [timeout=300s retries=1]
+[12:51:51]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 30s
+[12:51:59]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 60s
+[12:51:59]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 30s
+[12:52:06] [NETNU20617301956][4/7] ↻ SM-04 第 1 次失败，自动重试（在 Download 中未找到 big25）
+[12:52:12] [3JJ4C18904004595][4/7] ↻ SM-04 第 1 次失败，自动重试（在 Download 中未找到 big25）
+[12:52:21]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 60s
+[12:52:21] [48fee174][4/7] ✅ SM-04 打开 PDF 翻页 结束 82.0s (尝试1次)
+[12:52:21] [48fee174][5/7] ▶ SM-05(ui/P0) 打开 EPUB 翻页 开始 [timeout=300s retries=1]
+[12:52:29]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 60s
+[12:52:51]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 90s
+[12:52:51]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 30s
+[12:52:53] [NETNU20617301956][4/7] ❌ SM-04 打开 PDF 翻页 结束 92.4s (尝试2次) | 在 Download 中未找到 big25
+[12:52:53] [NETNU20617301956][5/7] ▶ SM-05(ui/P0) 打开 EPUB 翻页 开始 [timeout=300s retries=1]
+[12:52:54] [3JJ4C18904004595][4/7] ❌ SM-04 打开 PDF 翻页 结束 85.1s (尝试2次) | 在 Download 中未找到 big25
+[12:52:54] [3JJ4C18904004595][5/7] ▶ SM-05(ui/P0) 打开 EPUB 翻页 开始 [timeout=300s retries=1]
+[12:53:21]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 60s
+[12:53:23]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 30s
+[12:53:24]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 30s
+[12:53:36] [3JJ4C18904004595][5/7] ↻ SM-05 第 1 次失败，自动重试（在 Download 中未找到 alicesadventures）
+[12:53:38] [NETNU20617301956][5/7] ↻ SM-05 第 1 次失败，自动重试（在 Download 中未找到 alicesadventures）
+[12:53:41] [48fee174][5/7] ✅ SM-05 打开 EPUB 翻页 结束 80.5s (尝试1次)
+[12:53:41] [48fee174][6/7] ▶ SM-06(ui/P0) 退出重进持久性 开始 [timeout=240s retries=1]
+[12:53:47] [48fee174][6/7] ✅ SM-06 退出重进持久性 结束 5.5s (尝试1次)
+[12:53:47] [48fee174][7/7] ▶ SM-07(ui/P0) 全程无 crash 开始 [timeout=120s retries=0]
+[12:53:50] [48fee174][7/7] ✅ SM-07 全程无 crash 结束 3.5s (尝试1次)
+[12:53:53]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 60s
+[12:53:54]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 60s
+[12:54:20] [3JJ4C18904004595][5/7] ❌ SM-05 打开 EPUB 翻页 结束 85.5s (尝试2次) | 在 Download 中未找到 alicesadventures
+[12:54:20] [3JJ4C18904004595][6/7] ▶ SM-06(ui/P0) 退出重进持久性 开始 [timeout=240s retries=1]
+[12:54:23]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 90s
+[12:54:25] [NETNU20617301956][5/7] ❌ SM-05 打开 EPUB 翻页 结束 92.1s (尝试2次) | 在 Download 中未找到 alicesadventures
+[12:54:25] [NETNU20617301956][6/7] ▶ SM-06(ui/P0) 退出重进持久性 开始 [timeout=240s retries=1]
+[12:54:34] [3JJ4C18904004595][6/7] ✅ SM-06 退出重进持久性 结束 13.7s (尝试1次)
+[12:54:34] [3JJ4C18904004595][7/7] ▶ SM-07(ui/P0) 全程无 crash 开始 [timeout=120s retries=0]
+[12:54:39] [NETNU20617301956][6/7] ✅ SM-06 退出重进持久性 结束 13.7s (尝试1次)
+[12:54:39] [NETNU20617301956][7/7] ▶ SM-07(ui/P0) 全程无 crash 开始 [timeout=120s retries=0]
+[12:54:44] [3JJ4C18904004595][7/7] ✅ SM-07 全程无 crash 结束 10.1s (尝试1次)
+[12:54:45] [NETNU20617301956][7/7] ✅ SM-07 全程无 crash 结束 5.8s (尝试1次)
+[12:54:45] 报告: Z:\opt\librera\LibreraReader\ci\autotest\results\20260906-125023_L0_ui-device\report.md
+[12:54:45] 结果: 20 PASS / 4 FAIL / 0 SKIP（共 24）

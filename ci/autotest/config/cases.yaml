@@ -1,0 +1,57 @@
+# HowRead 自动测试用例参数（层级/优先级/超时/重试 全局在此配置）
+package: com.howread.reader
+package_pro: com.howread.reader.pro
+main_activity: com.foobnix.ui2.MainTabs2
+
+launcher_timeout_s: 10
+ui_timeout_s: 8
+step_screenshot: true
+heartbeat_s: 30          # >30s 的操作打印心跳行
+case_timeout_s: 300      # 单用例默认超时
+case_retries: 1          # 默认失败重试次数
+
+# 冷启动耗时阈值（ms），按设备型号覆盖
+cold_start_threshold_ms:
+  default: 2000
+  "KSA-AL10": 3000
+
+stability_monkey:
+  duration_s: 300        # 试跑 5 分钟；正式门禁夜跑改 1800
+  throttle_ms: 300
+  seed: 20260906
+
+webdav:
+  server_py: Z:/opt/librera/test_webdav.py
+  port: 8765
+  user: howread
+  password: howread123
+
+ai_mock:
+  script: tools/ai_mock.py
+  port: 8770
+  model: howread-test-model
+  # 测试时把应用 AI 配置指向 http://<PC-IP>:8770/v1 即可，无需真实 API key
+
+# ===== 用例注册：layer（层级）+ priority（P0-P2）+ 超时/重试覆盖 =====
+case_meta:
+  # --- L0 冒烟（UI 层：真机 + AVD）---
+  SM-01: { layer: ui, priority: P0, timeout: 300, retries: 0 }
+  SM-02: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  SM-03: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  SM-04: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  SM-05: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  SM-06: { layer: ui, priority: P0, timeout: 240, retries: 1 }
+  SM-07: { layer: ui, priority: P0, timeout: 120, retries: 0 }
+  # --- L1 功能回归 ---
+  FN-01: { layer: ui, priority: P1, timeout: 300, retries: 1 }
+  FN-02: { layer: ui, priority: P1, timeout: 300, retries: 1 }
+  FN-03: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  FN-04: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  FN-05: { layer: ui, priority: P1, timeout: 300, retries: 1 }
+  FN-06: { layer: ui, priority: P1, timeout: 300, retries: 1 }
+  FN-07: { layer: ui, priority: P2, timeout: 300, retries: 0 }
+  FN-08: { layer: ui, priority: P0, timeout: 300, retries: 1 }
+  # --- L2 专项 ---
+  PF-01: { layer: ui, priority: P1, timeout: 300, retries: 0 }
+  PF-03: { layer: ui, priority: P1, timeout: 300, retries: 0 }
+  ST-01: { layer: ui, priority: P0, timeout: 1900, retries: 0 }

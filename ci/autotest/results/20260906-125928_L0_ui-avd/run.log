@@ -1,0 +1,34 @@
+[12:59:28] 运行标识: 20260906-125928_L0_ui-avd | flavor=google pkg=com.howread.reader level=L0 devices=['emulator-5554']
+[12:59:32] [emulator-5554] APK: Z:\opt\librera\LibreraReader\android\app\build\outputs\apk\google\debug\HowRead-1.0.0-x86_64.apk
+[12:59:32] [emulator-5554][1/7] ▶ SM-01(ui/P0) 安装/升级安装 开始 [timeout=300s retries=0]
+[12:59:34] [emulator-5554][1/7] ✅ SM-01 安装/升级安装 结束 1.7s (尝试1次)
+[12:59:34] [emulator-5554][2/7] ▶ SM-02(ui/P0) 冷启动 开始 [timeout=300s retries=1]
+[12:59:51] [emulator-5554][2/7] ↻ SM-02 第 1 次失败，自动重试（步骤 cold_start 异常: 主界面关键元素 10s 未出现（启动 5.3s））
+[13:00:04]   ⏳ 心跳 | SM-02 冷启动 已运行 30s
+[13:00:10] [emulator-5554][2/7] ❌ SM-02 冷启动 结束 36.2s (尝试2次) | 步骤 cold_start 异常: 主界面关键元素 10s 未出现（启动 5.3s）
+[13:00:10] [emulator-5554][3/7] ▶ SM-03(ui/P0) Tab 遍历 开始 [timeout=300s retries=1]
+[13:00:40]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 30s
+[13:01:10]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 60s
+[13:01:40]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 90s
+[13:01:58] [emulator-5554][3/7] ↻ SM-03 第 1 次失败，自动重试（步骤 traverse 异常: Tab 不可达: ['首页', '书库', '我的文件', '偏好']）
+[13:02:10]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 120s
+[13:02:40]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 150s
+[13:03:10]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 180s
+[13:03:40]   ⏳ 心跳 | SM-03 Tab 遍历 已运行 210s
+[13:03:47] [emulator-5554][3/7] ❌ SM-03 Tab 遍历 结束 216.3s (尝试2次) | 步骤 traverse 异常: Tab 不可达: ['首页', '书库', '我的文件', '偏好']
+[13:03:47] [emulator-5554][4/7] ▶ SM-04(ui/P0) 打开 PDF 翻页 开始 [timeout=300s retries=1]
+[13:04:05] [emulator-5554][4/7] ↻ SM-04 第 1 次失败，自动重试（主界面 10s 内未就绪）
+[13:04:17]   ⏳ 心跳 | SM-04 打开 PDF 翻页 已运行 30s
+[13:04:26] [emulator-5554][4/7] ❌ SM-04 打开 PDF 翻页 结束 39.1s (尝试2次) | 主界面 10s 内未就绪
+[13:04:26] [emulator-5554][5/7] ▶ SM-05(ui/P0) 打开 EPUB 翻页 开始 [timeout=300s retries=1]
+[13:04:44] [emulator-5554][5/7] ↻ SM-05 第 1 次失败，自动重试（主界面 10s 内未就绪）
+[13:04:56]   ⏳ 心跳 | SM-05 打开 EPUB 翻页 已运行 30s
+[13:05:06] [emulator-5554][5/7] ❌ SM-05 打开 EPUB 翻页 结束 39.8s (尝试2次) | 主界面 10s 内未就绪
+[13:05:06] [emulator-5554][6/7] ▶ SM-06(ui/P0) 退出重进持久性 开始 [timeout=240s retries=1]
+[13:05:28] [emulator-5554][6/7] ↻ SM-06 第 1 次失败，自动重试（步骤 restart 异常: 重启 15s 后首页未显示最近阅读/已读书目）
+[13:05:36]   ⏳ 心跳 | SM-06 退出重进持久性 已运行 30s
+[13:05:54] [emulator-5554][6/7] ❌ SM-06 退出重进持久性 结束 48.2s (尝试2次) | 步骤 restart 异常: 重启 15s 后首页未显示最近阅读/已读书目
+[13:05:54] [emulator-5554][7/7] ▶ SM-07(ui/P0) 全程无 crash 开始 [timeout=120s retries=0]
+[13:05:54] [emulator-5554][7/7] ✅ SM-07 全程无 crash 结束 0.8s (尝试1次)
+[13:05:54] 报告: Z:\opt\librera\LibreraReader\ci\autotest\results\20260906-125928_L0_ui-avd\report.md
+[13:05:54] 结果: 3 PASS / 5 FAIL / 0 SKIP（共 8）
