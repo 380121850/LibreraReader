@@ -51,6 +51,15 @@
 | test.pdf / test.epub / demo.mobi 等 | `ci/autotest/teskbook/` | 多格式备用样本 |
 | 设备侧路径 | 推送到各机 `/sdcard/Download/`（书库扫描根） | run_all 自动推送 |
 
+**⚠️ teskbook/ 不入库**：测试书目均为本地文件，已加入 `ci/autotest/.gitignore`（连同 `results/`、`__pycache__` 一起被忽略），**禁止提交到代码仓**。新环境部署时需先按下列来源放置书目，否则 UI 层用例（SM-04/05、FN 系列、PF-03）会因找不到文件而失败/SKIP：
+
+| 文件 | 来源/再获取方式 |
+|---|---|
+| big25.pdf / .epub / .fb2 / .txt（四格式 ~100MB 压力书） | 由生成脚本 `Z:\opt\librera\bench\genbooks.py` 现场生成（`python genbooks.py`，在输出目录运行）；该脚本在 bench 目录保留，不入库 |
+| alicesadventures.epub / test.epub | Project Gutenberg《Alice's Adventures in Wonderland》EPUB（改名为 alicesadventures.epub） |
+| test.pdf | 工程内 `harmony/entry/src/main/resources/rawfile/test.pdf` 的副本（首页预览用书） |
+| demo.cbz / demo.tiff / demo.html / demo.mobi / demo.txt / demo.xps / tts.html | 手工生成的小样本（几 KB~几百 KB），丢失时可按格式手造最小文件替代 |
+
 ## 6. WebDAV 测试服务器（同步用例 SY-01）
 
 | 项 | 值 |

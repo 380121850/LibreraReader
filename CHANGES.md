@@ -5,6 +5,12 @@
 
 ---
 
+## [2026-09-06] 清理旧测试目录 + 隔离测试过程文件与测试书目（不入代码仓）
+
+**改动**：①删除旧测试目录 `Z:\opt\librera\autotest`（约 458MB，其中 99% 为 artifacts/ 历史运行截图证据；其源码 driver/cases/run_all 均已复制并演进到 `ci/autotest/`，文档由 `ci/autotest/docs/` 取代，全仓无任何代码引用旧路径，经确认后整体删除）；②新增 `ci/autotest/.gitignore`，将测试过程产物与本地测试书目挡在代码仓外：`teskbook/`（约 97MB 测试书，big25 四格式 ~100MB 压力书等）、`results/`（约 29MB 每次运行的截图/日志/报告）、`__pycache__/`、`*.pyc`——`ci/` 为新增目录且从未提交，ignore 即生效；③`ci/autotest/docs/ENV_DEPENDENCIES.md` 第 5 节补充"teskbook/ 不入库"说明及各测试书目的来源/再获取方式（big25 系列由 `bench/genbooks.py` 现场生成、Alice EPUB 来自 Project Gutenberg、小样本手造），新环境部署先放书目再跑 UI 层用例。
+
+**验证**：`Z:\opt\librera\autotest` 已不存在；.gitignore 条目覆盖 teskbook/results/__pycache__ 全部路径；ENV_DEPENDENCIES 中 big25 来源经核实为 bench/genbooks.py 生成器（bench 下无现成 big25 拷贝）。未执行任何 git 命令，提交由用户完成。
+
 ## [2026-09-06] 新增四层自动测试体系（ci/autotest）：JVM 单元 / Robolectric 集成 / AVD UI / 真机 UI
 
 **改动**：①新增 `ci/autotest/` 作为工程内自动测试目录——`docs/`（TEST_PLAN 分层矩阵/ARCHITECTURE 架构/ENV_DEPENDENCIES 环境依赖）、`config/`（devices.json 三真机+AVD 档案、cases.yaml 用例注册表含 layer/P0-P2 优先级/单用例超时/重试次数）、`lib/driver.py`（uiautomator2 驱动：进度显示+30s 心跳+单用例强制超时+失败自动重试+crash 守护+截图/dump/logcat 证据留存）、`cases/ui/`（L0 冒烟 SM-01~07、L1 功能回归 FN-01~08、L2 专项 PF-01/PF-03/ST-01）、`results/<时间戳>_<层级>/`（每次运行独立结果目录：report.md+run.log+证据）、`tools/ai_mock.py`（OpenAI 兼容 AI mock 服务 :8770）、`run_all.py`（UI 层入口，按 ABI 自动选包，--avd/--serial/--flavor）、`run_unit.sh`（服务器 JVM 层入口）、`teskbook/`（测试书目：big25.pdf/test.pdf/test.epub 等，新增 alicesadventures.epub）；②新增真实 JVM 测试 `android/app/src/test/java/com/foobnix/autotest/` 6 个类 53 条断言——单元层 MyMathTest/StringUtilsTest/TxtUtilsTest/AppBookmarkTest（LOG 框架依赖 Build.*，以 Robolectric runner 运行）、集成层 AppStatePersistTest（AppState JSON 持久化往返）/BookmarksDataTest（书签增查，走 getAllFiles 的 device.* 目录扫描语义）；③`libs.versions.toml`+`app/build.gradle` 新增 robolectric 4.16 testImplementation；④归档 8 个僵尸/坏断言旧测试（TestDB/TestGFile/TestSync/TestYearFormat/TestPage/TestSVG/ExampleUnitTest/LibreraBuildConfig）至 `ci/autotest/archive/stale_tests/`。

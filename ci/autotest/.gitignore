@@ -1,0 +1,5 @@
+# 测试过程产物与本地测试书目,一律不入库
+teskbook/
+results/
+__pycache__/
+*.pyc
