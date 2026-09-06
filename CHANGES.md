@@ -5,6 +5,12 @@
 
 ---
 
+## [2026-09-06] 冒烟回归 24/24 全过 + 修复 run_all.py 离线设备导致整轮崩溃的问题
+
+**改动**:`ci/autotest/run_all.py` 的 worker 增加设备连接异常捕获——此前若 devices.json 中的设备不在线(u2.connect 抛 ConnectError),整个运行在收尾阶段崩溃且 report.md 不生成;现改为该设备用例记为 SKIP("device not online"),其余设备照常执行并正常产出报告。
+
+**验证**:三台真机(MI9/P20/KSA)L0 冒烟全集 24/24 PASS、0 FAIL、0 SKIP(结果目录 `ci/autotest/results/20260906-185109_L0_ui-device`);复现场景(仅一台在线)下首跑虽崩但 7/7 用例全过,修复后报告正常生成。未执行任何 git 命令。
+
 ## [2026-09-06] 清理旧测试目录 + 隔离测试过程文件与测试书目（不入代码仓）
 
 **改动**：①删除旧测试目录 `Z:\opt\librera\autotest`（约 458MB，其中 99% 为 artifacts/ 历史运行截图证据；其源码 driver/cases/run_all 均已复制并演进到 `ci/autotest/`，文档由 `ci/autotest/docs/` 取代，全仓无任何代码引用旧路径，经确认后整体删除）；②新增 `ci/autotest/.gitignore`，将测试过程产物与本地测试书目挡在代码仓外：`teskbook/`（约 97MB 测试书，big25 四格式 ~100MB 压力书等）、`results/`（约 29MB 每次运行的截图/日志/报告）、`__pycache__/`、`*.pyc`——`ci/` 为新增目录且从未提交，ignore 即生效；③`ci/autotest/docs/ENV_DEPENDENCIES.md` 第 5 节补充"teskbook/ 不入库"说明及各测试书目的来源/再获取方式（big25 系列由 `bench/genbooks.py` 现场生成、Alice EPUB 来自 Project Gutenberg、小样本手造），新环境部署先放书目再跑 UI 层用例。

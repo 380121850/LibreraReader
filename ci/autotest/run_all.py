@@ -191,7 +191,14 @@ def main():
     fixtures = devices_cfg["fixtures"]
 
     def worker(meta):
-        dev = Device(meta["serial"], meta, args.flavor, pkg, cases_cfg, run_dir=run_dir)
+        try:
+            dev = Device(meta["serial"], meta, args.flavor, pkg, cases_cfg, run_dir=run_dir)
+        except Exception as e:
+            log("[%s] 设备不可用,本机用例记为 SKIP: %s" % (meta["serial"], e))
+            return dict(serial=meta["serial"], meta=meta, flavor=args.flavor, version="offline",
+                        results=[dict(case_id="ENV", name="设备连接", status="SKIP", ms=0, attempts=1,
+                                      layer="env", priority="P0", note="device not online: %s" % e,
+                                      evidence="")])
         dev.wake_unlock()
         abilist = dev.shell("getprop ro.product.cpu.abilist").strip()
         apk = args.apk or find_apk(args.flavor, abilist)
