@@ -27,6 +27,17 @@ public interface CodecDocument {
 
     CodecPage getPage(int pageNuber);
 
+    /**
+     * Returns a page owned solely by the caller: it comes straight from the
+     * codec (never served from the shared page cache), so the caller MUST
+     * {@link CodecPage#recycle()} it when done and other threads can never
+     * observe it being recycled underneath them. getPage() by contrast may
+     * return a shared, cache-backed page that must never be recycled.
+     */
+    default CodecPage getOwnedPage(int pageNuber) {
+        return getPage(pageNuber);
+    }
+
     CodecPage getPageInner(int pageNuber);
 
     CodecPageInfo getUnifiedPageInfo();

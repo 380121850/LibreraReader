@@ -5,7 +5,26 @@
 
 ---
 
+## [2026-09-06] P1 缺陷修复五项：页面缓存并发竞态、OOM 清理 NPE、warm 态打开文件失效、TTS 重复朗读与暂停后翻页、TTS 空白页假死
+
+**背景**：Android 主干代码三轮走查（品牌迁移/阅读核心/周边功能）确认的 P1 级缺陷，本轮只修 P1（P0 迁移类与 P2 JNI 泄漏类另行处理）。
+
+**① 页面缓存并发竞态（错页渲染 / 渲染中页面被回收 → #error 占位页）**：`AbstractCodecDocument.getPage` 的单槽缓存（pageNuberCache/pageCache）原为无同步读写，而取页调用方分布在解码线程、搜索线程、TTS 线程与 Glide 线程池——并发换页可返回错页；更严重的是 `TTSService.playPage`、`DecodeServiceBase.searchText/processTextForPages`、`HorizontalModeController.getTextForPage/getPageText` 等"取页后即 recycle"的调用方回收的是**共享缓存页**，TTS 朗读回收页面时解码线程可能正持有同一对象渲染 → `render()` 抛 "page has been recycled" → 用户看到 #error 页。修复：①`getPage` 加 `synchronized`；②`CodecDocument` 接口新增 `getOwnedPage(int)`（AbstractCodecDocument 实现为直接 `getPageInner`，返回调用方独享的一次性页对象，MuPdfPage.createPage 自带 TempHolder.lock 线程安全），上述 5 处"取页后 recycle"的调用点全部改用 `getOwnedPage`，回收不再波及共享实例；③`HorizontalModeController.recyclePage` 与 `VerticalModeController.recyclePage` 原实现"按页号重新取共享缓存页再回收"本身就是危险操作（会回收其它线程正在使用的页），改为显式 no-op（文本提取路径已各自回收独享页，缓存内存由单槽 + CodecPageHolder LRU 约束）；`HorizontalModeController.getPageText` 改为独享页取文本后自回收（原依赖 recyclePage 二次回收共享页）。
+
+**② DecodeServiceBase OOM 清理并发 NPE**：`performDecode` 的 OutOfMemoryError 分支向页面 map `put(null)` 后 `clear()`，全程不持锁，而 UI 线程可经 `synchronized getPageHolder` 并发迭代该 map（value 未判空）→ OOM 处理升级为崩溃。修复：清理段包进 `synchronized(this)` 与 getPageHolder 互斥；`getPageHolder` 迭代对 null value 跳过（防御）。
+
+**③ OpenerActivity warm 态"用 HowRead 打开"失效**：manifest 为 `singleTask` 但未重写 `onNewIntent`——应用存活时（OpenerActivity 实例 finish 尚未销毁/复用实例）从文件管理器再次点书，intent 走 onNewIntent 默认空实现被静默忽略（自动测试 FN 已固化为"仅冷态生效"）。修复：onCreate 打开逻辑抽为 `handleIntent()`，重写 `onNewIntent` → `setIntent(intent)` + `handleIntent()`，冷/热两态共用同一处理。
+
+**④ TTSEngine 新建引擎时整页朗读两遍 / 跳两页**：`speek()` 在 `ttsEngine == null`（stopDestroy 后首次播放、进程重启恢复等）时先创建引擎并**同步继续入队**当前页文本，随后 `onInit(SUCCESS)` 又递归 `speek(text)` 再入队一次（TextToSpeech 连接建立前的请求会排队执行）→ 整页读两遍；分页朗读分支的页结束信号也触发两次 → 连跳两页。修复：`speek` 捕获 `engineWasNull`，新建引擎路径设置好 pitch/rate 后直接返回（不入队），首次朗读由 onInit 成功回调驱动（synchronized 保证在外层返回后执行，只入队一次）；匿名 OnInitListener 补 ERROR 分支 Toast（与默认 listener 行为一致）。
+
+**⑤ TTSService 两处状态机缺陷**：①连续 3 个空白页（扫描版 PDF/空白章节）后原逻辑直接 return——不停止服务、不释放 wakeLock、状态仍显示"播放中"假死至 wakeLock 超时；现该分支调用 `stopMediaSesstionAndReleaweWakeLock()` + `TTSNotification.showLast()` 干净收尾。②暂停竞态：`TTS_PAUSE` 走 `ttsEngine.stop()` 清队列，但 stop 前已派发的 `onDone(UTTERANCE_ID_DONE)` 回调仍会执行 `playPage(下一页)` → 按暂停后又自动翻页续读。修复：TTSService 新增代际令牌 `playPageGen`（volatile int）——每次 `playPage` 入口与每次 `stopMediaSesstionAndReleaweWakeLock`（暂停/停止/销毁）递增，新旧两套 UtteranceProgressListener 的 `onDone/onError/onUtteranceCompleted` 回调入口校验令牌不匹配即丢弃，暂停后仍在途的旧回调不再误触发翻页；正常翻页链 onDone→playPage 递增令牌后，同队列残留的重复回调亦被自然抑制。
+
+**验证**：Ubuntu 服务器 `assembleGoogleDebug` / `assembleFdroidDebug` / `assembleProDebug` 三渠道 BUILD SUCCESSFUL（fdroid/pro 编译确认 noAds flavor 无回归）；MI9（48fee174，google arm64）安装冒烟——应用启动无崩溃、冷态 VIEW 打开 PDF 正常、**warm 态**（HOME 后应用存活）VIEW 打开 EPUB 成功切书（修复前被忽略）、EPUB 封面渲染清晰、连续 3 次快速翻页 0 FATAL。TTS 重复朗读/暂停续读与扫描版空白页场景建议人工试听复核。未执行任何 git 命令。
+
+---
+
 ## [2026-09-06] 冒烟回归 24/24 全过 + 修复 run_all.py 离线设备导致整轮崩溃的问题
+
 
 **改动**:`ci/autotest/run_all.py` 的 worker 增加设备连接异常捕获——此前若 devices.json 中的设备不在线(u2.connect 抛 ConnectError),整个运行在收尾阶段崩溃且 report.md 不生成;现改为该设备用例记为 SKIP("device not online"),其余设备照常执行并正常产出报告。
 

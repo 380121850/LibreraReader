@@ -254,8 +254,11 @@ public class DecodeServiceBase implements DecodeService {
                             return;
                         }
                         if (page.texts == null) {
+                            // owned page: recycled right after the text is
+                            // taken, so it must not be the shared cache
+                            // instance other threads may still be rendering
                             final CodecPage page2 = codecDocument == null
-                                    ? null : codecDocument.getPage(page.index.docIndex);
+                                    ? null : codecDocument.getOwnedPage(page.index.docIndex);
                             if (page2 != null) {
                                 page.texts = page2.getText();
                                 // the caller is already a background thread:
@@ -381,10 +384,14 @@ public class DecodeServiceBase implements DecodeService {
             // vuPage.recycle();
 
         } catch (final OutOfMemoryError ex) {
-            for (int i = 0; i <= CoreSettings.getInstance().pagesInMemory; i++) {
-                getPages().put(Integer.MAX_VALUE - i, null);
+            // must hold the same monitor as getPageHolder: it iterates this
+            // map concurrently and would NPE on a null entry mid-clear
+            synchronized (this) {
+                for (int i = 0; i <= CoreSettings.getInstance().pagesInMemory; i++) {
+                    getPages().put(Integer.MAX_VALUE - i, null);
+                }
+                getPages().clear();
             }
-            getPages().clear();
             if (vuPage != null) {
                 vuPage.recycle();
             }
@@ -486,7 +493,7 @@ public class DecodeServiceBase implements DecodeService {
             final Map.Entry<Integer, CodecPageHolder> entry = i.next();
             final int index = entry.getKey();
             final CodecPageHolder ref = entry.getValue();
-            if (ref.isInvalid(-1)) {
+            if (ref == null || ref.isInvalid(-1)) {
                 i.remove();
             }
         }
@@ -587,9 +594,14 @@ public class DecodeServiceBase implements DecodeService {
                 return;
             }
             if (page.texts == null) {
-                CodecPage page2 = codecDocument.getPage(page.index.docIndex);
-                page.texts = page2.getText();
-                page2.recycle();
+                // owned page: recycled right after the text is taken, so it
+                // must not be the shared cache instance other threads may
+                // still be rendering
+                CodecPage page2 = codecDocument.getOwnedPage(page.index.docIndex);
+                if (page2 != null) {
+                    page.texts = page2.getText();
+                    page2.recycle();
+                }
             }
         }
     }

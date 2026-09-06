@@ -3,6 +3,7 @@ package com.foobnix;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -76,7 +77,22 @@ public class OpenerActivity extends Activity {
 //            return;
 //        }
 
+        handleIntent();
+    }
 
+    /**
+     * singleTask reuse: a VIEW intent delivered while this instance is still
+     * alive (finish is pending in onPause/onStop) arrives here, not in
+     * onCreate — without this the warm-state open was silently ignored.
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent();
+    }
+
+    private void handleIntent() {
         if (getIntent() == null) {
             Toast.makeText(this, R.string.msg_unexpected_error, Toast.LENGTH_SHORT).show();
             finish();

@@ -568,6 +568,8 @@ import java.util.List;
     }
 
     private void stopMediaSesstionAndReleaweWakeLock() {
+        // invalidate in-flight utterance callbacks (see playPageGen)
+        playPageGen++;
         TTSEngine.get()
                  .stop(mMediaSessionCompat);
         releaseWakeLock();
@@ -605,8 +607,18 @@ import java.util.List;
         }
     }
 
+    /**
+     * Generation token: every playPage() and every full stop (pause, stop
+     * action, destroy) bumps it. Utterance callbacks capture the value at
+     * registration time and drop themselves when it moved on — a pause
+     * flushes the TTS queue but already-dispatched onDone calls must not
+     * resume playback / turn the page.
+     */
+    private volatile int playPageGen;
+
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
     private void playPage(String preText, int pageNumber, String anchor) {
+        final int gen = ++playPageGen;
         //releaseWakeLock();
         acquireWakeLock();
         mMediaSessionCompat.setActive(true);
@@ -646,7 +658,9 @@ import java.util.List;
                 return;
             }
 
-            CodecPage page = dc.getPage(pageNumber);
+            // owned page: this service recycles it below, so it must not be
+            // the shared cache instance other threads may still be rendering
+            CodecPage page = dc.getOwnedPage(pageNumber);
             if(page==null){
                 EventBus.getDefault()
                         .post(new TtsStatus());
@@ -674,6 +688,12 @@ import java.util.List;
                 emptyPageCount++;
                 if (emptyPageCount < 3) {
                     playPage("", AppSP.get().lastBookPage + 1, null);
+                } else {
+                    // three blank pages in a row (scanned PDF / blank
+                    // chapter): stop cleanly instead of hanging in the
+                    // "playing" state with the wake lock held
+                    stopMediaSesstionAndReleaweWakeLock();
+                    TTSNotification.showLast();
                 }
                 return;
             }
@@ -707,6 +727,10 @@ import java.util.List;
 
                              @Override public void onError(String utteranceId) {
                                  LOG.d(TAG, "onUtteranceCompleted onError", utteranceId);
+                                 if (gen != playPageGen) {
+                                     LOG.d(TAG, "stale TTS callback dropped", utteranceId);
+                                     return;
+                                 }
                                  if (!utteranceId.equals(TTSEngine.UTTERANCE_ID_DONE)) {
                                      return;
                                  }
@@ -718,6 +742,10 @@ import java.util.List;
                              @Override public void onDone(String utteranceId) {
 
                                  LOG.d(TAG, "onUtteranceCompleted", utteranceId);
+                                 if (gen != playPageGen) {
+                                     LOG.d(TAG, "stale TTS callback dropped", utteranceId);
+                                     return;
+                                 }
                                  if (utteranceId.startsWith(TTSEngine.STOP_SIGNAL)) {
                                      stopMediaSesstionAndReleaweWakeLock();
 
@@ -755,6 +783,10 @@ import java.util.List;
                          .getTTS()
                          .setOnUtteranceCompletedListener(new OnUtteranceCompletedListener() {
                              @Override public void onUtteranceCompleted(String utteranceId) {
+                                 if (gen != playPageGen) {
+                                     LOG.d(TAG, "stale TTS callback dropped", utteranceId);
+                                     return;
+                                 }
                                  if (utteranceId.startsWith(TTSEngine.STOP_SIGNAL)) {
                                      stopMediaSesstionAndReleaweWakeLock();
 

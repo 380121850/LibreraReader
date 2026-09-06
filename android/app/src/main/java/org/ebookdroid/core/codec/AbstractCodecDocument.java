@@ -30,7 +30,7 @@ public abstract class AbstractCodecDocument implements CodecDocument {
     CodecPage pageCache;
     int pageNuberCache = -1;
 
-    @Override public CodecPage getPage(int pageNuber) {
+    @Override public synchronized CodecPage getPage(int pageNuber) {
         if (pageNuber == pageNuberCache) {
             LOG.d("getPage-cache", pageNuber);
             if (pageCache != null && !pageCache.isRecycled()) {
@@ -41,6 +41,16 @@ public abstract class AbstractCodecDocument implements CodecDocument {
         pageNuberCache = pageNuber;
         pageCache = getPageInner(pageNuber);
         return pageCache;
+    }
+
+    /**
+     * Callers that recycle the page they get must use this: it bypasses the
+     * shared single-slot cache and returns a fresh, caller-owned page, so
+     * recycling it can never pull the handle out from under another thread
+     * still holding the cached instance.
+     */
+    @Override public final CodecPage getOwnedPage(int pageNuber) {
+        return getPageInner(pageNuber);
     }
 
     @Override protected final void finalize() throws Throwable {

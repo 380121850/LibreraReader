@@ -305,9 +305,12 @@ public abstract class HorizontalModeController extends DocumentController {
     public TextWord[][] getPageText(int number) {
         LOG.d("Get page text for page", number);
         try {
-            CodecPage page = codeDocument.getPage(number);
-            if (!page.isRecycled()) {
+            // owned page: recycled here, so it must not be the shared cache
+            // instance other threads may still be rendering
+            CodecPage page = codeDocument.getOwnedPage(number);
+            if (page != null && !page.isRecycled()) {
                 TextWord[][] text = page.getText();
+                page.recycle();
                 return text;
             }
         } catch (Exception e) {
@@ -336,8 +339,10 @@ public abstract class HorizontalModeController extends DocumentController {
 
     @Override public synchronized String getTextForPage(int page) {
         try {
-            CodecPage codecPage = codeDocument.getPage(page);
-            if (!codecPage.isRecycled()) {
+            // owned page: recycled below, so it must not be the shared cache
+            // instance other threads may still be rendering
+            CodecPage codecPage = codeDocument.getOwnedPage(page);
+            if (codecPage != null && !codecPage.isRecycled()) {
                 String pageHTML = codecPage.getPageHTML();
                 codecPage.recycle();
                 pageHTML = TxtUtils.replaceHTMLforTTS(pageHTML);
@@ -629,15 +634,11 @@ public abstract class HorizontalModeController extends DocumentController {
     }
 
     @Override public void recyclePage(int number) {
-        if (codeDocument == null) {
-            return;
-        }
-        try {
-            CodecPage page = codeDocument.getPage(number);
-            page.recycle();
-        } catch (Exception e) {
-            LOG.e(e);
-        }
+        // Deliberately a no-op: fetching a page by number just to recycle it
+        // would either free the SHARED cache instance out from under other
+        // threads (crash) or burn a create/free round trip. Text-extraction
+        // paths now recycle their own owned pages (see getOwnedPage), and the
+        // page cache is bounded by the slot + CodecPageHolder LRU.
     }
 
     @Override public void doSearch(final String text, final com.foobnix.android.utils.ResultResponse<Integer> result,

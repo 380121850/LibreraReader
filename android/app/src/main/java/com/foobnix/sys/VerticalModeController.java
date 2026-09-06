@@ -84,15 +84,12 @@ public class VerticalModeController extends DocumentController {
 
     @Override
     public void recyclePage(int pageNumber) {
-        if (ctr == null) {
-            return;
-        }
-        try {
-            CodecPage page = ctr.getDecodeService().getCodecDocument().getPage(pageNumber);
-            page.recycle();
-        } catch (Exception e) {
-            LOG.e(e);
-        }
+        // Deliberately a no-op: fetching a page by number just to recycle it
+        // would either free the SHARED cache instance out from under other
+        // threads (crash) or burn a create/free round trip. Text-extraction
+        // paths now recycle their own owned pages (see CodecDocument
+        // .getOwnedPage), and the page cache is bounded by the slot +
+        // CodecPageHolder LRU.
     }
 
     @Override

@@ -245,7 +245,8 @@ public class TTSEngine {
         if (TxtUtils.isEmpty(text)) {
             return;
         }
-        if (ttsEngine == null) {
+        final boolean engineWasNull = ttsEngine == null;
+        if (engineWasNull) {
             LOG.d("getTTS-status was null");
         } else {
             LOG.d("getTTS-status not null");
@@ -261,6 +262,9 @@ public class TTSEngine {
                     } catch (InterruptedException e) {
                     }
                     speek(text);
+                } else if (status == TextToSpeech.ERROR) {
+                    Toast.makeText(LibreraApp.context, R.string.msg_unexpected_error, Toast.LENGTH_LONG)
+                         .show();
                 }
             }
         });
@@ -272,6 +276,14 @@ public class TTSEngine {
         ttsEngine.setSpeechRate(AppState.get().ttsSpeed);
         LOG.d(TAG, "Speek s", AppState.get().ttsSpeed);
         LOG.d(TAG, "Speek AppSP.get().lastBookParagraph", AppSP.get().lastBookParagraph);
+
+        if (engineWasNull) {
+            // a brand-new engine is still connecting: everything enqueued
+            // here AND the onInit re-entry would play the page twice (and
+            // fire the page-turn signal twice) — let onInit drive the first
+            // playback instead
+            return;
+        }
 
         if (AppState.get().ttsPauseDuration > 0 && text.contains(TxtUtils.TTS_PAUSE)) {
             String[] parts = text.split(TxtUtils.TTS_PAUSE);
